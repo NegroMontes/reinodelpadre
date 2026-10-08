@@ -1,0 +1,447 @@
+.tag.secuencial{ color:var(--amber); }
+
+.align-picker{ display:inline-flex; gap:2px; }
+
+.align-picker button{
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--indigo);
+    font-size:11px;
+    padding:3px 7px;
+    border-radius:6px;
+    cursor:pointer;
+    opacity:.75;
+    transition:background .15s ease, color .15s ease, opacity .15s ease;
+  }
+
+.align-picker button.active{ background:var(--teal); border-color:var(--teal); color:#fff; opacity:1; }
+
+.entry-embed-video{ margin-top:10px; }
+
+.entry-embed-video iframe{ width:100%; aspect-ratio:16/9; border:0; border-radius:var(--radius-sm); display:block; box-shadow:var(--shadow-sm); }
+
+/* Video subido directo (Firebase Storage u otro archivo .mp4/.webm), sin
+     reproductor de YouTube/Vimeo/Drive de por medio (pedido del usuario,
+     22/09/2026) — `<video>` nativo, altura propia en vez del aspect-ratio
+     fijo del iframe (el navegador ya respeta la proporción real del archivo). */
+
+.entry-embed-video video{ width:100%; max-height:70vh; border-radius:var(--radius-sm); display:block; background:#000; box-shadow:var(--shadow-sm); }
+
+.entry-embed-pdf{ margin-top:10px; }
+
+.entry-embed-pdf iframe{ width:100%; height:65vh; max-height:600px; border:1px solid var(--line); border-radius:var(--radius-sm); display:block; box-shadow:var(--shadow-sm); }
+
+.entry-embed-fallback{ margin-top:6px; font-size:12.5px; }
+
+/* Audio (26/09/2026, tipo nuevo a nivel de entrada y de paso). */
+
+.entry-embed-audio{ margin-top:10px; }
+
+.entry-embed-audio audio{ width:100%; display:block; }
+
+/* Cita de libro (26/09/2026, unificación con "Encuentros") — tarjeta con un
+     borde de color propio de la biblioteca (`--bc`, seteado inline por
+     `renderLibroCita()`), igual criterio que el resto del sitio para no
+     depender de resolver custom properties de CSS ahí adentro. */
+
+.libro-cita{
+    margin-top:10px;
+    padding:14px 18px;
+    background:color-mix(in srgb, var(--bc, var(--amber)) 8%, var(--panel));
+    border:1px solid color-mix(in srgb, var(--bc, var(--amber)) 40%, transparent);
+    border-left:4px solid var(--bc, var(--amber));
+    border-radius:0 var(--radius) var(--radius) 0;
+  }
+
+.libro-cita-loading{ opacity:.7; }
+
+.libro-cita-head{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+
+.libro-cita-badge{
+    display:inline-block;
+    padding:2px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    background:var(--bc, var(--amber));
+    color:var(--white);
+  }
+
+.libro-cita-autor{ font-size:12px; color:var(--ink-soft); }
+
+.libro-cita-q{ margin:0 0 6px; font-style:italic; font-weight:600; }
+
+.libro-cita-body{ margin:0; font-size:14.5px; white-space:pre-wrap; }
+
+.libro-cita-ref{ margin:6px 0 0; font-size:12px; color:var(--ink-soft); }
+
+.libro-cita-attr{ margin:4px 0 0; font-size:11px; color:var(--ink-soft); opacity:.75; }
+
+.libro-cita-preview{ margin-top:6px; }
+
+/* Opciones como "pills" clickeables (06/10/2026, estética tipo "Encuentros"
+     — `.pl-opt`) en vez de radios/checkboxes sueltos con texto al lado. El
+     `<input>` sigue existiendo (sigue siendo lo que el JS escucha con
+     `onchange`) pero queda visualmente oculto — clickear la pastilla entera
+     togglea el input igual que clickear cualquier <label> que lo envuelve,
+     comportamiento nativo del navegador, nada que el JS tenga que manejar
+     aparte. `:has()` (soportado en los navegadores modernos de los últimos
+     años) pinta la pastilla elegida sin tocar el DOM desde JS. */
+
+.secuencial-step-opciones{ margin-top:14px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+
+.secuencial-opcion{
+    display:inline-flex;
+    align-items:center;
+    gap:0;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    padding:8px 16px;
+    border:1.5px solid var(--line);
+    border-radius:999px;
+    background:var(--panel);
+    color:var(--ink);
+    transition:background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
+  }
+
+.secuencial-opcion:hover{ border-color:var(--teal); transform:translateY(-1px); }
+
+.secuencial-opcion input{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+
+.secuencial-opcion:has(input:checked){
+    background:var(--teal);
+    border-color:var(--teal);
+    color:var(--white);
+    box-shadow:0 6px 14px -4px rgba(0,155,179,.5);
+  }
+
+/* Nota interna, solo visible para quien puede editar la entrada (26/09/2026). */
+
+.step-nota{ margin-top:10px; padding:8px 12px; background:var(--bg-alt); border:1px dashed var(--line); border-radius:var(--radius-sm); font-size:12.5px; color:var(--ink-soft); }
+
+/* Condición de visibilidad de un paso, del lado del editor (26/09/2026). */
+
+.step-cond-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px; }
+
+.step-cond-row select, .step-cond-row input{ width:auto; flex:1 1 140px; margin-top:0; }
+
+.step-inline-check{ display:flex; align-items:center; gap:6px; font-size:13px; margin-top:6px; }
+
+.step-inline-check input{ width:auto; margin:0; }
+
+/* Entrada "secuencial" — se recorre paso a paso en vez de mostrarse toda junta. */
+
+.secuencial-summary{ margin:0 0 8px; font-size:13px; color:var(--indigo); opacity:.8; }
+
+.secuencial-done{ color:var(--sage); font-weight:700; opacity:1; }
+
+.secuencial-step{
+    position:relative;
+    margin-top:14px;
+    padding:18px 20px 20px;
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-top:4px solid var(--amber);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-md);
+    /* La causa real del "renglón feo" que reportó el usuario (22/09/2026) no
+       era el botón en sí: `.entry-body{white-space:pre-wrap}` es heredable, y
+       llegaba hasta acá — los espacios de indentación entre los `<div>` que
+       arma el JS (ej. `'  <div class="secuencial-step-body">'`) se estaban
+       preservando como una línea en blanco real, ANTES de que el texto
+       empezara. Los elementos que sí necesitan `pre-wrap` (el cuerpo de cada
+       zona de texto, la pregunta, el propósito) ya lo declaran ellos mismos
+       más abajo, así que cortar la herencia acá no les afecta. */
+    white-space:normal;
+  }
+
+/* Pantalla completa (pedido del usuario, 22/09/2026): overlay fijo que tapa
+     toda la ventana, mismo contenido de adentro sin cambios. */
+
+.secuencial-step.secuencial-fullscreen{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    margin:0;
+    border-radius:0;
+    max-width:none;
+    overflow-y:auto;
+    padding:20px 20px 32px;
+  }
+
+body.secuencial-fs-lock{ overflow:hidden; }
+
+/* En la esquina, afuera del flujo normal, en vez de una fila propia
+     (pedido del usuario, 22/09/2026): así el botón no empuja el contenido a
+     un renglón aparte y el texto del paso arranca normal en la primera línea
+     — `position:absolute` (no `float`) para no depender de que el navegador
+     ajuste el wrap del texto alrededor de un elemento flotante. El "renglón
+     en blanco" que se veía antes de este cambio no era ni el float ni el
+     absolute en sí — era la herencia de `white-space:pre-wrap` (ver
+     `.secuencial-step` más arriba). */
+
+.secuencial-step-toolbar{ position:absolute; top:6px; right:10px; z-index:2; }
+
+/* Solo el ícono, sin recuadro (pedido del usuario, 22/09/2026) — antes
+     reusaba `.btn.ghost`, que trae un borde bordó que acá no hacía falta. */
+
+.secuencial-fullscreen-btn{
+    background:none;
+    border:none;
+    border-radius:50%;
+    padding:5px 7px;
+    font-size:17px;
+    line-height:1;
+    color:var(--indigo);
+    opacity:.65;
+    cursor:pointer;
+    transition:background .15s ease, opacity .15s ease;
+  }
+
+.secuencial-fullscreen-btn:hover{ opacity:1; background:color-mix(in srgb, var(--teal) 16%, transparent); }
+
+/* Aviso cuando la música de fondo no pudo reproducirse (23/09/2026). */
+
+.secuencial-music-error{ color:#b3261e; }
+
+/* El "X de X" ahora va al pie, junto a la navegación (antes arriba del
+     todo) — pedido del usuario, 22/09/2026. */
+
+.secuencial-step-count{ margin:8px 0 0; font-size:12px; font-weight:600; color:var(--indigo); opacity:.7; text-align:center; }
+
+/* El título "Te recordamos tu(s) propósito(s):" vive afuera de las cajas,
+     una sola vez (singular o plural según cuántos haya) — las cajas de abajo
+     ya no llevan título propio (pedido del usuario, 22/09/2026). */
+
+.secuencial-recordatorio-group{ margin-top:14px; }
+
+.secuencial-recordatorio-group .secuencial-recordatorio-title{ margin:0 0 6px; }
+
+.secuencial-recordatorio-group .secuencial-recordatorio{ margin-top:8px; }
+
+.secuencial-recordatorio{
+    padding:12px 16px;
+    background:color-mix(in srgb, var(--sage) 12%, var(--panel));
+    border:1px solid color-mix(in srgb, var(--sage) 40%, transparent);
+    border-left:4px solid var(--sage);
+    border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+.secuencial-recordatorio-title{ margin:0 0 4px; font-size:12px; font-weight:700; color:var(--sage); }
+
+.secuencial-recordatorio-text{ margin:0; font-size:14px; white-space:pre-wrap; }
+
+/* Paso de cierre sintético (no se guarda, se arma solo al leer) — dos
+     frases en dos niveles tipográficos distintos, con los recordatorios de
+     propósito debajo (pedido del usuario, 22/09/2026). */
+
+.secuencial-closing{ text-align:center; padding:22px 0 4px; }
+
+/* Insignia circular con un tilde, puramente decorativa (06/10/2026) — mismo
+     espíritu que la pantalla de cierre `.pl-closing` de "Encuentros". */
+
+.secuencial-closing::before{
+    content:"✓";
+    display:block;
+    width:48px;
+    height:48px;
+    margin:0 auto 14px;
+    border-radius:50%;
+    background:var(--sage);
+    color:var(--white);
+    font-size:24px;
+    font-weight:800;
+    line-height:48px;
+    box-shadow:0 10px 22px -6px rgba(99,158,141,.6);
+  }
+
+.secuencial-closing-title{ margin:0 0 4px; font-size:22px; font-weight:700; font-family:'Baloo 2',serif; color:var(--indigo); }
+
+.secuencial-closing-sub{ margin:0; font-size:15px; color:var(--indigo); opacity:.85; }
+
+.secuencial-close-btn{ display:block; margin:12px auto 0; }
+
+/* Paso "Grupo" con slide:true — se muestra como una portada de sección
+     (08/10/2026, puerto de "Encuentros"), mismo espíritu que `.secuencial-closing`
+     pero sin la insignia de tilde (no es un cierre, es un separador). */
+.secuencial-group-slide{ text-align:center; padding:22px 0 4px; }
+.secuencial-group-slide-title{ margin:0 0 4px; font-size:20px; font-weight:700; font-family:'Baloo 2',serif; color:var(--indigo); }
+
+.secuencial-completions{
+    margin-top:10px;
+    padding:10px 14px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+  }
+
+.secuencial-completions-list{ margin:6px 0 0; padding-left:18px; font-size:13.5px; }
+
+.secuencial-completions-list li{ margin-bottom:3px; }
+
+.secuencial-step-body{ font-size:14.5px; white-space:pre-wrap; }
+
+/* La tarjeta de "Pregunta" — el elemento más distintivo de la estética tipo
+     "Encuentros" (06/10/2026): centrada, con una insignia circular que
+     "atraviesa" el borde superior (el truco: `::before` con un
+     `box-shadow` del mismo color que el fondo que la rodea, armando el
+     efecto de recorte sin necesitar ningún recurso gráfico). El color del
+     anillo (`var(--bg-alt)`) tiene que coincidir con el fondo real de
+     `.secuencial-step` que la contiene — si ese fondo cambiara, hay que
+     ajustar este valor también. */
+
+.secuencial-step-pregunta{
+    position:relative;
+    font-style:normal;
+    font-weight:600;
+    font-size:16px;
+    line-height:1.4;
+    text-align:center;
+    color:var(--indigo);
+    padding:24px 18px 16px;
+    margin:18px 0;
+    border:2px solid color-mix(in srgb, var(--teal) 38%, var(--line));
+    border-radius:var(--radius-lg);
+    background:var(--panel);
+    box-shadow:var(--shadow-lift);
+  }
+
+.secuencial-step-pregunta::before{
+    content:"?";
+    position:absolute;
+    top:0; left:50%;
+    transform:translate(-50%,-50%);
+    width:34px; height:34px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:var(--teal);
+    color:var(--white);
+    font-size:17px;
+    font-weight:800;
+    line-height:1;
+    box-shadow:0 0 0 6px var(--bg-alt);
+  }
+
+.secuencial-step-pregunta p{ margin:0; white-space:pre-wrap; }
+
+/* Espacio entre el texto normal y la pregunta cuando van combinados en el
+     mismo paso (pedido del usuario, 22/09/2026). */
+
+.secuencial-step-body + .secuencial-step-pregunta{ margin-top:10px; }
+
+.secuencial-step-pregunta + .secuencial-step-body{ margin-top:10px; }
+
+/* Un paso de Video/Imagen puede tener texto antes Y después, ahora en cajas
+     separadas (rediseño 22/09/2026, para poder alinear cada una distinto) —
+     el selector general de hermanos cubre el caso con una imagen/embed en el
+     medio, que no comparte esta clase. */
+
+.secuencial-step-body ~ .secuencial-step-body{ margin-top:10px; }
+
+/* Caja de "Propósito personal" — fondo cálido tenue (ámbar), como la caja
+     `.pl-prop` de "Encuentros" (06/10/2026), para distinguirla a simple
+     vista de un paso de texto corrido. */
+
+.secuencial-step-proposito{
+    background:color-mix(in srgb, var(--amber) 14%, var(--panel));
+    border:1px solid color-mix(in srgb, var(--amber) 45%, transparent);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin:14px 0;
+  }
+
+.secuencial-step-proposito p{ margin:0 0 10px; font-size:14.5px; font-weight:700; color:var(--ink); white-space:pre-wrap; }
+
+.secuencial-step-proposito textarea{
+    width:100%;
+    min-height:90px;
+    font:inherit;
+    padding:10px 12px;
+    border:1px solid color-mix(in srgb, var(--amber) 55%, var(--line));
+    border-radius:var(--radius-sm);
+    background:var(--panel);
+    resize:vertical;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+
+.secuencial-step-proposito textarea:focus{
+    outline:none;
+    border-color:var(--amber);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--amber) 25%, transparent);
+  }
+
+.secuencial-nav{ display:flex; justify-content:space-between; gap:10px; margin-top:16px; }
+
+/* Barra de avance "X de X" — un degradé fino y redondeado (06/10/2026,
+     mismo espíritu que `.pl-bar` de "Encuentros") en vez de solo el texto
+     de antes; el texto se mantiene debajo. */
+
+.secuencial-progress{ height:6px; border-radius:999px; background:var(--line); overflow:hidden; margin-top:14px; }
+
+.secuencial-progress > div{ height:100%; border-radius:999px; background:var(--amber); transition:width .3s ease; }
+
+.step-row{ border:1px solid var(--line); border-radius:var(--radius-sm); padding:12px 14px; background:var(--panel); box-shadow:var(--shadow-sm); }
+
+.step-row-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+
+.step-row-actions{ display:flex; gap:4px; }
+
+.step-row-actions button{
+    background:none; border:1px solid var(--line); border-radius:4px;
+    font-size:12px; padding:2px 8px; cursor:pointer; color:var(--indigo);
+  }
+
+.step-row-actions button:disabled{ opacity:.35; cursor:default; }
+
+.step-row input, .step-row textarea{
+    width:100%; font:inherit; padding:7px 9px;
+    border:1px solid var(--line); border-radius:var(--radius-sm); margin-top:6px;
+  }
+
+.step-row textarea{ min-height:60px; resize:vertical; }
+
+.steps-builder-collapsed .step-row-body{ display:none; }
+
+/* Paso "Grupo" (08/10/2026, puerto de "Encuentros") — mismo look que
+     .step-row, con un acento a la izquierda para distinguirlo de un paso de
+     contenido normal a simple vista. */
+.step-row-group{ border-left:3px solid var(--amber); }
+.step-group-count{ font-weight:normal; margin:0 8px; }
+.step-group-fold{ font-size:14px !important; }
+
+/* Paleta visual del constructor de pasos (08/10/2026, puerto de
+     "Encuentros") — reemplaza la fila de botones de puro texto por
+     tarjetas con ícono + descripción corta. */
+.step-palette{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; margin-top:6px; }
+.step-palette-card{
+    display:flex; flex-direction:column; align-items:flex-start; gap:3px; text-align:left;
+    border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--panel);
+    padding:10px 12px; cursor:pointer; box-shadow:var(--shadow-sm); font:inherit;
+  }
+.step-palette-card:hover{ border-color:var(--teal); box-shadow:var(--shadow-md); }
+.step-palette-icon{ font-size:20px; }
+.step-palette-label{ font-weight:700; font-size:13px; color:var(--indigo); }
+.step-palette-desc{ font-size:11.5px; color:var(--ink-soft); line-height:1.3; }
+
+/* Diálogo "Buscar en los libros" (08/10/2026) — overlay + tarjeta flotante,
+     mismo patrón que los demás paneles flotantes del sitio. */
+.libro-picker-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:60; padding:16px; }
+.libro-picker-modal{ background:var(--panel); border-radius:var(--radius); box-shadow:var(--shadow-lift); width:min(560px, 100%); max-height:85vh; display:flex; flex-direction:column; padding:16px; }
+.libro-picker-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.libro-picker-head h3{ margin:0; font-family:'Baloo 2',serif; color:var(--indigo); }
+.libro-picker-tabs{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+.libroPickerTab{ border:1px solid var(--line); border-radius:999px; background:var(--bg-alt); padding:4px 12px; font-size:12.5px; cursor:pointer; }
+.libroPickerTab.on{ background:var(--teal); color:#fff; border-color:var(--teal); }
+#libroPickerQuery{ width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:var(--radius-sm); margin-bottom:8px; }
+.libro-picker-body{ flex:1; overflow-y:auto; min-height:120px; }
+.libro-picker-list{ display:flex; flex-direction:column; gap:2px; }
+.libro-picker-row{ display:flex; gap:8px; align-items:baseline; padding:6px 4px; border-radius:6px; cursor:pointer; }
+.libro-picker-row:hover{ background:var(--bg-alt); }
+.libro-picker-row input{ margin-top:2px; }
+.libro-picker-row-num{ font-weight:700; color:var(--teal); flex-shrink:0; font-size:12.5px; }
+.libro-picker-row-title{ font-size:13px; }
+.libro-picker-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }

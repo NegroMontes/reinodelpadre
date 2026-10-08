@@ -1,0 +1,232 @@
+.app{
+    max-width:min(1320px, 94vw);
+    margin:0 auto;
+    padding:0 20px 80px;
+  }
+
+/* LAYOUT — sidebar de navegación + contenido */
+
+.layout{
+    display:flex;
+    align-items:flex-start;
+    gap:22px;
+    margin-top:22px;
+  }
+
+.sidebar{
+    width:230px;
+    flex-shrink:0;
+    position:sticky;
+    top:20px;
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:10px;
+    box-shadow:var(--shadow-sm);
+  }
+
+/* HEADER */
+
+header.top{
+    padding:36px 0 22px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:0;
+  }
+
+.kicker{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+    letter-spacing:0.02em;
+  }
+
+.brand-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+
+.brand-row img.logo-mark{
+    width:44px;
+    height:auto;
+    flex-shrink:0;
+    cursor:pointer;
+    transition:transform .2s ease;
+  }
+
+.brand-row img.logo-mark:hover{ transform:scale(1.08) rotate(-3deg); }
+
+header.top h1{
+    margin:0;
+    font-size:34px;
+    font-weight:600;
+    color:var(--bordeaux-deep);
+    line-height:1.15;
+  }
+
+header.top p.sub{
+    margin:8px 0 0;
+    color:var(--ink-soft);
+    max-width:56ch;
+    font-size:14.5px;
+  }
+
+header.top h1 .badge{
+    display:inline-block;
+    font-family:'Raleway',sans-serif;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--white);
+    background:linear-gradient(135deg, var(--teal), #00828f);
+    padding:5px 12px;
+    border-radius:999px;
+    vertical-align:middle;
+    margin-left:10px;
+    box-shadow:0 4px 12px rgba(0,155,179,.35);
+  }
+
+.auth-user .role-pill{
+    font-size:10.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    padding:2px 7px;
+    border:1px solid currentColor;
+    color:var(--sage);
+  }
+
+/* DAY TABS — columna lateral en desktop, fila horizontal en mobile (ver media query) */
+
+.day-rail{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+
+.day-tab{
+    position:relative;
+    background:transparent;
+    color:var(--ink-soft);
+    border:1px solid transparent;
+    border-left:3px solid transparent;
+    border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+    padding:10px 14px;
+    cursor:pointer;
+    font-family:'Baloo 2',serif;
+    font-size:14.5px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
+    flex-shrink:0;
+    text-align:left;
+  }
+
+.day-tab:hover{ background:rgba(255,255,255,0.65); transform:translateX(2px); }
+
+.day-tab.active{
+    background:var(--panel);
+    border-color:var(--line);
+    color:var(--teal);
+    font-weight:600;
+    border-left-color:var(--bordeaux);
+    box-shadow:var(--shadow-sm);
+    z-index:2;
+  }
+
+/* Separa el sidebar en 3 grupos (camino formativo / contenido general del
+     comando / administración) — misma línea para todos los roles, así el
+     agrupamiento no "salta" según qué pestañas ve cada quien. */
+
+.day-rail-divider{ height:1px; background:var(--line); margin:6px 8px; flex-shrink:0; }
+
+/* MENSAJE — selector dinámico de día (pestaña "Mensaje") */
+
+.mensaje-dayswitch{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:8px;
+    margin-bottom:22px;
+    border-bottom:1px solid var(--line);
+  }
+
+.day-pill{
+    background:var(--bg-alt);
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:7px 16px;
+    font-family:'Baloo 2',serif;
+    font-size:14px;
+    cursor:pointer;
+    white-space:nowrap;
+    flex-shrink:0;
+    transition:background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+  }
+
+.day-pill:hover{ border-color:var(--teal); color:var(--teal); transform:translateY(-1px); }
+
+.day-pill.active{
+    background:var(--teal);
+    border-color:var(--teal);
+    color:var(--white);
+    font-weight:600;
+    box-shadow:0 6px 16px -4px rgba(0,155,179,.55);
+  }
+
+.day-pill-add{
+    background:none;
+    border:1px dashed var(--ink-soft);
+    color:var(--ink-soft);
+    border-radius:999px;
+    width:34px;
+    height:34px;
+    flex-shrink:0;
+    cursor:pointer;
+    font-size:16px;
+    transition:border-color .15s ease, color .15s ease, transform .15s ease;
+  }
+
+.day-pill-add:hover{ border-color:var(--bordeaux); color:var(--bordeaux); transform:rotate(90deg); }
+
+@media (max-width:760px) {
+/* align-items:flex-start (base, arriba) evita que el sidebar se estire a lo
+       alto de .main en desktop — pero al apilar en columna acá, ese mismo valor
+       deja que .main "encoja" a su contenido en vez de ocupar el ancho completo,
+       así que una tabla ancha (ej. "Comentarios") podía empujar toda la página. */
+.layout{ flex-direction:column; align-items:stretch; }
+
+.sidebar{
+      width:100%;
+      position:sticky;
+      top:0;
+      z-index:30;
+      overflow-x:auto;
+      box-shadow:0 2px 8px rgba(22,41,55,0.12);
+    }
+
+.day-rail{
+      flex-direction:row;
+      align-items:stretch;
+      gap:2px;
+      padding-bottom:2px;
+    }
+
+.day-tab{
+      border-left:1px solid var(--line);
+      border-bottom:3px solid transparent;
+      border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+.day-tab.active{ border-left-color:var(--line); border-bottom-color:var(--bordeaux); }
+
+.day-rail-divider{ width:1px; height:auto; align-self:stretch; margin:2px 4px; }
+}
+
+@media (max-width:600px) {
+header.top h1{ font-size:27px; }
+}

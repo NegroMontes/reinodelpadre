@@ -1,0 +1,67 @@
+  :root{
+    /* Reino del Padre MDZ 2027 — Manual de Marca (colores — no tocar) */
+    --bg: #E1EEF2;
+    --bg-alt: #CBE0E6;
+    --panel: #FFFFFF;
+    --ink: #162937;
+    --ink-soft: #4C6270;
+    --bordeaux: #D93A5D;      /* frambuesa — acciones principales */
+    --bordeaux-deep: #B62D4B;
+    --indigo: #162937;        /* marino — títulos, textos fuertes */
+    --gold: #DB6829;          /* naranja cálido — acentos */
+    --teal: #009BB3;          /* turquesa — pestaña activa, enlaces */
+    --sage: #639E8D;          /* verde salvia */
+    --amber: #FFA41D;
+    --line: #B9D2D9;
+    --white: #FFFFFF;
+
+    /* Sistema de forma/profundidad (06/10/2026) — nunca cambia de color, solo
+       redondea/da volumen, inspirado en la estética de "Encuentros" (tarjetas
+       redondeadas, sombras suaves con el color de acento, chips en pastilla)
+       sin tocar ni un hex del manual de marca de arriba. */
+    --radius-sm: 10px;
+    --radius: 14px;
+    --radius-lg: 20px;
+    --shadow-sm: 0 2px 8px rgba(22,41,55,.07);
+    --shadow-md: 0 10px 26px rgba(22,41,55,.12);
+    --shadow-lift: 0 16px 36px -18px rgba(22,41,55,.38);
+  }
+
+html,body{margin:0;padding:0;}
+
+/* overflow-x:hidden vive SOLO en html (alcanza para evitar el scroll
+     horizontal de toda la página, que es lo que importaba) — tenerlo
+     TAMBIÉN en body rompía position:sticky del sidebar: cualquier overflow
+     explícito (aunque sea solo en X) hace que ese elemento compute
+     overflow-y:auto y se vuelva su propio "contenedor de scroll", así que
+     un sticky adentro pasa a medirse contra el scroll de BODY (que nunca se
+     mueve, es html/el viewport el que scrollea) en vez del scroll real de
+     la página — el sidebar quedaba "pegado" a su posición original en vez
+     de seguir bajando con la pantalla (bug reportado por el usuario,
+     23/09/2026, afectaba tanto mobile como desktop). */
+
+html{ overflow-x:hidden; }
+
+body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Raleway',system-ui,-apple-system,sans-serif;
+    font-size:15px;
+    line-height:1.55;
+    min-height:100vh;
+  }
+
+.entry-collapsed .entry-body{ display:none; }
+
+.entry-body{
+    font-size:14.5px;
+    color:var(--ink);
+    white-space:pre-wrap;
+    max-width:70ch;
+  }
+
+.entry-body a{ color:var(--teal); }
+
+.entry-body img{ max-width:100%; margin-top:10px; border:1px solid var(--line); border-radius:var(--radius-sm); }
+
+.entry-body > .entry-text-zone:first-child{ margin-top:0; }

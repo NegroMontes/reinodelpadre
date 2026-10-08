@@ -1,0 +1,114 @@
+/* USUARIOS */
+
+.users-table{ width:100%; border-collapse:collapse; }
+
+.users-table th, .users-table td{
+    text-align:left;
+    padding:9px 10px;
+    border-bottom:1px solid var(--line);
+    font-size:13px;
+    vertical-align:middle;
+  }
+
+.users-table th{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    /* El botón de orden (↕/▲/▼) quedaba en su propio renglón, debajo del
+       texto del header, en vez de al lado (pedido del usuario, 23/09/2026)
+       — sin esto, el ancho de columna (angosto, ajustado al contenido de
+       abajo) no le dejaba lugar al lado del texto y lo mandaba a la línea
+       siguiente. */
+    white-space:nowrap;
+  }
+
+.users-table select{
+    font-family:'Raleway',sans-serif;
+    font-size:12.5px;
+    padding:5px 6px;
+    border:1px solid var(--line);
+  }
+
+/* Fila de filtros de "Usuarios": nombre, rol, sección/depto (el rango de
+     fechas se sacó el 23/09/2026, a cambio de poder ordenar por fecha — ver
+     .uf-sort-btn en los headers de la tabla). */
+
+.users-filters{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    margin:0 0 14px;
+    padding:10px 12px;
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+  }
+
+.users-filters input[type="text"], .users-filters select{
+    font-family:'Raleway',sans-serif;
+    font-size:12.5px;
+    padding:5px 6px;
+    border:1px solid var(--line);
+    border-radius:5px;
+  }
+
+/* Botón de orden (A-Z/Z-A, o más reciente/más antiguo) en los headers de
+     Nombre y Fecha (pedido del usuario, 23/09/2026) — ↕ neutro, ▲/▼ cuando
+     esa columna es la que ordena la tabla. Agrandado (23/09/2026, "es
+     complicado apretarlo") a un área táctil de ~26px, en vez de solo el
+     tamaño del glifo. */
+
+.uf-sort-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+    color:var(--indigo);
+    opacity:.7;
+    padding:4px 6px;
+    min-width:26px;
+    min-height:26px;
+    vertical-align:middle;
+  }
+
+.uf-sort-btn:hover{ opacity:1; }
+
+.user-info-popover{
+    display:none;
+    position:absolute;
+    left:0;
+    top:100%;
+    margin-top:6px;
+    min-width:240px;
+    max-width:320px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 6px 20px rgba(22,41,55,0.18);
+    padding:12px 14px;
+    font-size:13px;
+    color:var(--ink);
+    white-space:normal;
+    z-index:60;
+    text-align:left;
+  }
+
+.user-info-popover p{ margin:0 0 7px; }
+
+.user-info-popover p:last-child{ margin-bottom:0; }
+
+.user-info-popover strong{ color:var(--indigo); }
+
+.user-info-wrap:hover .user-info-popover,
+  .user-info-wrap:focus-within .user-info-popover,
+  .user-info-wrap.open .user-info-popover{ display:block; }
+
+/* Fila de un login que todavía hace falta aprobar, resaltada en ámbar para
+     ubicarla de un vistazo entre el resto (pedido del usuario, 23/09/2026). */
+
+.user-row-pendiente{ background:rgba(255,164,29,0.16); }
+
+.user-row-pendiente td{ border-bottom-color:rgba(255,164,29,0.35); }

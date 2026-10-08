@@ -1,0 +1,735 @@
+*{box-sizing:border-box;}
+
+h1,h2,h3,.serif{
+    font-family:'Baloo 2',Georgia,'Times New Roman',serif;
+  }
+
+.main{
+    flex:1;
+    min-width:0; /* para que el panel pueda achicarse y no desborde */
+  }
+
+/* AUTH BAR */
+
+.header-top-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+.auth-signin-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:'Raleway',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:6px 12px;
+    border:1px solid var(--line);
+    background:var(--white);
+    color:var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+.auth-signin-btn:hover{ border-color:var(--teal); color:var(--teal); }
+
+.auth-user{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+.auth-user select{
+    font-family:'Raleway',sans-serif;
+    font-size:11.5px;
+    padding:3px 5px;
+    border:1px solid var(--line);
+    background:var(--white);
+    color:var(--ink);
+    max-width:180px;
+  }
+
+.auth-user button{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:12.5px;
+    padding:0;
+  }
+
+.auth-user button:hover{ color:var(--bordeaux); }
+
+/* SECCIÓN TAG */
+
+.tag.seccion{ color:var(--sage); }
+
+/* Subpestañas Comando/Milicianos de "Usuarios" (pedido del usuario,
+     23/09/2026) — reusa el mismo look que los .day-pill de "Mensaje". */
+
+.users-subtabs{ display:flex; gap:8px; margin-bottom:14px; }
+
+/* Botón chico de info (Ruca/Fundación, actividad favorita) al lado del
+     nombre, con un popover propio (no el tooltip nativo del navegador, que
+     tarda en aparecer y no se puede abrir con un click — pedido del usuario,
+     23/09/2026: "debe aparecer inmediatamente... si cliqueo debe aparecer
+     igualmente"). `:hover`/`:focus-within` lo muestra al toque (CSS puro, sin
+     delay); la clase `.open` (togglea por JS al clickear el botón) hace lo
+     mismo para touch, donde no hay hover.  */
+
+.user-info-wrap{ position:relative; display:inline-block; }
+
+.user-info-btn{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:4px;
+    font-size:9px;
+    line-height:1;
+    padding:2px 5px;
+    margin-left:4px;
+    color:var(--indigo);
+    opacity:.7;
+    cursor:pointer;
+  }
+
+.user-info-btn:hover{ opacity:1; border-color:var(--teal); }
+
+/* PANEL */
+
+.panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px 30px 34px;
+    box-shadow:var(--shadow-sm);
+  }
+
+.panel-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+/* El botón "+ Agregar entrada"/"Cerrar" reusa `.panel-head` (flex, los dos
+     extremos) pero, movido debajo de la lista de entradas (08/10/2026), sin
+     margen propio quedaba pegado al borde inferior de la última tarjeta —
+     reportado por el usuario. Clase aparte (no tocar `.panel-head` en
+     general, que también se usa arriba de todo en varios paneles, donde SÍ
+     conviene que quede sin separación extra). */
+.add-entry-row{ margin-top:20px; }
+
+.panel-head h2{
+    margin:0;
+    font-size:22px;
+    font-weight:600;
+    color:var(--indigo);
+  }
+
+.day-meta{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-top:4px;
+  }
+
+.day-meta input{
+    font-family:'Raleway',sans-serif;
+    font-size:13px;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    border-bottom:1px dotted var(--line);
+    padding:2px 0;
+    width:180px;
+  }
+
+.day-meta input:focus{ outline:none; border-bottom-color:var(--bordeaux); }
+
+.btn{
+    font-family:'Raleway',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    padding:9px 16px;
+    border:1px solid var(--bordeaux);
+    border-radius:var(--radius-sm);
+    background:var(--bordeaux);
+    color:var(--white);
+    cursor:pointer;
+    letter-spacing:0.01em;
+    box-shadow:0 4px 12px -4px rgba(217,58,93,.55);
+    transition:background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+  }
+
+.btn:hover{ background:var(--bordeaux-deep); border-color:var(--bordeaux-deep); transform:translateY(-1px); box-shadow:0 8px 16px -4px rgba(182,45,75,.5); }
+
+.btn:active{ transform:translateY(0); }
+
+.btn.ghost{
+    background:transparent;
+    color:var(--bordeaux);
+    box-shadow:none;
+  }
+
+.btn.ghost:hover{ background:rgba(122,35,49,0.08); box-shadow:none; }
+
+.btn.small{ padding:5px 11px; font-size:12.5px; border-radius:8px; }
+
+.btn.danger{ border-color:#8a5a3a; color:#8a5a3a; background:transparent; box-shadow:none; }
+
+.btn.danger:hover{ background:rgba(138,90,58,0.1); }
+
+/* ENTRY LIST — cada entrada es su propia tarjeta (06/10/2026, estética tipo
+     "Encuentros": tarjetas redondeadas con sombra suave en vez de una lista
+     separada por líneas) — fondo `var(--bg)` a propósito, el mismo tinte
+     celeste que ya usan `.home-card`/`.mando-card`/`.eje-card`, para que
+     contraste contra el blanco de `.panel` que la contiene. */
+
+.entries{ margin-top:4px; display:flex; flex-direction:column; gap:14px; }
+
+.entry{
+    padding:18px 20px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-sm);
+    transition:box-shadow .18s ease, border-color .18s ease;
+  }
+
+.entry:hover{ box-shadow:var(--shadow-md); border-color:var(--teal); }
+
+/* "+" flotante entre entradas (08/10/2026, pedido del usuario: poder elegir
+   dónde cae una entrada nueva en vez de siempre al final) — una franja
+   angosta y transparente entre cada par de entradas, invisible hasta que el
+   mouse se acerca; usa márgenes negativos para "comerse" parte del `gap`
+   normal de `.entries` (14px), así no agranda demasiado la separación visual
+   cuando nadie la está usando. El botón queda a la izquierda (pedido
+   explícito del usuario), no centrado. */
+.entry-gap{
+    height:20px;
+    margin:-7px 0;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    padding-left:6px;
+    position:relative;
+  }
+
+.entry-gap-btn{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:none;
+    background:var(--teal);
+    color:#fff;
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    /* Arranca apenas visible (no del todo en 0) — en touch no existe un
+       :hover real, así que si el botón dependiera solo de esa pseudoclase
+       quedaría invisible de por vida en mobile. Con esto sigue siendo una
+       presencia discreta (no compite con las entradas) pero es ubicable y
+       tocable sin necesidad de acercar el mouse primero. */
+    opacity:.35;
+    transform:scale(.85);
+    transition:opacity .15s ease, transform .15s ease;
+    box-shadow:var(--shadow-sm);
+  }
+
+.entry-gap:hover .entry-gap-btn,
+.entry-gap-btn:focus-visible{
+    opacity:1;
+    transform:scale(1);
+  }
+
+.entry-gap-btn:hover{ background:var(--bordeaux); }
+
+.entry-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+
+/* Bug de mobile (pedido del usuario, 23/09/2026: "los botones editar y
+     eliminar quedan desfasados de la pantalla"): un item de flexbox no se
+     achica por debajo del ancho de su propio contenido a menos que se le
+     ponga `min-width:0` explícito — así que con un título largo, o varias
+     etiquetas de ámbito juntas en `.entry-meta` (ver más abajo, también sin
+     wrap), esta columna nunca cedía espacio y terminaba empujando
+     "Editar"/"Eliminar" (que sí tienen `flex-shrink:0`) fuera del ancho de
+     la pantalla en vez de dejarlos fijos a la derecha. */
+
+.entry-head-main{ min-width:0; flex:1 1 auto; }
+
+.entry-title{
+    font-family:'Baloo 2',serif;
+    font-size:18px;
+    font-weight:600;
+    margin:0;
+    color:var(--ink);
+  }
+
+/* Colapsar/expandir el contenido de una entrada (pedido del usuario,
+     23/09/2026) — CSS puro, no toca el DOM interno de la entrada (una
+     secuencial mid-paso, un video reproduciéndose, etc. quedan intactos al
+     reabrirla). El botón vive afuera del <h3> (fila propia junto al
+     título), no adentro — así `.entry-title` sigue siendo el texto exacto
+     del título en cualquier otro lugar del código que lo lea. */
+
+.entry-title-row{
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+    margin:0 0 4px;
+  }
+
+/* Agrandado (23/09/2026, pedido del usuario) de un simple glifo chico a un
+     botón con área táctil de verdad (~26px). */
+
+.entry-collapse-btn{
+    background:none;
+    border:none;
+    padding:2px 5px;
+    font-size:18px;
+    line-height:1;
+    color:var(--indigo);
+    opacity:.7;
+    cursor:pointer;
+    flex-shrink:0;
+    min-width:26px;
+    min-height:26px;
+  }
+
+.entry-collapse-btn:hover{ opacity:1; }
+
+.entry-meta{
+    font-size:12px;
+    color:var(--ink-soft);
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 10px;
+    align-items:center;
+    margin-bottom:10px;
+  }
+
+/* Chips en pastilla, con fondo tenue del mismo color que el texto (06/10/2026,
+     estética tipo "Encuentros" — `.tchip`) en vez del outline plano de antes.
+     `color-mix()` deriva el fondo del propio `currentColor` de cada
+     `.tag.<tipo>`, así que ningún color de marca se duplica a mano. Si el
+     navegador no soporta `color-mix()`, la declaración se ignora entera y
+     el chip cae de vuelta a un fondo transparente — se ve más plano, pero
+     nunca roto. */
+
+.tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.01em;
+    padding:3px 10px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb, currentColor 45%, transparent);
+    background:color-mix(in srgb, currentColor 13%, var(--panel));
+  }
+
+.tag.texto{ color:var(--indigo); }
+
+.tag.enlace{ color:var(--gold); }
+
+.tag.imagen{ color:var(--bordeaux); }
+
+.tag.video{ color:var(--sage); }
+
+.tag.pregunta{ color:var(--teal); }
+
+.tag.proposito{ color:var(--bordeaux); }
+
+/* Tipos de contenido nuevos de la unificación con "Encuentros" (26/09/2026). */
+
+.tag.audio{ color:var(--teal); }
+
+.tag.pdf{ color:var(--gold); }
+
+.tag.libro{ color:var(--amber); }
+
+/* Cada texto de una entrada vive en su propia "zona" alineable por separado
+     (antes de la imagen/video, después, el cuerpo entero de un texto/enlace,
+     o — adentro de una secuencial — cada bloque de cada paso). Reemplaza el
+     viejo alineado único de toda la entrada, que de paso corría el riesgo de
+     desalinear botones que compartían el mismo contenedor (pedido del
+     usuario, 22/09/2026). */
+
+.entry-text-zone{ margin-top:10px; }
+
+/* Selector chico de alineación, reusado en el form de nivel superior y en
+     cada paso del constructor de una secuencial — más compacto que
+     .type-toggle porque puede haber varios en la misma pantalla. */
+
+.align-row{ display:flex; align-items:center; gap:8px; margin:4px 0 2px; flex-wrap:wrap; }
+
+.align-row-label{ font-size:11.5px; color:var(--indigo); opacity:.7; }
+
+/* Constructor de pasos, del lado de quien arma la entrada. */
+
+.steps-builder{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+
+.steps-add-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+
+/* Colapsar contenido MIENTRAS SE EDITA (pedido del usuario, 23/09/2026) —
+     distinto del colapso de lectura: acá se colapsan de una todos los pasos
+     de una secuencial (steps-builder-collapsed) o el bloque de URL/subida +
+     textos antes/después de una Imagen/Video (media-fields-collapsed). El
+     botón reusa el mismo look en los dos lugares. */
+
+.collapse-toggle-btn{
+    background:none; border:none; cursor:pointer;
+    font-size:13px; color:var(--indigo); opacity:.75;
+    padding:3px 8px; margin-left:6px; vertical-align:middle;
+  }
+
+.collapse-toggle-btn:hover{ opacity:1; }
+
+.media-fields-collapsed > *{ display:none; }
+
+.entry-actions{ display:flex; gap:8px; flex-shrink:0; }
+
+.entry-actions button{
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--ink-soft);
+    font-size:12.5px;
+    text-decoration:underline;
+    padding:0;
+  }
+
+.entry-actions button:hover{ color:var(--bordeaux); }
+
+.empty{
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:20px 0;
+    font-family:'Baloo 2',serif;
+    font-size:15px;
+  }
+
+/* EJE BADGE + CITA BANNER */
+
+.eje-badge{
+    display:inline-block;
+    font-family:'Raleway',sans-serif;
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--teal);
+    border:1px solid var(--teal);
+    border-radius:999px;
+    background:color-mix(in srgb, var(--teal) 12%, var(--panel));
+    padding:4px 11px;
+    margin-bottom:6px;
+  }
+
+/* CUADRO DE MANDOS */
+
+.mandos-tab{ font-style:italic; }
+
+.mandos-sub{
+    margin:6px 0 0;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+
+.mandos-group-title{
+    font-size:16px;
+    font-weight:600;
+    color:var(--indigo);
+    margin:30px 0 14px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+  }
+
+.mandos-group-title:first-of-type{ margin-top:26px; }
+
+.mandos-cupula{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
+    gap:10px;
+    margin-top:6px;
+  }
+
+.mando-card{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-left:4px solid var(--bordeaux);
+    border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+    padding:10px 12px;
+    box-shadow:var(--shadow-sm);
+    transition:box-shadow .15s ease, transform .15s ease;
+  }
+
+.mando-card:hover{ box-shadow:var(--shadow-md); transform:translateY(-2px); }
+
+.mando-role{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+  }
+
+.mando-name{
+    font-family:'Baloo 2',serif;
+    font-size:14.5px;
+    color:var(--indigo);
+  }
+
+.mandos-section{ margin-bottom:22px; }
+
+.mandos-section-head h4{
+    margin:0 0 4px;
+    font-family:'Baloo 2',serif;
+    font-size:17px;
+    color:var(--indigo);
+  }
+
+.mandos-section-heads{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+  }
+
+.mandos-subsecciones{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(200px,1fr));
+    gap:10px;
+  }
+
+.mandos-sub-card{
+    background:var(--bg);
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    box-shadow:var(--shadow-sm);
+  }
+
+.mandos-sub-jefe{
+    margin:0 0 6px;
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--teal);
+  }
+
+.mandos-sub-list{
+    margin:0;
+    padding-left:16px;
+    font-size:12.5px;
+    color:var(--ink);
+    line-height:1.6;
+  }
+
+.mandos-deptos{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(200px,1fr));
+    gap:10px;
+  }
+
+.mandos-depto-card{
+    background:var(--bg);
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-top:4px solid var(--sage);
+    border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+    box-shadow:var(--shadow-sm);
+    transition:box-shadow .15s ease, transform .15s ease;
+  }
+
+.mandos-depto-card:hover{ box-shadow:var(--shadow-md); transform:translateY(-2px); }
+
+.mandos-depto-card h4{
+    margin:0 0 8px;
+    font-family:'Baloo 2',serif;
+    font-size:15px;
+    color:var(--indigo);
+  }
+
+/* FORM */
+
+.add-form{
+    margin-top:22px;
+    padding-top:22px;
+    border-top:1px solid var(--line);
+    display:none;
+  }
+
+.add-form.open{ display:block; }
+
+/* "Importar desde Encuentros", adentro del form (08/10/2026, pedido del
+   usuario — antes vivía afuera, al lado del botón de abrir el formulario) —
+   una franja propia arriba de todo, separada del resto de los campos con su
+   propio borde inferior, a modo de "atajo" antes de empezar a llenar a mano. */
+.import-encuentro-row{
+    margin-bottom:18px;
+    padding-bottom:18px;
+    border-bottom:1px dashed var(--line);
+  }
+
+.import-encuentro-row .mandos-sub{ margin:4px 0 0; }
+
+.insert-order-note{
+    background:var(--bg-alt);
+    border-radius:var(--radius-sm);
+    padding:8px 12px;
+    margin:0 0 14px;
+  }
+
+.form-row{ margin-bottom:14px; }
+
+.form-row label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+
+.form-row input[type=text], .form-row textarea, .form-row select{
+    width:100%;
+    font-family:'Raleway',sans-serif;
+    font-size:14px;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    background:var(--white);
+    color:var(--ink);
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+
+.form-row textarea{ min-height:100px; resize:vertical; }
+
+.form-row input:focus, .form-row textarea:focus, .form-row select:focus{
+    outline:none;
+    border-color:var(--bordeaux);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--bordeaux) 18%, transparent);
+  }
+
+.form-cols{ display:flex; gap:14px; }
+
+.form-cols .form-row{ flex:1; }
+
+.form-actions{ display:flex; gap:10px; margin-top:18px; }
+
+/* Selector de Ámbito multi-select (checkboxes) — reusado en Mensaje,
+     Departamentos y Recursos. Ver renderAmbitoPicker(). Los selectores llevan
+     ".ambito-picker" adelante a propósito: ".form-row label" (más abajo del
+     todo en el documento pero con la misma especificidad que un solo ".clase
+     + elemento") pisaba display/font-weight/margin si no se le gana con dos
+     clases — mismo problema ya visto con ".novedades-count" vs ".tag". */
+
+.ambito-picker{
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:12px;
+    background:var(--white);
+  }
+
+.ambito-default-note{ margin:0 0 6px; }
+
+/* Checkbox de "Publicar sin firmar" — clase propia (no ".form-row label")
+     para no pelear con la especificidad de esa regla, que hace display:block
+     a cualquier label adentro de un .form-row. */
+
+.signature-row{ margin-bottom:14px; }
+
+.signature-row label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'Raleway',sans-serif;
+    font-weight:400;
+    font-size:13px;
+    color:var(--ink);
+  }
+
+.ambito-picker .ambito-general-check{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'Raleway',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--ink);
+    padding-bottom:10px;
+    margin-bottom:10px;
+    border-bottom:1px solid var(--line);
+  }
+
+.ambito-picker .ambito-group{ margin-top:10px; }
+
+.ambito-picker .ambito-group:first-of-type{ margin-top:0; }
+
+.ambito-picker .ambito-group-title{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+
+.ambito-picker .ambito-group label{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'Raleway',sans-serif;
+    font-weight:400;
+    font-size:13px;
+    color:var(--ink);
+    margin:0 14px 8px 0;
+  }
+
+.type-toggle{ display:flex; gap:6px; flex-wrap:wrap; }
+
+.type-toggle button{
+    font-family:'Raleway',sans-serif;
+    font-size:12.5px;
+    padding:7px 13px;
+    border:1px solid var(--line);
+    background:var(--white);
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+
+.type-toggle button.active{
+    border-color:var(--bordeaux);
+    color:var(--bordeaux);
+    font-weight:600;
+    background:#F7EDE6;
+  }
+
+.status-msg{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+
+@media (max-width:600px) {
+.panel{ padding:22px 18px 26px; }
+
+.form-cols{ flex-direction:column; }
+}

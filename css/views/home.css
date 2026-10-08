@@ -1,0 +1,281 @@
+/* "Novedades" — campanario simple con lo agregado en los últimos días,
+     en vez de notificaciones push reales (bastante más grande de armar). */
+
+.auth-user button.novedades-bell{
+    position:relative;
+    text-decoration:none;
+    font-size:15px;
+    line-height:1;
+    padding:2px;
+  }
+
+/* Selector más específico que ".tag" (mismo peso de especificidad que
+     ".tag.imagen", pero definida después en la hoja de estilos, así que sin
+     esto sus reglas de padding/font-size/border se comían a las de acá —
+     causaba el globo grande y ovalado en vez de chico y redondo). */
+
+.novedades-bell .novedades-count{
+    position:absolute;
+    top:-3px;
+    right:-3px;
+    min-width:14px;
+    height:14px;
+    box-sizing:border-box;
+    padding:0 2px;
+    font-size:9px;
+    line-height:14px;
+    text-align:center;
+    background:var(--bordeaux);
+    color:var(--white);
+    border-radius:999px;
+    border:none;
+  }
+
+.novedades-panel{
+    position:fixed;
+    top:64px;
+    right:20px;
+    z-index:40;
+    width:min(320px, calc(100vw - 40px));
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    box-shadow:0 8px 28px rgba(22,41,55,0.28);
+    text-align:left;
+  }
+
+.novedades-panel h3{ margin:0 0 4px; font-size:16px; }
+
+.novedades-panel .mandos-sub{ margin:0 0 10px; }
+
+.novedades-intro{ padding-bottom:10px; margin-bottom:10px !important; border-bottom:1px solid var(--line); }
+
+.novedades-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    max-height:280px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+.novedades-list li{
+    cursor:pointer;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+    font-size:13px;
+    color:var(--ink);
+  }
+
+.novedades-list li:last-child{ border-bottom:none; padding-bottom:0; }
+
+.novedades-list li:hover strong{ color:var(--teal); }
+
+/* Sombra de "hay más para scrollear" (pedido del usuario, 25/09/2026: en
+     mobile no se ve ninguna barra que indique que la lista sigue — los
+     navegadores de celular ocultan la scrollbar nativa por default, a
+     diferencia de desktop, y eso no se puede forzar con CSS). Se arma con
+     JS (ver renderAuthBar()): visible solo mientras queda contenido sin
+     scrollear debajo, se apaga sola al llegar al final. */
+
+.novedades-fade-bottom{
+    display:none;
+    position:absolute;
+    left:16px; right:16px; bottom:16px;
+    height:26px;
+    background:linear-gradient(to bottom, rgba(255,255,255,0), var(--panel));
+    pointer-events:none;
+    border-radius:0 0 var(--radius) var(--radius);
+  }
+
+.novedades-fade-bottom.show{ display:block; }
+
+@media (max-width:600px) {
+.novedades-panel{ right:14px; left:14px; width:auto; }
+}
+
+.day-tab.home-tab{ font-family:'Raleway',sans-serif; font-weight:600; }
+
+/* Entrada de bienvenida en Inicio — separada del resto con un borde
+     inferior + margen, para que no se confunda con el contenido normal de
+     la pestaña (countdown, cita, etc.) que viene justo debajo. */
+
+.welcome-entries{ margin-bottom:22px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+
+.cita-banner{
+    background:color-mix(in srgb, var(--gold) 7%, var(--bg));
+    border:1px solid var(--line);
+    border-left:4px solid var(--gold);
+    border-radius:0 var(--radius) var(--radius) 0;
+    padding:16px 20px;
+    margin:0 0 24px;
+    box-shadow:var(--shadow-sm);
+  }
+
+.cita-banner .cita-text{
+    margin:0 0 6px;
+    font-family:'Baloo 2',serif;
+    font-size:16px;
+    font-style:italic;
+    color:var(--indigo);
+    line-height:1.45;
+  }
+
+.cita-banner .cita-ref{
+    margin:0;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    text-align:right;
+  }
+
+/* CONSIGNA DEL DÍA POR SECCIÓN — separada de la cita bíblica a propósito
+     (border sage en vez de gold, para distinguirla de un vistazo) */
+
+.consignas-box{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:4px solid var(--sage);
+    border-radius:0 var(--radius) var(--radius) 0;
+    padding:14px 18px;
+    margin:0 0 18px;
+    box-shadow:var(--shadow-sm);
+  }
+
+.consignas-title{
+    margin:0 0 8px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    font-weight:700;
+    color:var(--sage);
+  }
+
+.consignas-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:8px;
+  }
+
+.consignas-row:last-child{ margin-bottom:0; }
+
+.consignas-seccion{
+    flex-shrink:0;
+    width:150px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+  }
+
+.consignas-row input, .consignas-box > input{
+    flex:1;
+    width:100%;
+    font-family:'Raleway',sans-serif;
+    font-size:14px;
+    padding:7px 9px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    background:var(--white);
+    color:var(--ink);
+    box-sizing:border-box;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+
+.consignas-row input:focus, .consignas-box > input:focus{
+    outline:none;
+    border-color:var(--sage);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--sage) 20%, transparent);
+  }
+
+.consignas-readonly{ margin:0 0 6px; font-size:13.5px; color:var(--ink); }
+
+.consignas-readonly:last-child{ margin-bottom:0; }
+
+.consignas-featured .consignas-text{
+    margin:0;
+    font-family:'Baloo 2',serif;
+    font-size:18px;
+    font-weight:600;
+    color:var(--indigo);
+  }
+
+/* INICIO (dashboard) */
+
+.home-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin-bottom:26px;
+    align-items:start; /* cada tarjeta ocupa solo su alto natural, no se estiran parejas */
+  }
+
+.home-card{
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    box-shadow:var(--shadow-sm);
+  }
+
+.home-card h3{
+    margin:0 0 10px;
+    font-size:16px;
+    color:var(--indigo);
+  }
+
+.home-card .cita-banner{ margin:0; background:var(--panel); }
+
+.countdown-nums{ display:flex; justify-content:center; gap:14px; }
+
+.countdown-unit{ display:flex; flex-direction:column; align-items:center; }
+
+.countdown-n{
+    font-family:'Baloo 2',serif;
+    font-size:30px;
+    font-weight:700;
+    color:var(--bordeaux-deep);
+    line-height:1;
+  }
+
+.countdown-l{
+    font-size:11px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    margin-top:4px;
+  }
+
+.countdown-live{
+    font-family:'Baloo 2',serif;
+    font-size:19px;
+    color:var(--teal);
+    margin:0;
+  }
+
+.home-ejes-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:14px;
+    margin-bottom:26px;
+  }
+
+.eje-card{
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:14px 16px;
+    box-shadow:var(--shadow-sm);
+    transition:box-shadow .15s ease, transform .15s ease;
+  }
+
+.eje-card:hover{ box-shadow:var(--shadow-md); transform:translateY(-2px); }
+
+@media (max-width:600px) {
+.home-grid{ grid-template-columns:1fr; }
+
+.home-ejes-grid{ grid-template-columns:1fr; }
+}

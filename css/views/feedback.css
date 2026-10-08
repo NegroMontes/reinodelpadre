@@ -1,0 +1,76 @@
+.feedback-bulk-bar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:0 0 10px;
+  }
+
+/* Cartel festivo cuando no quedan comentarios pendientes para mostrar,
+     con "Ocultar resueltos" puesto (pedido del usuario, 24/09/2026). */
+
+.feedback-empty-fun{
+    text-align:center;
+    padding:36px 0;
+    font-size:19px;
+  }
+
+.feedback-empty-fun .mandos-sub{
+    font-style:normal;
+    margin-top:6px;
+  }
+
+/* COMENTARIOS — pestaña flotante para feedback de diseño/estética, pensada
+     sobre todo para quien no usa Claude (ej. el jefe de Comunicaciones). */
+
+.feedback-fab{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    z-index:40;
+    border:none;
+    border-radius:999px;
+    padding:13px 20px;
+    background:var(--teal);
+    color:var(--white);
+    font-family:'Raleway',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    box-shadow:0 4px 16px rgba(22,41,55,0.25);
+    transition:background .15s ease, transform .15s ease, box-shadow .15s ease;
+  }
+
+.feedback-fab:hover{ background:#00808f; transform:translateY(-2px); box-shadow:0 8px 22px rgba(22,41,55,0.3); }
+
+.feedback-panel{
+    position:fixed;
+    right:20px;
+    bottom:76px;
+    z-index:40;
+    width:min(340px, calc(100vw - 40px));
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    box-shadow:0 8px 28px rgba(22,41,55,0.28);
+  }
+
+.feedback-panel h3{ margin:0 0 6px; }
+
+.feedback-panel .mandos-sub{ margin:0 0 14px; }
+
+.feedback-panel textarea{ min-height:90px; }
+
+.feedback-page-ctx{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:-4px 0 14px;
+  }
+
+@media (max-width:600px) {
+.feedback-fab{ right:14px; bottom:14px; padding:11px 16px; font-size:13px; }
+
+.feedback-panel{ right:14px; left:14px; width:auto; bottom:70px; }
+}

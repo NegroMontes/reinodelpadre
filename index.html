@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORDOC — Reino del Padre MDZ 2027</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/views/gate.css">
+<link rel="stylesheet" href="css/views/home.css">
+<link rel="stylesheet" href="css/views/secuencial.css">
+<link rel="stylesheet" href="css/views/users.css">
+<link rel="stylesheet" href="css/views/feedback.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="header-top-row">
+      <p class="kicker">Campamento Nacional AMJM</p>
+      <div id="authBar"></div>
+    </div>
+    <div class="brand-row">
+      <img class="logo-mark" id="logoHomeBtn" src="assets/logo-icon.png" alt="Escudo Reino del Padre MDZ 2027" title="Volver a Inicio">
+      <h1>Reino del Padre <span class="badge">MDZ 2027</span></h1>
+    </div>
+    <p class="sub">Tu herramienta formativa.</p>
+  </header>
+
+  <div id="gate"></div>
+  <div class="layout">
+    <aside class="sidebar"><div class="day-rail" id="dayRail"></div></aside>
+    <main class="main"><div class="panel" id="panel"></div></main>
+  </div>
+  <div id="feedbackWidget"></div>
+  <!-- Música de fondo de una entrada secuencial (22/09/2026) — vive AFUERA de
+       #panel a propósito: #panel se reescribe entero en cada renderPanel()
+       (ej. al tocar "Siguiente"), y si el <audio> estuviera adentro se
+       recrearía cada vez, reiniciando la música desde cero en cada paso. Acá
+       sobrevive a esos re-renders; el JS solo le cambia el `src`/play/pause. -->
+  <audio id="secuencialBgAudio"></audio>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
