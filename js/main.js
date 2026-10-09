@@ -25,6 +25,7 @@ import { realIsAdmin, effectiveRole, effectiveSeccion, effectiveDepto, isAdmin, 
 import { AppState } from './app-state.js';
 import { uid, escapeHtml, linkify, alignStyleAttr, roleLabel } from './utils/helpers.js';
 import { saveNovedadesSeenAt, saveUsersSeenAt, saveTheme } from './utils/storage.js';
+import { encodeHash, decodeHash } from './utils/hash-router.js';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -577,7 +578,60 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       void panel.offsetWidth;
       panel.classList.add('panel-fade-in');
     }
+    syncHashFromState();
   }
+
+  // Routing por hash (09/10/2026, pedido del usuario): escribe la URL a
+  // partir del estado actual (`activeDayId`/`activeMensajeDayId`) después de
+  // CUALQUIER render del panel — es el único choke point por el que pasan
+  // todos los cambios de navegación (clicks del sidebar, pills de día de
+  // "Mensaje", "Ir directo a..." de Novedades, addDay/deleteDay, etc.), así
+  // que alcanza con enganchar acá en vez de tocar cada handler suelto. Si el
+  // hash ya coincide con el estado actual, `location.hash = x` es un no-op
+  // del navegador (no dispara `hashchange` ni agrega una entrada al
+  // historial) — no hace falta protegerse de un loop infinito con eso solo.
+  function syncHashFromState(){
+    // `activeDayId === null` significa "la navegación inicial todavía no se
+    // resolvió" (antes de que `load()` lea el primer snapshot de Firestore
+    // y decida dónde arrancar, ver `applyInitialNavFromHash()`) — NO es lo
+    // mismo que 'HOME'. Bug real encontrado al testear esto (09/10/2026):
+    // `watchUsers()`/`watchFeedback()`/`loadMandos()` pueden disparar un
+    // `render()` (y por lo tanto este sync) antes de que `load()` resuelva
+    // su propio snapshot — en ese instante `activeDayId` sigue en `null`, y
+    // tratarlo como 'HOME' borraba el hash original de la URL (ej.
+    // `#mensaje/<id>` de un F5) antes de que `applyInitialNavFromHash()`
+    // llegara a leerlo. No tocar la URL en absoluto mientras siga sin
+    // resolver evita pisarlo.
+    if(AppState.activeDayId === null) return;
+    var newHash = encodeHash(AppState.activeDayId, AppState.activeMensajeDayId);
+    if((window.location.hash || '').replace(/^#/, '') !== newHash){
+      window.location.hash = newHash;
+    }
+  }
+
+  // Camino inverso: cuando el hash cambia por algo que NO fue este mismo
+  // módulo escribiéndolo (el botón "Atrás"/"Adelante" del navegador, pegar
+  // un link, editar la URL a mano) — comparar contra el estado actual antes
+  // de actuar es lo que evita que esto dispare un render extra cuando el
+  // cambio SÍ vino de `syncHashFromState()` de arriba (ahí el estado ya
+  // coincide con el hash nuevo). Ignorado mientras no haya sesión resuelta
+  // o se esté en la pantalla de "pendiente" — ahí todavía no existe el
+  // concepto de "pestaña activa".
+  window.addEventListener('hashchange', function(){
+    if(!AppState.currentUser || effectiveRole() === 'pendiente') return;
+    var target = decodeHash(window.location.hash);
+    var days = AppState.state.days || [];
+    var resolvedDayId = target.tab === 'MENSAJE'
+      ? ((target.dayId && days.some(function(d){ return d.id === target.dayId; })) ? target.dayId : (days.length ? days[0].id : null))
+      : null;
+    var sameTab = AppState.activeDayId === target.tab;
+    var sameDay = target.tab !== 'MENSAJE' || AppState.activeMensajeDayId === resolvedDayId;
+    if(sameTab && sameDay) return;
+    AppState.activeDayId = target.tab;
+    if(target.tab === 'MENSAJE'){ AppState.activeMensajeDayId = resolvedDayId; }
+    AppState.formOpen = false;
+    render();
+  });
 
 
 

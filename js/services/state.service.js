@@ -6,6 +6,7 @@ import { onSnapshot, setDoc, doc, getDoc } from "https://www.gstatic.com/firebas
 import { stateDocRef, db } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { uid } from '../utils/helpers.js';
+import { decodeHash } from '../utils/hash-router.js';
 import { canEditStructure, canEditConsigna } from './permissions.js';
 import { ensureProgressSubs, ensureCompletionsSubs } from './progress.service.js';
 import { render, renderPanel, showStatus } from '../main.js';
@@ -134,6 +135,24 @@ import { render, renderPanel, showStatus } from '../main.js';
     return s;
   }
 
+  // Destino de la PRIMERA carga de la sesión (09/10/2026, pedido del
+  // usuario: GitHub Pages siempre volvía a Inicio en cada F5) — en vez de
+  // arrancar siempre en 'HOME', se intenta arrancar donde diga el hash de
+  // la URL (ver utils/hash-router.js). No valida permisos acá — si el hash
+  // apunta a una pestaña que esta persona no puede ver, los guards que ya
+  // existen en renderPanelImpl() (USERS/FEEDBACK/PAPELERA/DEPARTAMENTOS)
+  // la bouncean solos a Inicio en el primer render, igual que si hubiera
+  // llegado ahí por cualquier otro camino.
+  function applyInitialNavFromHash(){
+    var target = decodeHash(window.location.hash);
+    AppState.activeDayId = target.tab;
+    if(target.tab === 'MENSAJE' && target.dayId && AppState.state.days.some(function(d){ return d.id === target.dayId; })){
+      AppState.activeMensajeDayId = target.dayId;
+    } else {
+      AppState.activeMensajeDayId = AppState.state.days.length ? AppState.state.days[0].id : null;
+    }
+  }
+
   export function load(){
     AppState.unsubState = onSnapshot(stateDocRef, function(snap){
       if(snap.exists()){
@@ -146,8 +165,7 @@ import { render, renderPanel, showStatus } from '../main.js';
       ensureCompletionsSubs();
       if(AppState.firstSnapshot){
         AppState.firstSnapshot = false;
-        AppState.activeDayId = 'HOME';
-        AppState.activeMensajeDayId = AppState.state.days && AppState.state.days.length ? AppState.state.days[0].id : null;
+        applyInitialNavFromHash();
         render();
         return;
       }
@@ -162,8 +180,7 @@ import { render, renderPanel, showStatus } from '../main.js';
       if(AppState.firstSnapshot){
         AppState.firstSnapshot = false;
         AppState.state = defaultData();
-        AppState.activeDayId = 'HOME';
-        AppState.activeMensajeDayId = AppState.state.days.length ? AppState.state.days[0].id : null;
+        applyInitialNavFromHash();
         render();
       }
       showStatus('No se pudo conectar con la base de datos. Los cambios no se van a guardar.');
