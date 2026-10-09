@@ -1,29 +1,31 @@
-// "Cuadro de mandos": pantalla de solo lectura con la nómina completa de
-// la Resolución de nombramientos. Los datos viven en Firestore (`mandos/data`,
-// ver services/mandos.service.js) — ya no hay ningún dato sensible en el
-// código fuente (08/10/2026, "Cuadro de mandos movido a Firestore").
+// "Comando" (antes "Cuadro de mandos", renombrada 09/10/2026) — dos
+// subpestañas: "Cuadro de mandos" (de solo lectura, con la nómina completa
+// de la Resolución de nombramientos — los datos viven en Firestore,
+// `mandos/data`, ver services/mandos.service.js) y "Mi comando" (roster en
+// vivo de quien ya se registró, con foto/actividad favorita/ruca — ver
+// canSeeMiComandoSubtab() en services/permissions.js).
 
 import { AppState } from '../app-state.js';
-import { escapeHtml } from '../utils/helpers.js';
+import { DEPARTAMENTO_ICONS } from '../config/constants.js';
+import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
+import { userBadgeInnerHtml } from '../utils/badge-icons.js';
+import { canSeeMiComandoSubtab } from '../services/permissions.js';
+import { isMilicianoUser } from './users.js';
+import { renderPanel } from '../main.js';
 
   export function mandoCard(role, name){
     return '<div class="mando-card"><span class="mando-role">' + escapeHtml(role) + '</span><span class="mando-name">' + escapeHtml(name) + '</span></div>';
   }
 
 
-  export function renderMandosPanel(){
+  function renderCuadroDeMandosHtml(){
     var MANDOS = AppState.mandosData;
     var html = '';
-    html += '<div class="panel-head"><div><h2>Cuadro de mandos</h2>';
-    html += '<p class="mandos-sub">Campamento Nacional "Reino del Padre" — Resolución de nombramientos nº 01/26, 15 de agosto de 2026.</p></div></div>';
 
-    // Sin datos todavía (no cargó de Firestore) — ver "Cuadro de mandos
-    // movido a Firestore" en CLAUDE.md, 08/10/2026.
     if(!MANDOS){
-      html += AppState.mandosLoaded
+      return AppState.mandosLoaded
         ? '<p class="empty">Todavía no hay cuadro de mandos cargado.</p>'
         : '<p class="loading-inline"><span class="loading-spinner"></span>Cargando…</p>';
-      return html;
     }
 
     html += '<div class="mandos-cupula">';
@@ -60,4 +62,68 @@ import { escapeHtml } from '../utils/helpers.js';
     html += '</div>';
 
     return html;
+  }
+
+
+  // Tarjeta de "Mi comando" — mismo espíritu que mandoCard(), pero con los
+  // datos reales de perfil de quien ya se registró (no la Resolución).
+  function miComandoCardHtml(u){
+    var avatar = u.photoURL
+      ? '<img class="micomando-avatar-img" src="' + escapeHtml(u.photoURL) + '" alt="">'
+      : '<span class="micomando-avatar-fallback">👤</span>';
+    var badgeInner = userBadgeInnerHtml(u, DEPARTAMENTO_ICONS);
+    var badge = badgeInner ? '<span class="micomando-badge" title="' + escapeHtml(u.seccion || u.depto || '') + '">' + badgeInner + '</span>' : '';
+    var actIcon = activityIcon(u.actividadFavorita);
+    var html = '<div class="micomando-card">';
+    html += '  <div class="micomando-avatar-wrap">' + avatar + badge + '</div>';
+    html += '  <div class="micomando-info">';
+    html += '    <strong>' + (actIcon ? actIcon + ' ' : '') + escapeHtml(u.displayName || u.email) + '</strong>';
+    html += '    <span class="mandos-sub">' + escapeHtml(roleLabel(u.role)) + (u.seccion ? (' · ' + escapeHtml(u.seccion)) : (u.depto ? (' · ' + escapeHtml(u.depto)) : '')) + '</span>';
+    if(u.rucaFundacion){ html += '    <span class="mandos-sub">' + escapeHtml(u.rucaFundacion) + '</span>'; }
+    html += '  </div>';
+    html += '</div>';
+    return html;
+  }
+
+
+  function renderMiComandoHtml(){
+    var members = (AppState.usersList || []).filter(function(u){ return !isMilicianoUser(u); });
+    if(members.length === 0){
+      return '<p class="empty">Todavía no se registró nadie del comando.</p>';
+    }
+    var html = '<div class="micomando-grid">';
+    members.forEach(function(u){ html += miComandoCardHtml(u); });
+    html += '</div>';
+    return html;
+  }
+
+
+  export function renderMandosPanel(){
+    var showMiComando = canSeeMiComandoSubtab();
+    if(AppState.mandosActiveSubTab === 'micomando' && !showMiComando){ AppState.mandosActiveSubTab = 'mandos'; }
+
+    var html = '';
+    html += '<div class="panel-head"><div><h2>Comando</h2>';
+    html += '<p class="mandos-sub">Campamento Nacional "Reino del Padre".</p></div></div>';
+
+    if(showMiComando){
+      html += '<div class="users-subtabs">';
+      html += '  <button type="button" class="day-pill' + (AppState.mandosActiveSubTab !== 'micomando' ? ' active' : '') + '" data-mandos-subtab="mandos">Cuadro de mandos</button>';
+      html += '  <button type="button" class="day-pill' + (AppState.mandosActiveSubTab === 'micomando' ? ' active' : '') + '" data-mandos-subtab="micomando">Mi comando</button>';
+      html += '</div>';
+    }
+
+    html += (AppState.mandosActiveSubTab === 'micomando' && showMiComando) ? renderMiComandoHtml() : renderCuadroDeMandosHtml();
+
+    return html;
+  }
+
+
+  export function attachMandosEvents(){
+    document.querySelectorAll('[data-mandos-subtab]').forEach(function(btn){
+      btn.onclick = function(){
+        AppState.mandosActiveSubTab = btn.getAttribute('data-mandos-subtab');
+        renderPanel();
+      };
+    });
   }

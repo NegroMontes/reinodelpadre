@@ -6,7 +6,7 @@ import { renderUsersPanel, attachUsersEvents } from './views/users.js';
 import { renderFeedbackPanel, attachFeedbackPanelEvents } from './views/feedback.js';
 import { renderPapeleraPanel, attachPapeleraPanelEvents } from './views/papelera.js';
 import { renderDepartamentosPanel, renderRecursosPanel, renderMensajePanel } from './views/mensaje.js';
-import { renderMandosPanel } from './views/mandos.js';
+import { renderMandosPanel, attachMandosEvents } from './views/mandos.js';
 import { loadMandos } from './services/mandos.service.js';
 import { stopCountdownTicker, startCountdownTicker, renderHomePanel, attachHomeEvents } from './views/home.js';
 import { renderGate } from './views/gate.js';
@@ -226,6 +226,18 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     renderAuthBar();
   });
 
+  // Mismo criterio para el menú del botón de usuario (09/10/2026, pedido del
+  // usuario) — cierra al clickear afuera, salvo que el click haya sido
+  // adentro del propio panel (ej. tipeando en el formulario de "Perfil").
+  document.addEventListener('click', function(e){
+    if(!AppState.userMenuOpen) return;
+    if(e.target.closest && e.target.closest('#userMenuPanel')) return;
+    AppState.userMenuOpen = false;
+    AppState.userMenuEditingProfile = false;
+    AppState.userProfileDraft = null;
+    renderAuthBar();
+  });
+
   // En la pantalla de confirmación del widget de "Comentarios" ("¡Gracias!..."),
   // Enter cierra el globo igual que Ctrl+Enter lo mandó — ahí no hay ningún
   // input enfocado, así que el listener vive a nivel documento (una sola vez,
@@ -330,6 +342,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       AppState.secuencialFullscreenId = null; setSecuencialFullscreenLock(false);
       stopSecuencialMusic();
       AppState.novedadesSeenAt = 0; AppState.novedadesOpen = false;
+      AppState.userMenuOpen = false; AppState.userMenuEditingProfile = false; AppState.userProfileDraft = null;
       AppState.usersSeenAt = 0; AppState.usersSeenAtLoadedForUid = null;
       AppState.usersFilterName = ''; AppState.usersFilterRole = ''; AppState.usersFilterScope = ''; AppState.usersSortField = 'fecha'; AppState.usersSortDir = 'desc'; AppState.usersActiveSubTab = 'comando';
       AppState.collapsedEntryIds = {};
@@ -425,7 +438,11 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     }
     var mandosTab = document.createElement('div');
     mandosTab.className = 'day-tab mandos-tab' + (AppState.activeDayId === 'MANDOS' ? ' active' : '');
-    mandosTab.textContent = 'Cuadro de mandos';
+    // Renombrada "Cuadro de mandos" -> "Comando" (09/10/2026, pedido del
+    // usuario) — ahora tiene 2 subpestañas adentro (ver renderMandosPanel()):
+    // "Cuadro de mandos" (la nómina oficial, como siempre) y "Mi comando"
+    // (roster en vivo de quien ya se registró, con foto/actividad/ruca).
+    mandosTab.textContent = 'Comando';
     mandosTab.onclick = function(){ AppState.activeDayId = 'MANDOS'; AppState.formOpen = false; render(); };
     rail.appendChild(mandosTab);
     if(isAdmin()){
@@ -540,6 +557,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     }
     if(AppState.activeDayId === 'MANDOS'){
       panel.innerHTML = renderMandosPanel();
+      attachMandosEvents();
       return;
     }
     if(AppState.activeDayId === 'MENSAJE'){
@@ -698,7 +716,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     }
     if(AppState.activeDayId === 'RECURSOS') return 'Recursos';
     if(AppState.activeDayId === 'DEPARTAMENTOS') return 'Departamentos';
-    if(AppState.activeDayId === 'MANDOS') return 'Cuadro de mandos';
+    if(AppState.activeDayId === 'MANDOS') return 'Comando — ' + (AppState.mandosActiveSubTab === 'micomando' ? 'Mi comando' : 'Cuadro de mandos');
     if(AppState.activeDayId === 'USERS') return 'Usuarios';
     if(AppState.activeDayId === 'FEEDBACK') return 'Comentarios';
     if(AppState.activeDayId === 'PAPELERA') return 'Papelera';

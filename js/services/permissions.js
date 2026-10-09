@@ -253,6 +253,21 @@ import { AppState } from '../app-state.js';
   }
 
 
+  // "Mi comando" (09/10/2026, pedido del usuario) — subpestaña nueva dentro
+  // de "Comando" (antes "Cuadro de mandos"), con el roster en vivo de quien
+  // ya se registró (foto, actividad favorita, ruca) — distinto del cuadro
+  // de mandos oficial (la Resolución, siempre visible para todos). Mismo
+  // criterio amplio que "Departamentos": todo el comando (admin, jefe de
+  // sección/depto, subjefe, consagrado) la ve; un miliciano o alguien
+  // "pendiente" nunca — no le corresponde ver fotos/datos del resto.
+  export function canSeeMiComandoSubtab(){
+    if(isAdmin() || isJefeSeccion()) return true;
+    if(lectorModeActive()) return true;
+    var role = effectiveRole();
+    return role === 'subjefe' || role === 'consagrado';
+  }
+
+
   // "Recursos" e "Info general" son, al revés de "Departamentos", contenido
   // pensado para todo el mundo (comando y, a futuro, milicianos) — por eso no
   // tienen una función "canSeeXTab" propia, solo el gate de login normal.

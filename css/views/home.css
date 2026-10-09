@@ -97,6 +97,219 @@
 .novedades-panel{ right:14px; left:14px; width:auto; }
 }
 
+/* Botón de usuario con avatar (09/10/2026, pedido del usuario) — reemplaza
+     el nombre suelto + "Cerrar sesión" sueltos por un botón redondo con la
+     foto de Google (o un ícono genérico si no hay) y un menú desplegable,
+     mismo patrón flotante que `.novedades-panel` arriba. */
+
+.user-avatar-wrap{ position:relative; display:inline-flex; }
+
+.user-avatar-btn{
+    position:relative;
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border:2px solid var(--line);
+    background:var(--surface);
+    padding:0;
+    overflow:visible; /* los badges sobresalen del borde del círculo, a propósito */
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:border-color .15s, box-shadow .15s, transform .15s;
+  }
+
+.user-avatar-btn:hover{
+    border-color:var(--teal);
+    box-shadow:0 2px 8px rgba(var(--shadow-rgb),0.25);
+    transform:translateY(-1px);
+  }
+
+.user-avatar-img{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    object-fit:cover;
+    display:block;
+  }
+
+.user-avatar-fallback{ font-size:16px; line-height:1; }
+
+.user-avatar-badge{
+    position:absolute;
+    width:17px;
+    height:17px;
+    border-radius:50%;
+    /* Fondo fijo (no var(--bg)/var(--panel), que se oscurecen en modo
+         oscuro) — a propósito: el glifo de FASTA es negro sobre transparente
+         (ver assets/depto-fasta.png), así que necesita un fondo siempre claro
+         para seguir siendo visible en los dos temas. */
+    background:#fff;
+    border:1.5px solid var(--panel);
+    box-shadow:0 1px 3px rgba(var(--shadow-rgb),0.3);
+    font-size:10px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+
+/* Inclinados levemente, en espejo uno del otro, para un aire más
+     desestructurado (pedido explícito del usuario, 09/10/2026) —
+     `.user-avatar-badge-activity` es el ícono de actividad favorita
+     (emoji, ver activityIcon() en utils/helpers.js); `.user-avatar-badge-
+     seccion` es el escudo de sección (SVG) o el ícono de depto (FASTA o
+     uno propio, elegible desde "Perfil") — ver rightBadgeHtml() en
+     header.js. */
+.user-avatar-badge-activity{ bottom:-3px; left:-4px; transform:rotate(-12deg); }
+.user-avatar-badge-seccion{ bottom:-3px; right:-4px; transform:rotate(12deg); }
+.user-avatar-badge-seccion svg,
+.user-avatar-badge-seccion img{ width:100%; height:100%; display:block; }
+
+.user-menu-panel{
+    position:fixed;
+    top:64px;
+    right:20px;
+    z-index:40;
+    width:min(240px, calc(100vw - 40px));
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px;
+    box-shadow:0 8px 28px rgba(var(--shadow-rgb),0.28);
+    text-align:left;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+
+.user-menu-header{
+    padding-bottom:8px;
+    margin-bottom:4px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+
+.user-menu-header strong{ font-size:13.5px; color:var(--ink); }
+
+.user-menu-item{
+    background:none;
+    border:none;
+    text-align:left;
+    padding:8px 6px;
+    font-size:13px;
+    font-family:'Raleway',sans-serif;
+    color:var(--ink);
+    cursor:pointer;
+    border-radius:var(--radius-sm);
+  }
+
+.user-menu-item:hover{ background:var(--bg-alt); color:var(--teal); }
+
+.user-menu-profile-form{ display:flex; flex-direction:column; gap:10px; }
+
+.user-menu-profile-form label{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+
+.user-menu-profile-form input,
+.user-menu-profile-form select{
+    font-family:'Raleway',sans-serif;
+    font-size:13px;
+    padding:6px 8px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    color:var(--ink);
+  }
+
+.user-menu-profile-actions{ display:flex; gap:8px; margin-top:2px; }
+
+@media (max-width:600px){
+.user-menu-panel{ right:14px; left:14px; width:auto; }
+}
+
+/* "Mi comando" (09/10/2026) — grilla de tarjetas con los datos de perfil de
+     quien ya se registró (foto, ícono de actividad, escudo/ícono de
+     sección-depto, ruca) — distinto de las tarjetas `.mando-card` de la
+     nómina oficial, que no tienen ninguno de estos datos en vivo. */
+
+.micomando-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:14px;
+    margin-top:14px;
+  }
+
+.micomando-card{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    box-shadow:var(--shadow-sm);
+    transition:box-shadow .15s ease, transform .15s ease;
+  }
+
+.micomando-card:hover{ box-shadow:var(--shadow-md); transform:translateY(-2px); }
+
+.micomando-avatar-wrap{ position:relative; flex-shrink:0; }
+
+.micomando-avatar-img,
+.micomando-avatar-fallback{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    object-fit:cover;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    background:var(--surface);
+  }
+
+.micomando-badge{
+    position:absolute;
+    bottom:-3px;
+    right:-4px;
+    width:15px;
+    height:15px;
+    border-radius:50%;
+    background:#fff;
+    border:1.5px solid var(--panel);
+    box-shadow:0 1px 3px rgba(var(--shadow-rgb),0.3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:9px;
+    overflow:hidden;
+    transform:rotate(10deg);
+  }
+
+.micomando-badge svg,
+.micomando-badge img{ width:100%; height:100%; display:block; }
+
+.micomando-info{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+
+.micomando-info strong{
+    font-size:13.5px;
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
 .day-tab.home-tab{ font-family:'Raleway',sans-serif; font-weight:600; }
 
 /* Entrada de bienvenida en Inicio — separada del resto con un borde

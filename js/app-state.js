@@ -89,6 +89,13 @@ export const AppState = {
   feedbackWidgetOpen: false,
   feedbackDraft: null, // sobrevive al re-render del widget mientras se escribe (mismo patrón que formTitleDraft)
   feedbackJustSent: false, // true justo después de enviar, para mostrar la confirmación en vez del form
+  // Botón de usuario con avatar (09/10/2026, pedido del usuario) — menú
+  // desplegable (Perfil/Cerrar sesión) desde el avatar de Google en la
+  // barra superior. `userProfileDraft` sobrevive al re-render mientras se
+  // tipea (mismo patrón `*Draft` ya usado en toda la app).
+  userMenuOpen: false,
+  userMenuEditingProfile: false,
+  userProfileDraft: null, // { actividadFavorita, rucaFundacion }
   novedadesOpen: false, // desplegable del campanario de "Novedades" en el header
   novedadesSeenAt: 0, // Date.now() de la última vez que se abrió la campana — el
   novedadesSeenAtLoadedForUid: null, // evita releer localStorage en cada re-fire del snapshot de perfil
@@ -128,4 +135,9 @@ export const AppState = {
   mandosLoaded: false,
   mandosSubscribed: false,
   unsubMandos: null,
+  // Pestaña "Comando" (antes "Cuadro de mandos", renombrada 09/10/2026) —
+  // subpestañas: 'mandos' (nómina oficial de la Resolución, de siempre) y
+  // 'micomando' (roster en vivo de quienes ya se registraron, con foto/
+  // actividad/ruca — ver canSeeMiComandoSubtab() en services/permissions.js).
+  mandosActiveSubTab: 'mandos',
 };

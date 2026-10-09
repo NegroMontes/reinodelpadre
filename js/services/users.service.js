@@ -7,6 +7,12 @@ import { db, usersColRef } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { render, renderDayRail } from '../main.js';
 
+  // Se suscribe para admins (pestaña "Usuarios", con edición) Y, desde
+  // 09/10/2026, también para cualquier comando no-admin (jefe de sección/
+  // depto, subjefe, consagrado) — ellos lo usan de solo lectura, en "Mi
+  // comando" (ver views/mandos.js). Un miliciano o alguien "pendiente"
+  // nunca dispara esto (ver auth.service.js) — ni siquiera cargan la lista
+  // completa del comando en su propio estado del cliente.
   export function watchUsers(){
     if(AppState.unsubUsers) return;
     AppState.unsubUsers = onSnapshot(usersColRef, function(snap){
@@ -14,10 +20,15 @@ import { render, renderDayRail } from '../main.js';
       snap.forEach(function(d){ list.push(Object.assign({ uid: d.id }, d.data())); });
       list.sort(function(a,b){ return (a.displayName||'').localeCompare(b.displayName||''); });
       AppState.usersList = list;
-      if(AppState.currentUser && AppState.currentUser.role === 'admin' && AppState.activeDayId === 'USERS'){ render(); }
-      // El badge de "pendiente" en el sidebar se actualiza en vivo aunque el
-      // admin esté mirando otra pestaña — mismo patrón que el badge de Comentarios.
-      else if(AppState.currentUser && AppState.currentUser.role === 'admin'){ renderDayRail(); }
+      if(!AppState.currentUser) return;
+      if(AppState.currentUser.role === 'admin'){
+        if(AppState.activeDayId === 'USERS'){ render(); }
+        // El badge de "pendiente" en el sidebar se actualiza en vivo aunque el
+        // admin esté mirando otra pestaña — mismo patrón que el badge de Comentarios.
+        else { renderDayRail(); }
+      } else if(AppState.activeDayId === 'MANDOS' && AppState.mandosActiveSubTab === 'micomando'){
+        render();
+      }
     });
   }
 

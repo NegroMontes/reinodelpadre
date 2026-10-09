@@ -2,11 +2,12 @@
 // Novedades) y sus datos: qué contenido nuevo hay, y dónde vive.
 
 import { AppState } from '../app-state.js';
-import { SECCIONES, DEPARTAMENTOS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS } from '../config/constants.js';
+import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS } from '../config/constants.js';
 import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
+import { userBadgeInnerHtml } from '../utils/badge-icons.js';
 import { saveNovedadesSeenAt } from '../utils/storage.js';
 import { lectorModeActive, realIsAdmin, isComandoNonAdmin, canSeeEntry } from '../services/permissions.js';
-import { signOutUser } from '../services/auth.service.js';
+import { signOutUser, updateMyProfile } from '../services/auth.service.js';
 import { render } from '../main.js';
 
   export function viewAsScopeOptionsHtml(role, current){
@@ -63,11 +64,6 @@ import { render } from '../main.js';
     var html = '<div class="auth-user">';
     html += '<button id="novedadesBtn" class="novedades-bell" type="button" title="Novedades de los últimos ' + NOVEDADES_WINDOW_DAYS + ' días">🔔' + (novedadesSinVer.length > 0 ? '<span class="tag imagen novedades-count">' + novedadesSinVer.length + '</span>' : '') + '</button>';
     html += '<span class="role-pill">' + escapeHtml(roleLabel(AppState.currentUser.role)) + '</span>' + simPill + lectorPill;
-    // Ícono por actividad favorita (09/10/2026) — primer paso visible hacia
-    // el sistema de puntos/gamificación por comando del backlog. Al lado
-    // del propio nombre, para que cada quien note su ícono apenas entra.
-    var myActivityIcon = activityIcon(AppState.currentUser.actividadFavorita);
-    html += '<span>' + (myActivityIcon ? myActivityIcon + ' ' : '') + escapeHtml(AppState.currentUser.displayName) + '</span>';
     if(realIsAdmin()){
       var curRole = AppState.viewAsOverride ? AppState.viewAsOverride.role : '';
       html += '<select id="viewAsRoleSelect">';
@@ -91,7 +87,7 @@ import { render } from '../main.js';
       html += '  <option value="lector"' + (AppState.myLectorMode ? ' selected' : '') + '>Lector (todo el comando)</option>';
       html += '</select>';
     }
-    html += '<button id="signOutBtn" type="button">Cerrar sesión</button>';
+    html += renderUserAvatarHtml();
     html += '</div>';
     if(AppState.novedadesOpen){
       html += '<div class="novedades-panel" id="novedadesPanel">';
@@ -111,7 +107,7 @@ import { render } from '../main.js';
       html += '</div>';
     }
     el.innerHTML = html;
-    document.getElementById('signOutBtn').onclick = signOutUser;
+    attachUserAvatarEvents();
 
     var myLectorModeSelect = document.getElementById('myLectorModeSelect');
     if(myLectorModeSelect){
@@ -195,6 +191,128 @@ import { render } from '../main.js';
         else if(val.indexOf('depto:') === 0){ AppState.viewAsOverride.depto = val.slice(6); AppState.viewAsOverride.seccion = null; }
         else { AppState.viewAsOverride.seccion = null; AppState.viewAsOverride.depto = null; } // General (solo lector)
         render();
+      };
+    }
+  }
+
+
+  // Botón de usuario con avatar (09/10/2026, pedido del usuario) — reemplaza
+  // el nombre suelto + "Cerrar sesión" de siempre por un botón redondo con
+  // la foto de Google, dos íconos chicos superpuestos en espejo (actividad
+  // favorita a la izquierda, escudo de sección/ícono de depto a la derecha)
+  // y un menú desplegable con "Perfil" (autoservicio: actividad favorita,
+  // Ruca/Fundación, y el ícono de depto a usar — los únicos 3 campos que las
+  // reglas de Firestore dejan tocar a cualquiera sobre su propia cuenta) y
+  // "Cerrar sesión".
+  //
+  // El escudo de SECCIÓN (Escuderos/Templarios) es automático, sin elegir —
+  // cada sección tiene un solo escudo. El de DEPARTAMENTO sí se elige (ver
+  // "Perfil" más abajo): el glifo genérico de FASTA, o un ícono propio por
+  // depto (ver DEPARTAMENTO_ICONS en config/constants.js) — pedido explícito
+  // del usuario ("pensa iconos para cada departamento para que elijan entre
+  // el de fasta y el de los departamentos").
+  function rightBadgeHtml(){
+    var inner = userBadgeInnerHtml(AppState.currentUser, DEPARTAMENTO_ICONS);
+    if(!inner) return '';
+    var title = AppState.currentUser.seccion || AppState.currentUser.depto || '';
+    return '<span class="user-avatar-badge user-avatar-badge-seccion" title="' + escapeHtml(title) + '">' + inner + '</span>';
+  }
+
+  function renderUserAvatarHtml(){
+    var myActivityIcon = activityIcon(AppState.currentUser.actividadFavorita);
+    var html = '<div class="user-avatar-wrap">';
+    html += '<button id="userAvatarBtn" class="user-avatar-btn" type="button" title="' + escapeHtml(AppState.currentUser.displayName) + '">';
+    html += AppState.currentUser.photoURL
+      ? '<img class="user-avatar-img" src="' + escapeHtml(AppState.currentUser.photoURL) + '" alt="">'
+      : '<span class="user-avatar-fallback">👤</span>';
+    if(myActivityIcon){
+      html += '<span class="user-avatar-badge user-avatar-badge-activity" title="Tu actividad favorita">' + myActivityIcon + '</span>';
+    }
+    html += rightBadgeHtml();
+    html += '</button>';
+    if(AppState.userMenuOpen){ html += renderUserMenuPanelHtml(); }
+    html += '</div>';
+    return html;
+  }
+
+  function renderUserMenuPanelHtml(){
+    var html = '<div class="user-menu-panel" id="userMenuPanel">';
+    html += '  <div class="user-menu-header"><strong>' + escapeHtml(AppState.currentUser.displayName) + '</strong><span class="mandos-sub">' + escapeHtml(roleLabel(AppState.currentUser.role)) + '</span></div>';
+    if(AppState.userMenuEditingProfile){
+      var draft = AppState.userProfileDraft || { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta' };
+      html += '  <div class="user-menu-profile-form">';
+      html += '    <label>Actividad favorita<input id="userProfileActividadInput" type="text" value="' + escapeHtml(draft.actividadFavorita) + '" placeholder="Ej: Jugar al fútbol"></label>';
+      html += '    <label>Ruca / Fundación de origen<input id="userProfileRucaInput" type="text" value="' + escapeHtml(draft.rucaFundacion) + '" placeholder="Ej: Ruca Chapelco"></label>';
+      // Solo tiene sentido para quien tiene un depto propio — una sección no
+      // elige nada, siempre usa su propio escudo (ver rightBadgeHtml()).
+      if(AppState.currentUser.depto){
+        var deptoIcon = DEPARTAMENTO_ICONS[AppState.currentUser.depto] || '';
+        html += '    <label>Ícono de tu depto en el avatar'
+          + '<select id="userProfileDeptoIconSelect">'
+          + '  <option value="fasta"' + (draft.deptoIconChoice !== 'depto' ? ' selected' : '') + '>Escudo de FASTA (genérico)</option>'
+          + '  <option value="depto"' + (draft.deptoIconChoice === 'depto' ? ' selected' : '') + '>' + deptoIcon + ' Ícono de ' + escapeHtml(AppState.currentUser.depto) + '</option>'
+          + '</select></label>';
+      }
+      html += '    <div class="user-menu-profile-actions">';
+      html += '      <button id="userProfileSaveBtn" class="btn small" type="button">Guardar</button>';
+      html += '      <button id="userProfileCancelBtn" class="btn ghost small" type="button">Cancelar</button>';
+      html += '    </div>';
+      html += '  </div>';
+    } else {
+      html += '  <button class="user-menu-item" id="userMenuProfileBtn" type="button">👤 Perfil</button>';
+      html += '  <button class="user-menu-item" id="userMenuSignOutBtn" type="button">Cerrar sesión</button>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function attachUserAvatarEvents(){
+    var avatarBtn = document.getElementById('userAvatarBtn');
+    if(avatarBtn){
+      avatarBtn.onclick = function(e){
+        e.stopPropagation(); // no lo agarre el listener de "click afuera cierra" de Novedades
+        AppState.userMenuOpen = !AppState.userMenuOpen;
+        if(!AppState.userMenuOpen){ AppState.userMenuEditingProfile = false; AppState.userProfileDraft = null; }
+        renderAuthBar();
+      };
+    }
+    var profileBtn = document.getElementById('userMenuProfileBtn');
+    if(profileBtn){
+      profileBtn.onclick = function(){
+        AppState.userMenuEditingProfile = true;
+        AppState.userProfileDraft = { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta' };
+        renderAuthBar();
+      };
+    }
+    var menuSignOutBtn = document.getElementById('userMenuSignOutBtn');
+    if(menuSignOutBtn){ menuSignOutBtn.onclick = signOutUser; }
+
+    var actInput = document.getElementById('userProfileActividadInput');
+    if(actInput){ actInput.oninput = function(){ AppState.userProfileDraft.actividadFavorita = actInput.value; }; }
+    var rucaInput = document.getElementById('userProfileRucaInput');
+    if(rucaInput){ rucaInput.oninput = function(){ AppState.userProfileDraft.rucaFundacion = rucaInput.value; }; }
+    var deptoIconSelect = document.getElementById('userProfileDeptoIconSelect');
+    if(deptoIconSelect){ deptoIconSelect.onchange = function(){ AppState.userProfileDraft.deptoIconChoice = deptoIconSelect.value; }; }
+
+    var saveBtn = document.getElementById('userProfileSaveBtn');
+    if(saveBtn){
+      saveBtn.onclick = function(){
+        updateMyProfile(AppState.userProfileDraft);
+        AppState.userMenuEditingProfile = false;
+        AppState.userProfileDraft = null;
+        // El propio onSnapshot de watchProfile() va a refrescar currentUser
+        // (actividadFavorita/rucaFundacion ya guardados) y disparar un
+        // render solo en cuanto el write resuelva — este render de acá es
+        // solo para cerrar el formulario de inmediato, sin esperarlo.
+        renderAuthBar();
+      };
+    }
+    var cancelBtn = document.getElementById('userProfileCancelBtn');
+    if(cancelBtn){
+      cancelBtn.onclick = function(){
+        AppState.userMenuEditingProfile = false;
+        AppState.userProfileDraft = null;
+        renderAuthBar();
       };
     }
   }

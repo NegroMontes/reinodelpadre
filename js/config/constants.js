@@ -63,6 +63,21 @@
   };
   export var LIBROS_ORDER = ['youcat', 'docat', 'compendio', 'enciclica', 'yconfirmacion'];
 
+  // Ícono por departamento (09/10/2026, pedido del usuario) — propuesta de
+  // emoji, mismo criterio que activityIcon() en utils/helpers.js, pensado
+  // para el badge chico del avatar de usuario (ver header.js). Quien tiene
+  // un depto puede elegir, desde "Perfil", entre este ícono propio o el
+  // glifo genérico de FASTA (ver DEPARTAMENTO_ICON_FASTA más abajo) — ver
+  // CLAUDE.md para el detalle de la decisión.
+  export var DEPARTAMENTO_ICONS = {
+    'Formación': '📖',
+    'Logística': '📦',
+    'Comunicaciones': '📣',
+    'Administración': '📋',
+    'Intendencia': '🍲',
+    'Actividades': '🎯'
+  };
+
   export var VIEW_AS_ROLES = [
     { value: '', label: 'Yo (Admin)' },
     { value: 'jefe_seccion', label: 'Jefe de sección/depto' },

@@ -10,6 +10,7 @@ import { AppState } from '../app-state.js';
 import { posGrupoLabel } from '../utils/helpers.js';
 import { declaredBucketFromForm, buildMandosIndex, findMandoByName, bucketsMatch } from '../utils/mandos-matcher.js';
 import { loadNovedadesSeenAt, loadUsersSeenAt } from '../utils/storage.js';
+import { isComandoNonAdmin } from './permissions.js';
 import { watchUsers } from './users.service.js';
 import { watchFeedback } from './feedback.service.js';
 import { load } from './state.service.js';
@@ -53,7 +54,7 @@ import { render } from '../main.js';
       if(snap.exists()){
         var data = snap.data();
         AppState.pendingFbUser = null;
-        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '' };
+        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta' };
       } else if(fbUser.email === BOOTSTRAP_ADMIN_EMAIL){
         // El admin bootstrap no pasa por el formulario: se auto-crea directo.
         var bootstrapProfile = {
@@ -67,7 +68,7 @@ import { render } from '../main.js';
         };
         try{ await setDoc(profileRef, bootstrapProfile); }catch(e){ console.error('No se pudo crear el perfil admin:', e); }
         AppState.pendingFbUser = null;
-        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: bootstrapProfile.displayName, role: bootstrapProfile.role, seccion: null };
+        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: bootstrapProfile.displayName, role: bootstrapProfile.role, seccion: null, depto: null, readDepartamentos: false, esFormacion: false, tipo: bootstrapProfile.tipo, actividadFavorita: '', rucaFundacion: '', photoURL: fbUser.photoURL || null, deptoIconChoice: 'fasta' };
       } else {
         // Primera vez que este usuario inicia sesión: todavía no tiene perfil.
         // Le mostramos el formulario de "¿quién sos?" en vez de crear un perfil pendiente ciego.
@@ -84,6 +85,12 @@ import { render } from '../main.js';
       }
       AppState.authResolved = true;
       if(AppState.currentUser && AppState.currentUser.role === 'admin'){ watchUsers(); watchFeedback(); }
+      // "Mi comando" (09/10/2026): cualquier comando no-admin también se
+      // suscribe a la lista de usuarios (de solo lectura de su lado, ver
+      // canEditEntry/setUserRole que siguen admin-only) — nunca un
+      // miliciano ni alguien "pendiente", que ni siquiera cargan esto en
+      // su propio estado del cliente.
+      else if(AppState.currentUser && isComandoNonAdmin()){ watchUsers(); }
       if(AppState.currentUser && AppState.currentUser.role !== 'pendiente' && !AppState.stateSubscribed){ AppState.stateSubscribed = true; load(); }
       render();
     }, function(e){
@@ -191,6 +198,39 @@ import { render } from '../main.js';
       await setDoc(doc(db, 'users', fbUser.uid), profile);
     }catch(e){
       console.error('No se pudo guardar tu perfil:', e);
+      alert('No se pudo guardar: ' + e.message);
+    }
+  }
+
+
+  // Autoservicio de perfil (09/10/2026, pedido del usuario) — a diferencia de
+  // setUserRole() (users.service.js, admin-only, puede tocar role/sección/
+  // depto/etc. de CUALQUIER usuario), esto lo puede llamar cualquier jefe
+  // sobre SU PROPIA cuenta, pero solo para estos tres campos — nunca rol,
+  // sección, depto ni nada que afecte permisos. Las reglas de Firestore (ver
+  // CLAUDE.md) refuerzan esto mismo del lado del servidor: un self-update
+  // solo se acepta si los campos que cambian son un subconjunto exacto de
+  // {actividadFavorita, rucaFundacion, deptoIconChoice} — cualquier otro
+  // campo en el mismo write (role incluido) lo rechaza, aunque alguien lo
+  // intente forzando la consola del navegador.
+  export async function updateMyProfile(fields){
+    if(!AppState.currentUser) return;
+    var data = {};
+    if(typeof fields.actividadFavorita === 'string'){ data.actividadFavorita = fields.actividadFavorita; }
+    if(typeof fields.rucaFundacion === 'string'){ data.rucaFundacion = fields.rucaFundacion; }
+    // Elegir entre el ícono propio del depto o el glifo genérico de FASTA
+    // para el badge del avatar (09/10/2026) — mismo criterio de autoservicio
+    // acotado que los dos campos de arriba; las reglas de Firestore (ver
+    // CLAUDE.md) solo aceptan estos 3 campos en un self-update.
+    if(fields.deptoIconChoice === 'fasta' || fields.deptoIconChoice === 'depto'){ data.deptoIconChoice = fields.deptoIconChoice; }
+    if(Object.keys(data).length === 0) return;
+    try{
+      await setDoc(doc(db, 'users', AppState.currentUser.uid), data, { merge: true });
+      // El propio onSnapshot de watchProfile() ya suscribe este mismo doc y
+      // va a refrescar AppState.currentUser solo (+ disparar un render) en
+      // cuanto el write resuelva — no hace falta tocar nada más acá.
+    }catch(e){
+      console.error('No se pudo actualizar tu perfil:', e);
       alert('No se pudo guardar: ' + e.message);
     }
   }
