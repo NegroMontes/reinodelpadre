@@ -24,7 +24,7 @@ import { uploadEntryFile } from './services/drive.service.js';
 import { realIsAdmin, effectiveRole, effectiveSeccion, effectiveDepto, isAdmin, isJefeSeccion, isLectorLike, isComandoNonAdmin, lectorModeActive, isJefeSeccionEditing, canEditStructure, entryScope, canEditEntry, canSeeEntry, canSeeDepartamentosTab, canCreateRecurso, canCreateInfoGeneral, canEditConsigna } from './services/permissions.js';
 import { AppState } from './app-state.js';
 import { uid, escapeHtml, linkify, alignStyleAttr, roleLabel } from './utils/helpers.js';
-import { saveNovedadesSeenAt, saveUsersSeenAt } from './utils/storage.js';
+import { saveNovedadesSeenAt, saveUsersSeenAt, saveTheme } from './utils/storage.js';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -249,6 +249,36 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     AppState.formOpen = false;
     render();
   };
+
+  // Toggle de tema claro/oscuro (09/10/2026) — vive en el HTML estático de
+  // la cabecera (no en #authBar, que renderAuthBar() vacía por completo
+  // antes del login) así funciona desde la pantalla de login/landing
+  // también, no solo ya adentro de la app. Listener único; el estado real
+  // (qué tema está activo) vive en el atributo `data-theme` de <html>, ya
+  // seteado al cargar la página por el script inline de index.html (evita
+  // el flash del tema equivocado antes de que este módulo llegue a correr).
+  document.getElementById('themeToggleBtn').onclick = function(){
+    // El tema "actual" lo decide la clase que ya dejó updateThemeToggleIcon()
+    // al cargar (si no hay elección explícita, esa clase refleja la
+    // preferencia del sistema — ver @media en css/base.css).
+    var esOscuroAhora = document.documentElement.classList.contains('theme-dark-active');
+    var nuevo = esOscuroAhora ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', nuevo);
+    saveTheme(nuevo);
+    updateThemeToggleIcon();
+  };
+  updateThemeToggleIcon();
+
+  function updateThemeToggleIcon(){
+    var esOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var elegido = document.documentElement.getAttribute('data-theme');
+    if(elegido === 'light'){ esOscuro = false; }
+    else if(elegido === 'dark'){ esOscuro = true; }
+    document.documentElement.classList.toggle('theme-dark-active', esOscuro);
+    var btn = document.getElementById('themeToggleBtn');
+    btn.textContent = esOscuro ? '☀️' : '🌙';
+    btn.title = esOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+  }
 
   // La lectura de `AppState.publicConfig` (ver app-state.js) se espera antes
   // de enganchar `onAuthStateChanged` — así, para cuando se resuelve si hay o

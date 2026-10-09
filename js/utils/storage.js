@@ -43,3 +43,25 @@
     try{ localStorage.setItem(usersSeenKey(uid), String(ts)); }catch(e){}
   }
 
+
+  // Tema claro/oscuro (09/10/2026) — a diferencia de los "visto hasta"
+  // de arriba, no es por uid: es una preferencia del dispositivo/navegador,
+  // tiene que aplicarse incluso ANTES de loguearse (landing, login). `null`
+  // significa "sin elección explícita" — ahí manda la preferencia del
+  // sistema operativo (`prefers-color-scheme`, resuelto en CSS, no acá).
+  export var THEME_KEY = 'fordoc_theme';
+
+  export function loadTheme(){
+    try{
+      var v = localStorage.getItem(THEME_KEY);
+      return (v === 'light' || v === 'dark') ? v : null;
+    }catch(e){ return null; }
+  }
+
+  export function saveTheme(theme){
+    try{
+      if(theme){ localStorage.setItem(THEME_KEY, theme); }
+      else { localStorage.removeItem(THEME_KEY); }
+    }catch(e){}
+  }
+

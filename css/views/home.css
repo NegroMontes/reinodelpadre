@@ -41,7 +41,7 @@
     border:1px solid var(--line);
     border-radius:var(--radius);
     padding:16px;
-    box-shadow:0 8px 28px rgba(22,41,55,0.28);
+    box-shadow:0 8px 28px rgba(var(--shadow-rgb),0.28);
     text-align:left;
   }
 
@@ -179,7 +179,7 @@
     padding:7px 9px;
     border:1px solid var(--line);
     border-radius:var(--radius-sm);
-    background:var(--white);
+    background:var(--surface);
     color:var(--ink);
     box-sizing:border-box;
     transition:border-color .15s ease, box-shadow .15s ease;

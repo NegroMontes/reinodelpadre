@@ -13,7 +13,9 @@
     --sage: #639E8D;          /* verde salvia */
     --amber: #FFA41D;
     --line: #B9D2D9;
-    --white: #FFFFFF;
+    --white: #FFFFFF;          /* texto blanco sobre fondo de color — SIEMPRE blanco, en los dos temas */
+    --surface: #FFFFFF;        /* fondo de inputs/tarjetas chicas — distinto de --white (09/10/2026, separado para que el modo oscuro pueda oscurecer uno sin tocar el otro) */
+    --shadow-rgb: 22,41,55;    /* mismo tono que --ink, en rgb para usar en rgba() de sombras */
 
     /* Sistema de forma/profundidad (06/10/2026) — nunca cambia de color, solo
        redondea/da volumen, inspirado en la estética de "Encuentros" (tarjetas
@@ -22,9 +24,57 @@
     --radius-sm: 10px;
     --radius: 14px;
     --radius-lg: 20px;
-    --shadow-sm: 0 2px 8px rgba(22,41,55,.07);
-    --shadow-md: 0 10px 26px rgba(22,41,55,.12);
-    --shadow-lift: 0 16px 36px -18px rgba(22,41,55,.38);
+    --shadow-sm: 0 2px 8px rgba(var(--shadow-rgb),.07);
+    --shadow-md: 0 10px 26px rgba(var(--shadow-rgb),.12);
+    --shadow-lift: 0 16px 36px -18px rgba(var(--shadow-rgb),.38);
+  }
+
+  /* ===== Modo oscuro (09/10/2026) =====
+     Mismas familias de color del manual de marca, en versión oscura —
+     nunca se tocan los valores de arriba (los que usa el modo claro).
+     Los acentos (teal/sage/gold/bordeaux) se aclaran un poco respecto del
+     original: tal como están definidos, son tonos pensados para leerse
+     sobre fondo claro — usados como TEXTO (ej. enlaces, `.entry-body a`)
+     sobre un fondo oscuro quedarían con poco contraste si no se ajustan.
+     Se aplica por preferencia del sistema (@media) salvo que la persona ya
+     haya elegido un tema a mano (el toggle de #authBar guarda esa elección
+     en localStorage y pone data-theme en <html>) — mismo patrón en los dos
+     bloques de abajo, uno por cada forma de activarse. */
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #0F1B24;
+      --bg-alt: #16242E;
+      --panel: #1B2A35;
+      --ink: #E7EEF2;
+      --ink-soft: #9FB3BD;
+      --bordeaux: #F0567A;
+      --bordeaux-deep: #D93A5D;
+      --indigo: #E7EEF2;
+      --gold: #F08A4B;
+      --teal: #35CBE0;
+      --sage: #7FBBA8;
+      --amber: #FFB84D;
+      --line: #2E4450;
+      --surface: #16242E;
+      --shadow-rgb: 0,0,0;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #0F1B24;
+    --bg-alt: #16242E;
+    --panel: #1B2A35;
+    --ink: #E7EEF2;
+    --ink-soft: #9FB3BD;
+    --bordeaux: #F0567A;
+    --bordeaux-deep: #D93A5D;
+    --indigo: #E7EEF2;
+    --gold: #F08A4B;
+    --teal: #35CBE0;
+    --sage: #7FBBA8;
+    --amber: #FFB84D;
+    --line: #2E4450;
+    --surface: #16242E;
+    --shadow-rgb: 0,0,0;
   }
 
 html,body{margin:0;padding:0;}

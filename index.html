@@ -4,6 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Campamento Nacional Reino del Padre 2027</title>
+<!-- Aplica el tema elegido (si hay uno guardado) ANTES de que se pinte la
+     primera pantalla -- sin esto, alguien que ya eligió modo oscuro vería
+     un flash del tema claro hasta que el modulo de JS (que carga diferido)
+     llegue a correr y recién ahí lo corrija. La clave 'fordoc_theme' tiene
+     que coincidir con THEME_KEY de js/utils/storage.js (duplicado a
+     propósito -- este script corre antes que cualquier modulo ES). -->
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('fordoc_theme');
+    if(t === 'dark' || t === 'light'){ document.documentElement.setAttribute('data-theme', t); }
+  }catch(e){}
+})();
+</script>
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +35,10 @@
 
   <header class="top">
     <div class="header-top-row">
-      <p class="kicker">Campamento Nacional AMJM</p>
+      <div class="header-top-left">
+        <p class="kicker">Campamento Nacional AMJM</p>
+        <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Cambiar tema claro/oscuro">🌙</button>
+      </div>
       <div id="authBar"></div>
     </div>
     <div class="brand-row">

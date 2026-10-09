@@ -38,11 +38,11 @@
     font-size:13.5px;
     letter-spacing:0.01em;
     cursor:pointer;
-    box-shadow:0 4px 16px rgba(22,41,55,0.25);
+    box-shadow:0 4px 16px rgba(var(--shadow-rgb),0.25);
     transition:background .15s ease, transform .15s ease, box-shadow .15s ease;
   }
 
-.feedback-fab:hover{ background:#00808f; transform:translateY(-2px); box-shadow:0 8px 22px rgba(22,41,55,0.3); }
+.feedback-fab:hover{ background:#00808f; transform:translateY(-2px); box-shadow:0 8px 22px rgba(var(--shadow-rgb),0.3); }
 
 .feedback-panel{
     position:fixed;
@@ -54,7 +54,7 @@
     border:1px solid var(--line);
     border-radius:var(--radius);
     padding:18px;
-    box-shadow:0 8px 28px rgba(22,41,55,0.28);
+    box-shadow:0 8px 28px rgba(var(--shadow-rgb),0.28);
   }
 
 .feedback-panel h3{ margin:0 0 6px; }
