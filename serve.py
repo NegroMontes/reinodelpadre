@@ -123,7 +123,14 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
 
 
 if __name__ == '__main__':
-    server = http.server.HTTPServer(('', PORT), NoCacheHandler)
+    # ThreadingHTTPServer (no HTTPServer a secas) -- el sitio ahora carga
+    # ~30 archivos por pagina (CSS + cada modulo JS + assets); HTTPServer
+    # atiende un pedido a la vez, asi que el navegador termina encolando
+    # todo eso en fila en vez de pedirlo en paralelo como haria normalmente
+    # -- la causa mas probable de que "tarda mucho en cargar" (reportado
+    # 09/10/2026) y de los ConnectionAbortedError en la consola (pedidos
+    # que seguian en cola y el navegador cancelaba al recargar de nuevo).
+    server = http.server.ThreadingHTTPServer(('', PORT), NoCacheHandler)
     print('Sirviendo FORDOC (sin cache):')
     print('  En esta compu:  http://localhost:%d' % PORT)
     tailscale = direcciones_tailscale()
