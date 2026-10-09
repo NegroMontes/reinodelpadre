@@ -38,7 +38,13 @@ import { normalizeName } from './helpers.js';
 
     (mandos.departamentos || []).forEach(function(dep){
       if(dep.nombre === 'Formación'){
-        add(dep.jefe, {type:'admin'});
+        // El jefe de Formación es admin (como la cúpula), pero a diferencia
+        // de la cúpula SÍ pertenece a un departamento real y nombrado — se
+        // guarda `depto` igual que cualquier bucket admin puede llevarlo,
+        // sin afectar bucketsMatch() (que para type:'admin' nunca mira
+        // seccion/depto) — usado por "Mi comando" (views/mandos.js) para
+        // agruparlo bajo "Formación" en vez de "Comando central".
+        add(dep.jefe, {type:'admin', depto: 'Formación'});
         (dep.subjefes || []).forEach(function(n){ add(n, {type:'formacion_member'}); });
       } else {
         // Jefe de departamento → puede cargar entradas para su departamento
