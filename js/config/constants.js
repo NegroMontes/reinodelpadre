@@ -72,6 +72,13 @@
     { value: 'pendiente', label: 'Pendiente de aprobación' }
   ];
 
+  // Link público de "la fordoquera" (la otra herramienta del usuario,
+  // Encuentros — ver CLAUDE.md "Convención nueva — 'actualizar fordoquera'")
+  // — pedido del usuario, 09/10/2026: "no todos los jefes tienen el link a
+  // mano", así que se agregó un botón que abre esto directo desde el botón
+  // de "Importar desde la fordoquera...".
+  export var FORDOQUERA_URL = 'https://negromontes.github.io/fordoquera/';
+
 // El cuadro de mandos (nombres reales) ya NO vive en este archivo — se
 // movió a Firestore (colección `mandos`, documento `data`) para que el
 // código fuente (que ahora se publica también en un repo público de

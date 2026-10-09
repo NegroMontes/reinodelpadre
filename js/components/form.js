@@ -4,7 +4,7 @@
 // formulario, y el wiring de todos sus eventos (incluido el guardado).
 
 import { AppState } from '../app-state.js';
-import { SECCIONES, DEPARTAMENTOS, STEP_TYPE_LABELS, STEP_PALETTE, LIBROS_META, LIBROS_ORDER } from '../config/constants.js';
+import { SECCIONES, DEPARTAMENTOS, STEP_TYPE_LABELS, STEP_PALETTE, LIBROS_META, LIBROS_ORDER, FORDOQUERA_URL } from '../config/constants.js';
 import { escapeHtml, uid } from '../utils/helpers.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { uploadEntryFile } from '../services/drive.service.js';
@@ -336,6 +336,10 @@ import { render, renderPanel, showStatus } from '../main.js';
   export function renderImportEncuentroButtonHtml(){
     return '<div class="import-encuentro-row">' +
       '<button class="btn ghost small" id="importEncuentroBtn" type="button">📥 Importar desde la fordoquera…</button>' +
+      // Pedido del usuario (09/10/2026): no todos los jefes tienen el link
+      // de la fordoquera a mano — este botón la abre directo en una pestaña
+      // nueva, al lado del de importar.
+      '<a class="btn ghost small" href="' + FORDOQUERA_URL + '" target="_blank" rel="noopener">🔗 Abrir la fordoquera</a>' +
       '<input type="file" id="importEncuentroFile" accept=".html,.htm,text/html" hidden>' +
       '<p class="mandos-sub">¿Ya armaste esto en la fordoquera? Importalo en vez de cargarlo de nuevo a mano.</p>' +
       '</div>';

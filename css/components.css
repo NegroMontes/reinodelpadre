@@ -667,6 +667,11 @@ h1,h2,h3,.serif{
     border-bottom:1px dashed var(--line);
   }
 
+/* El link "Abrir la fordoquera" reusa .btn (pensada para <button>) sobre
+   una <a> -- display:inline-block para que el padding/border-radius se
+   comporten como en un botón real, no como texto en línea. */
+.import-encuentro-row a.btn{ display:inline-block; text-decoration:none; margin-left:8px; }
+
 .import-encuentro-row .mandos-sub{ margin:4px 0 0; }
 
 .insert-order-note{
