@@ -53,23 +53,21 @@ import { render, renderPanel, showStatus } from '../main.js';
   }
 
 
-  // Texto plano con lo declarado por cada usuario (09/10/2026, mismo patrón
-  // que "Copiar pendientes" de Comentarios) — pensado para pegar acá en el
-  // chat y poder revisar de una, por ejemplo, si algún ícono por actividad
-  // favorita no está matcheando bien con lo que la gente puso de verdad.
-  // Respeta la lista YA filtrada (subpestaña + filtros activos), igual que
-  // la tabla que se está mirando en pantalla.
+  // Texto plano con nombre + actividad favorita (09/10/2026, mismo patrón
+  // que "Copiar pendientes" de Comentarios) — pensado para pegar en el chat
+  // y revisar de una si algún ícono por actividad favorita no está
+  // matcheando bien con lo que la gente puso de verdad. Achicado a solo
+  // estos dos campos (antes incluía rol/email/declaró/ruca) porque es todo
+  // lo que hace falta para ese chequeo puntual — pedido del usuario,
+  // 09/10/2026: "en serio queres toda esa información, es solo para los
+  // iconos". Solo entran los que SÍ cargaron algo — alguien sin actividad
+  // no tiene ícono que revisar.
   export function buildUsersDeclaredText(list){
-    if(list.length === 0) return '';
-    var lines = ['Usuarios (' + list.length + '):', ''];
-    list.forEach(function(u, i){
-      var declaradoComoShown = (u.declaradoComo || '').replace(/^Capellán/, 'Consagrado');
-      var scope = u.seccion || u.depto || '';
-      lines.push((i+1) + '. ' + (u.displayName || '(sin nombre)') + ' — ' + roleLabel(u.role) + (scope ? (' · ' + scope) : '') + (u.email ? (' — ' + u.email) : ''));
-      lines.push('   Declaró: ' + (declaradoComoShown || (u.tipo === 'acampante' ? 'Acampante' : '—')));
-      if(u.rucaFundacion) lines.push('   Ruca/Fundación: ' + u.rucaFundacion);
-      if(u.actividadFavorita) lines.push('   Actividad favorita: ' + u.actividadFavorita);
-      lines.push('');
+    var withActivity = list.filter(function(u){ return u.actividadFavorita; });
+    if(withActivity.length === 0) return '';
+    var lines = ['Actividades favoritas (' + withActivity.length + '):', ''];
+    withActivity.forEach(function(u, i){
+      lines.push((i+1) + '. ' + (u.displayName || '(sin nombre)') + ' — ' + u.actividadFavorita);
     });
     return lines.join('\n');
   }
@@ -79,7 +77,7 @@ import { render, renderPanel, showStatus } from '../main.js';
     var html = '';
     html += '<div class="panel-head"><div><h2>Usuarios</h2>';
     html += '<p class="mandos-sub">Los que declararon un mando que coincide con el cuadro de mandos entraron solos. Revisá los resaltados en ámbar ("pendiente") — quedaron ahí porque no coincidieron, son acampantes/lectores sin padrón para verificar, o (⚠ sugiere: Admin) matchearon un puesto de admin y están esperando que lo confirmes vos.</p></div>';
-    html += '<button class="btn ghost small" id="copyUsersBtn" type="button">Copiar declaraciones</button>';
+    html += '<button class="btn ghost small" id="copyUsersBtn" type="button">Copiar actividades</button>';
     html += '</div>';
 
     if(AppState.usersList.length === 0){
