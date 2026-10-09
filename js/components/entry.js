@@ -900,7 +900,10 @@ import { renderPanel } from '../main.js';
       items.forEach(function(entry){ html += renderEntry(entry); });
       return html;
     }
-    html += renderEntryGap('', items[0].id);
+    // Sin hueco antes de la primera entrada (09/10/2026, pedido del usuario:
+    // sacar el "+" suelto arriba de todo) — para anteponer al principio ya
+    // alcanza con entrar por el botón "+ Agregar entrada" de abajo; los huecos
+    // ENTRE entradas (para elegir una posición intermedia) siguen igual.
     items.forEach(function(entry, i){
       html += renderEntry(entry);
       if(i < items.length - 1){ html += renderEntryGap(entry.id, items[i+1].id); }
