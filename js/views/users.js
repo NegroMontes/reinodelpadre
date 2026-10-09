@@ -5,7 +5,7 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
 import { db } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, BOOTSTRAP_ADMIN_EMAIL } from '../config/constants.js';
-import { escapeHtml, roleLabel } from '../utils/helpers.js';
+import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
 import { setUserRole, deleteUser } from '../services/users.service.js';
 import { render, renderPanel, showStatus } from '../main.js';
 
@@ -140,7 +140,11 @@ import { render, renderPanel, showStatus } from '../main.js';
       var infoBtn = infoParts.length
         ? ' <span class="user-info-wrap"><button type="button" class="user-info-btn" data-uid="' + u.uid + '">▲</button><div class="user-info-popover">' + infoParts.join('') + '</div></span>'
         : '';
-      html += '  <td>' + escapeHtml(u.displayName || '') + (u.email === BOOTSTRAP_ADMIN_EMAIL ? ' <span class="tag seccion">admin base</span>' : '') +
+      // Ícono por actividad favorita (09/10/2026) — mismo helper que ya usa
+      // el nombre propio en la barra superior, acá para poder identificar
+      // a cada persona de un vistazo en la lista entera.
+      var rowActivityIcon = activityIcon(u.actividadFavorita);
+      html += '  <td>' + (rowActivityIcon ? rowActivityIcon + ' ' : '') + escapeHtml(u.displayName || '') + (u.email === BOOTSTRAP_ADMIN_EMAIL ? ' <span class="tag seccion">admin base</span>' : '') +
         (u.verificado ? ' <span class="tag seccion" title="Coincide con el cuadro de mandos">✓ verificado</span>' : '') +
         infoBtn + '</td>';
       // Perfiles guardados ANTES del renombre "Capellán"→"Consagrado" (ver

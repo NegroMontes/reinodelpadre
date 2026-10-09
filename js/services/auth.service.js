@@ -53,7 +53,7 @@ import { render } from '../main.js';
       if(snap.exists()){
         var data = snap.data();
         AppState.pendingFbUser = null;
-        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, tipo: data.tipo || null };
+        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '' };
       } else if(fbUser.email === BOOTSTRAP_ADMIN_EMAIL){
         // El admin bootstrap no pasa por el formulario: se auto-crea directo.
         var bootstrapProfile = {

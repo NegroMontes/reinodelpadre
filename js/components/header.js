@@ -3,7 +3,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS } from '../config/constants.js';
-import { escapeHtml, roleLabel } from '../utils/helpers.js';
+import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
 import { saveNovedadesSeenAt } from '../utils/storage.js';
 import { lectorModeActive, realIsAdmin, isComandoNonAdmin, canSeeEntry } from '../services/permissions.js';
 import { signOutUser } from '../services/auth.service.js';
@@ -63,7 +63,11 @@ import { render } from '../main.js';
     var html = '<div class="auth-user">';
     html += '<button id="novedadesBtn" class="novedades-bell" type="button" title="Novedades de los últimos ' + NOVEDADES_WINDOW_DAYS + ' días">🔔' + (novedadesSinVer.length > 0 ? '<span class="tag imagen novedades-count">' + novedadesSinVer.length + '</span>' : '') + '</button>';
     html += '<span class="role-pill">' + escapeHtml(roleLabel(AppState.currentUser.role)) + '</span>' + simPill + lectorPill;
-    html += '<span>' + escapeHtml(AppState.currentUser.displayName) + '</span>';
+    // Ícono por actividad favorita (09/10/2026) — primer paso visible hacia
+    // el sistema de puntos/gamificación por comando del backlog. Al lado
+    // del propio nombre, para que cada quien note su ícono apenas entra.
+    var myActivityIcon = activityIcon(AppState.currentUser.actividadFavorita);
+    html += '<span>' + (myActivityIcon ? myActivityIcon + ' ' : '') + escapeHtml(AppState.currentUser.displayName) + '</span>';
     if(realIsAdmin()){
       var curRole = AppState.viewAsOverride ? AppState.viewAsOverride.role : '';
       html += '<select id="viewAsRoleSelect">';

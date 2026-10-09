@@ -27,6 +27,58 @@
   }
 
 
+  // Ícono por "actividad favorita" (09/10/2026, cuarto pedido de mejora
+  // visual) — pensado explícitamente como primer paso hacia el sistema de
+  // puntos/gamificación por comando que sigue en el backlog ("logo
+  // específico según la actividad favorita de cada uno", ver sección del
+  // doc de specs en CLAUDE.md). Matching por palabra clave sobre el texto
+  // libre que la persona cargó en el onboarding — lista acotada, no
+  // exhaustiva; cualquier respuesta que no matchee cae al ícono genérico
+  // (⭐) en vez de no mostrar nada, así "cargaste una actividad" siempre se
+  // nota aunque no se haya anticipado esa palabra puntual.
+  var ACTIVITY_ICONS = [
+    { k: ['futbol'], icon: '⚽' },
+    { k: ['voley', 'voleibol'], icon: '🏐' },
+    { k: ['basquet', 'basket'], icon: '🏀' },
+    { k: ['rugby'], icon: '🏉' },
+    { k: ['truco', 'cartas', 'naipes', 'juegos de mesa'], icon: '🃏' },
+    { k: ['ajedrez'], icon: '♟' },
+    { k: ['cocinar', 'cocina', 'asado', 'cocinero'], icon: '🍳' },
+    { k: ['fogon', 'fuego'], icon: '🔥' },
+    { k: ['leer', 'lectura', 'libro'], icon: '📖' },
+    { k: ['cantar', 'canto', 'musica', 'guitarra', 'banda'], icon: '🎵' },
+    { k: ['pescar', 'pesca'], icon: '🎣' },
+    { k: ['bici', 'bicicleta', 'ciclismo'], icon: '🚴' },
+    { k: ['nadar', 'natacion', 'pileta', 'piscina'], icon: '🏊' },
+    { k: ['dibujar', 'dibujo', 'pintar', 'pintura', 'arte'], icon: '🎨' },
+    { k: ['teatro', 'actuar'], icon: '🎭' },
+    { k: ['danza', 'baile', 'bailar'], icon: '💃' },
+    { k: ['trekking', 'caminata', 'montanismo', 'senderismo', 'marcha'], icon: '🥾' },
+    { k: ['acampar', 'campamento', 'carpa'], icon: '⛺' },
+    { k: ['rezar', 'orar', 'oracion', 'capilla', 'adoracion'], icon: '🙏' },
+    { k: ['dormir', 'siesta'], icon: '😴' },
+    { k: ['foto', 'camara'], icon: '📷' },
+    { k: ['programar', 'computacion', 'tecnologia', 'videojuego'], icon: '💻' },
+    { k: ['manualidades', 'artesania', 'tejer', 'coser'], icon: '✂️' },
+    { k: ['estudiar', 'estudio'], icon: '📚' },
+    { k: ['amig'], icon: '🗣️' }
+  ];
+  export function activityIcon(actividadFavorita){
+    if(!actividadFavorita) return '';
+    // normalizeName() ya hace exactamente lo que hace falta acá (sacar
+    // acentos, pasar a minúsculas, recortar espacios) aunque esté pensada
+    // para nombres de personas — reusarla evita duplicar esa lógica.
+    var norm = normalizeName(actividadFavorita);
+    for(var i = 0; i < ACTIVITY_ICONS.length; i++){
+      var group = ACTIVITY_ICONS[i];
+      for(var j = 0; j < group.k.length; j++){
+        if(norm.indexOf(group.k[j]) !== -1) return group.icon;
+      }
+    }
+    return '⭐';
+  }
+
+
   export function escapeHtml(s){
     return (s||'').replace(/[&<>"']/g, function(c){
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
