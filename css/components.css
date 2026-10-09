@@ -139,6 +139,19 @@ h1,h2,h3,.serif{
     box-shadow:var(--shadow-sm);
   }
 
+/* Transición suave al cambiar de pestaña (09/10/2026) — el JS reinicia esta
+   animación a mano (quitar/forzar reflow/volver a poner la clase) solo
+   cuando cambia `activeDayId`, nunca en un re-render dentro de la misma
+   pestaña. */
+@keyframes panelFadeIn{
+  from{ opacity:0; transform:translateY(6px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+.panel.panel-fade-in{ animation:panelFadeIn .22s ease; }
+@media (prefers-reduced-motion: reduce){
+  .panel.panel-fade-in{ animation:none; }
+}
+
 .panel-head{
     display:flex;
     justify-content:space-between;

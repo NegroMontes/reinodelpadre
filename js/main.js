@@ -556,8 +556,27 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     }
     panel.innerHTML = '';
   }
+  // Transición suave al cambiar de PESTAÑA (09/10/2026) — a propósito, solo
+  // cuando cambia `activeDayId` en sí, nunca en cualquier otro re-render
+  // dentro de la misma pestaña (tipear un borrador, guardar, un tick de
+  // Firestore, colapsar una entrada, etc. llaman a renderPanel() todo el
+  // tiempo — animar en cada uno de esos sería un parpadeo molesto, no una
+  // mejora). `lastPanelTabKey` recuerda qué pestaña se vio la última vez;
+  // si cambió, se reinicia la animación CSS a mano (remover la clase, forzar
+  // reflow, volver a agregarla) porque el navegador no reinicia una
+  // @keyframes si la clase ya estaba puesta.
+  var lastPanelTabKey = null;
   renderPanel = function(){
-    try{ renderPanelImpl(); }catch(err){ renderFailure(err); }
+    var prevKey = lastPanelTabKey;
+    try{ renderPanelImpl(); }catch(err){ renderFailure(err); return; }
+    var newKey = AppState.activeDayId;
+    lastPanelTabKey = newKey;
+    if(newKey !== prevKey){
+      var panel = document.getElementById('panel');
+      panel.classList.remove('panel-fade-in');
+      void panel.offsetWidth;
+      panel.classList.add('panel-fade-in');
+    }
   }
 
 
