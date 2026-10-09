@@ -22,9 +22,17 @@ import { render, renderDayRail } from '../main.js';
   }
 
 
-  export async function setUserRole(uid, role, seccion, depto, readDepartamentos, esFormacion){
+  // `actividadFavorita` es opcional (09/10/2026) — antes solo se cargaba una
+  // vez, en el formulario de onboarding (y ni siquiera el admin bootstrap
+  // pasa por ahí, así que nunca tenía una propia). Un admin ahora puede
+  // cargarla/corregirla desde acá, para cualquier usuario — `undefined`
+  // deja el campo tal como estaba (para no pisarlo con '' cuando se llama
+  // desde algún lugar que todavía no lo pasa).
+  export async function setUserRole(uid, role, seccion, depto, readDepartamentos, esFormacion, actividadFavorita){
     try{
-      await setDoc(doc(db, 'users', uid), { role: role, seccion: seccion || null, depto: depto || null, readDepartamentos: !!readDepartamentos, esFormacion: !!esFormacion }, { merge: true });
+      var data = { role: role, seccion: seccion || null, depto: depto || null, readDepartamentos: !!readDepartamentos, esFormacion: !!esFormacion };
+      if(actividadFavorita !== undefined) data.actividadFavorita = actividadFavorita;
+      await setDoc(doc(db, 'users', uid), data, { merge: true });
     }catch(e){
       console.error('No se pudo actualizar el usuario:', e);
       alert('No se pudo guardar el cambio: ' + e.message);

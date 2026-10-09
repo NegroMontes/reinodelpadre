@@ -157,12 +157,18 @@ import { render, renderPanel, showStatus } from '../main.js';
       // quedan en un popover propio (no el tooltip nativo, que tarda en
       // aparecer y no se abre con un click) al lado del nombre (pedido del
       // usuario, 23/09/2026).
+      // Actividad favorita pasó a ser EDITABLE acá (09/10/2026, pedido del
+      // usuario: "¿puedo declarar una actividad después de loguearme?") —
+      // antes solo se cargaba una vez, en el formulario de onboarding, sin
+      // forma de corregirla o completarla después (ni siquiera el admin
+      // bootstrap pasa por ese formulario, así que nunca tenía una propia).
+      // El valor se lee junto al resto de la fila al tocar "Guardar" (mismo
+      // patrón que el select de Rol o los checkboxes de abajo) — no hace
+      // falta un botón aparte.
       var infoParts = [];
       if(u.rucaFundacion) infoParts.push('<p><strong>Ruca/Fundación:</strong> ' + escapeHtml(u.rucaFundacion) + '</p>');
-      if(u.actividadFavorita) infoParts.push('<p><strong>Actividad favorita:</strong> ' + escapeHtml(u.actividadFavorita) + '</p>');
-      var infoBtn = infoParts.length
-        ? ' <span class="user-info-wrap"><button type="button" class="user-info-btn" data-uid="' + u.uid + '">▲</button><div class="user-info-popover">' + infoParts.join('') + '</div></span>'
-        : '';
+      infoParts.push('<p><strong>Actividad favorita:</strong><br><input type="text" class="uActividad" value="' + escapeHtml(u.actividadFavorita || '') + '" placeholder="Ej: Marcha, fogón..."></p>');
+      var infoBtn = ' <span class="user-info-wrap"><button type="button" class="user-info-btn" data-uid="' + u.uid + '">▲</button><div class="user-info-popover">' + infoParts.join('') + '</div></span>';
       // Ícono por actividad favorita (09/10/2026) — mismo helper que ya usa
       // el nombre propio en la barra superior, acá para poder identificar
       // a cada persona de un vistazo en la lista entera.
@@ -321,11 +327,13 @@ import { render, renderPanel, showStatus } from '../main.js';
         var depto = scopeVal.indexOf('depto:') === 0 ? scopeVal.slice(6) : '';
         var readDeptos = row.querySelector('.uReadDeptos').checked;
         var esFormacion = row.querySelector('.uEsFormacion').checked;
+        var actividadInput = row.querySelector('.uActividad');
+        var actividad = actividadInput ? actividadInput.value.trim() : '';
         if(role === 'jefe_seccion' && !seccion && !depto){
           alert('Elegí una sección o un departamento para ese rol.');
           return;
         }
-        setUserRole(uidVal, role, seccion || null, depto || null, readDeptos, esFormacion);
+        setUserRole(uidVal, role, seccion || null, depto || null, readDeptos, esFormacion, actividad);
       };
     });
 

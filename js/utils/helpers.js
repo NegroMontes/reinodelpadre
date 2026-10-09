@@ -46,7 +46,7 @@
     { k: ['cocinar', 'cocina', 'asado', 'cocinero'], icon: '🍳' },
     { k: ['picada'], icon: '🧀' },
     { k: ['fogon', 'fuego'], icon: '🔥' },
-    { k: ['charla'], icon: '🎤' },
+    { k: ['charla'], icon: '🗨️' },
     { k: ['leer', 'lectura', 'libro'], icon: '📖' },
     { k: ['cantar', 'canto', 'musica', 'guitarra', 'banda'], icon: '🎵' },
     { k: ['pescar', 'pesca'], icon: '🎣' },
