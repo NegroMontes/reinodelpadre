@@ -95,18 +95,21 @@ import { showStatus } from '../main.js';
   }
 
 
-  // "Entrada de bienvenida" (pedido del usuario, 24/09/2026): una entrada
-  // Secuencial de Recursos marcada `bienvenida:true` (ver renderForm/día
-  // 'RESOURCES') que, mientras la persona todavía no la completó, aparece
-  // arriba de todo en "Inicio" — para cualquiera que entre por primera vez,
-  // comando y milicianos por igual. Se reusa `renderEntry()` tal cual (con
-  // toda su lógica de pasos/navegación/Finalizar) — al completarla
-  // (`myProgress[entry.id].completedAt`), deja de aparecer acá y sigue
-  // viviendo en Recursos como cualquier otra entrada, sin moverla de lugar
-  // de verdad (siempre vivió ahí — esto solo deja de destacarla en Inicio).
+  // "Entrada de bienvenida" (pedido del usuario, 24/09/2026): una entrada de
+  // Recursos marcada `bienvenida:true` (ver renderForm/día 'RESOURCES') que,
+  // mientras la persona todavía no la completó, aparece arriba de todo en
+  // "Inicio" — para cualquiera que entre por primera vez, comando y
+  // milicianos por igual. Se reusa `renderEntry()` tal cual.
+  // ⚠️ Desde "Fordoquera incrustada" (09/10/2026, ver CLAUDE.md): el
+  // contenido/progreso de una entrada vive del lado de la Fordoquera (su
+  // propio localStorage), que no avisa "completado" por postMessage — así
+  // que `myProgress[entry.id].completedAt` solo puede seguir siendo `true`
+  // para entradas de bienvenida completadas ANTES de este cambio (formato
+  // viejo); una entrada de bienvenida nueva no tiene forma de "desaparecer
+  // sola" al completarla, limitación aceptada de usar el protocolo real.
   export function renderWelcomeSection(){
     var items = AppState.state.entries.filter(function(e){
-      return e.bienvenida && e.type === 'secuencial' && canSeeEntry(e) &&
+      return e.bienvenida && canSeeEntry(e) &&
         !(AppState.myProgress[e.id] && AppState.myProgress[e.id].completedAt);
     });
     if(items.length === 0) return '';

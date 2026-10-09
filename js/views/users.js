@@ -80,6 +80,18 @@ import { render, renderPanel, showStatus } from '../main.js';
     html += '<button class="btn ghost small" id="copyUsersBtn" type="button">Copiar actividades</button>';
     html += '</div>';
 
+    // Importar/actualizar YouCat + la Biblia en Firestore (09/10/2026, ver
+    // "Fordoquera incrustada" en CLAUDE.md) — mismo patrón que tuvo
+    // "Importar desde el código" para el cuadro de mandos: botón admin-only,
+    // pensado para correrse una sola vez (es idempotente, `set` pisa el
+    // documento entero, así que correrlo de nuevo no rompe nada si hace
+    // falta resembrar). Lee de `seed-data/` (solo en el repo privado,
+    // nunca en el espejo público — tiene derechos de autor) vía fetch().
+    html += '<div class="mandos-sub" style="margin-bottom:14px">';
+    html += '  <button class="btn ghost small" id="seedLibrosBtn" type="button">📚 Importar libros (YouCat + Biblia) a Firestore</button>';
+    html += '  <span id="seedLibrosStatus" style="margin-left:8px"></span>';
+    html += '</div>';
+
     if(AppState.usersList.length === 0){
       html += '<p class="empty">Todavía no inició sesión nadie más.</p>';
       return html;
@@ -250,6 +262,26 @@ import { render, renderPanel, showStatus } from '../main.js';
         renderPanel();
       };
     });
+
+    var seedLibrosBtn = document.getElementById('seedLibrosBtn');
+    if(seedLibrosBtn){
+      seedLibrosBtn.onclick = function(){
+        if(!confirm('¿Importar YouCat y la Biblia a Firestore? Esto lee ~6.8MB desde el repo y los escribe en varios documentos — puede tardar un rato. Es seguro correrlo de nuevo si hace falta.')) return;
+        seedLibrosBtn.disabled = true;
+        var statusEl = document.getElementById('seedLibrosStatus');
+        import('../services/libros-seed.service.js').then(function(mod){
+          return mod.seedLibrosFromFiles(function(msg){ if(statusEl) statusEl.textContent = msg; });
+        }).then(function(resumen){
+          if(statusEl) statusEl.textContent = resumen;
+          showStatus(resumen);
+          seedLibrosBtn.disabled = false;
+        }).catch(function(e){
+          console.error(e);
+          if(statusEl) statusEl.textContent = '❌ ' + (e.message || 'No se pudo importar.');
+          seedLibrosBtn.disabled = false;
+        });
+      };
+    }
 
     var toggleMiliBtn = document.getElementById('toggleMilicianosLoginBtn');
     if(toggleMiliBtn){

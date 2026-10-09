@@ -1,6 +1,6 @@
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import { auth } from './config/firebase.js';
-import { BOOTSTRAP_ADMIN_EMAIL, SECCIONES, DEPARTAMENTOS, NOVEDADES_WINDOW_DAYS, CAMP_DURATION_DAYS, ALIGN_OPTIONS, STEP_TYPE_LABELS, VIEW_AS_ROLES } from './config/constants.js';
+import { BOOTSTRAP_ADMIN_EMAIL, SECCIONES, DEPARTAMENTOS, NOVEDADES_WINDOW_DAYS, CAMP_DURATION_DAYS, VIEW_AS_ROLES } from './config/constants.js';
 
 import { renderUsersPanel, attachUsersEvents } from './views/users.js';
 import { renderFeedbackPanel, attachFeedbackPanelEvents } from './views/feedback.js';
@@ -12,15 +12,13 @@ import { stopCountdownTicker, startCountdownTicker, renderHomePanel, attachHomeE
 import { renderGate } from './views/gate.js';
 import { canSeeFeedbackWidget, renderFeedbackWidget, attachFeedbackWidgetEvents } from './components/feedback-widget.js';
 import { viewAsScopeOptionsHtml, renderAuthBar, entryLocationLabel, getNovedades } from './components/header.js';
-import { renderAmbitoPicker, renderStepsBuilder, renderForm, attachPanelEvents } from './components/form.js';
+import { attachPanelEvents } from './components/form.js';
 import { addDay, renameDay, setDayDate, setConsigna, deleteDay } from './services/state.service.js';
-import { renderAlignPicker, textZoneHtml, scopeTagsHtml, driveFileId, youtubeId, vimeoId, embeddableImageSrc, embedBlockHtml, renderPropositosRecordatorio, setSecuencialFullscreenLock, scrollSecuencialToTop, musicSourceUrl, stopSecuencialMusic, startSecuencialMusicIfAny, updateSecuencialMusicForStep, renderSecuencialEntry, renderEntry } from './components/entry.js';
 import { signIn, signOutUser, watchProfile, submitOnboarding } from './services/auth.service.js';
 import { watchUsers, setUserRole, deleteUser } from './services/users.service.js';
 import { watchFeedback, submitFeedback, toggleFeedbackResuelto, deleteFeedbackItem } from './services/feedback.service.js';
-import { canSeeCompletions, ensureCompletionsSubs, unsubAllCompletions, progressDocRef, ensureProgressSubs, unsubAllProgress, saveProgressAnswer, markProgressCompleted } from './services/progress.service.js';
+import { unsubAllCompletions, unsubAllProgress } from './services/progress.service.js';
 import { defaultData, load, save, loadPublicConfig } from './services/state.service.js';
-import { uploadEntryFile } from './services/drive.service.js';
 import { realIsAdmin, effectiveRole, effectiveSeccion, effectiveDepto, isAdmin, isJefeSeccion, isLectorLike, isComandoNonAdmin, lectorModeActive, isJefeSeccionEditing, canEditStructure, entryScope, canEditEntry, canSeeEntry, canSeeDepartamentosTab, canCreateRecurso, canCreateInfoGeneral, canEditConsigna } from './services/permissions.js';
 import { AppState } from './app-state.js';
 import { uid, escapeHtml, linkify, alignStyleAttr, roleLabel } from './utils/helpers.js';
@@ -339,8 +337,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       unsubAllCompletions();
       AppState.secuencialCompletionsOpenId = null;
       AppState.secuencialOpenEntryId = null; AppState.secuencialStepIndex = {}; AppState.secuencialAnswerDraft = null;
-      AppState.secuencialFullscreenId = null; setSecuencialFullscreenLock(false);
-      stopSecuencialMusic();
+      AppState.secuencialFullscreenId = null;
       AppState.novedadesSeenAt = 0; AppState.novedadesOpen = false;
       AppState.userMenuOpen = false; AppState.userMenuEditingProfile = false; AppState.userProfileDraft = null;
       AppState.usersSeenAt = 0; AppState.usersSeenAtLoadedForUid = null;

@@ -32,3 +32,12 @@ export var mandosDocRef = doc(db, 'mandos', 'data');
 // Comentarios de feedback sobre la página (botón flotante) — documentos sueltos,
 // separados de `fordoc/shared` porque solo los lee un admin, nunca el resto del comando.
 export var feedbackColRef = collection(db, 'feedback');
+// Bibliotecas (YouCat + la Biblia) que usa la Fordoquera incrustada — ver
+// "Fordoquera incrustada" en CLAUDE.md (09/10/2026). Textos partidos en
+// varios documentos de menos de 1MB cada uno (YouCat en 4 bloques bajo
+// `libros/youcat/chunks/{i}`; la Biblia en 76, uno por libro bíblico, bajo
+// `libros/biblia/libros/{cap}`) — ningún documento de Firestore puede pasar
+// 1MB, y los textos completos (735KB YouCat, 6MB la Biblia) no entrarían en
+// uno solo. Legible por cualquiera logueado, escribible solo por admin
+// (mismo criterio que `mandos/data`).
+export var librosColRef = collection(db, 'libros');

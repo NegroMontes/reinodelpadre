@@ -331,7 +331,15 @@ import { uid } from './helpers.js';
   // Convierte un paso de RDP a su equivalente de Encuentros. `id` ya viene
   // generado (ver `convertRdpEntryToEncuentro`, que arma los ids de todos
   // los pasos primero para poder resolver `cond` en una segunda pasada).
-  function convertRdpStep(step, id){
+  // Exportada además para que `components/fordoquera-embed.js` la reuse
+  // tal cual al migrar una entrada legacy de TIPO SIMPLE (texto/enlace/
+  // imagen/video/audio/pdf/libro, de antes del 06/10/2026 — ver "Tipo de
+  // contenido de nivel superior eliminado" en CLAUDE.md) a un paso de la
+  // Fordoquera — sintetizando un objeto con forma de "paso de RDP" a partir
+  // de los campos sueltos de la entrada vieja (body/url/bodyAfter/book) y
+  // pasándolo por acá, en vez de duplicar el mapeo de bibliotecas
+  // (youcat/docat/compendio/enciclica/yconfirmacion → tipos de Encuentros).
+  export function convertRdpStep(step, id){
     var out = { id: id, type: step.type };
     if(step.nota) out.nota = step.nota;
     switch(step.type){
