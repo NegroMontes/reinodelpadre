@@ -168,6 +168,11 @@
 .user-avatar-badge-seccion svg,
 .user-avatar-badge-seccion img{ width:100%; height:100%; display:block; }
 
+/* Ícono de admin/comando central (09/10/2026) — un emoji simple, un toque
+     más grande que el font-size base del badge para que se note bien
+     adentro del círculo chico. */
+.user-badge-emoji{ font-size:12px; line-height:1; }
+
 .user-menu-panel{
     position:fixed;
     top:64px;

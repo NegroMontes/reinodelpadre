@@ -78,6 +78,23 @@
     'Actividades': '🎯'
   };
 
+  // Ícono del badge para quien no tiene sección NI departamento (admin /
+  // comando central) — 09/10/2026, pedido del usuario ("Yo no tengo ninguno
+  // jajajaj"). A diferencia de sección (automático, sin elegir) o depto
+  // (elige entre 2 opciones fijas), acá hay que elegir uno de una lista chica
+  // — se guarda la `value` (no el emoji directo) para poder validarlo en
+  // `updateMyProfile()` igual que `deptoIconChoice`.
+  export var CUPULA_ICONS = [
+    { value:'corona', emoji:'👑', label:'Corona' },
+    { value:'escudo', emoji:'🛡️', label:'Escudo' },
+    { value:'estrella', emoji:'⭐', label:'Estrella' },
+    { value:'medalla', emoji:'🎖️', label:'Medalla' },
+    { value:'cruz', emoji:'✝️', label:'Cruz' },
+    { value:'torre', emoji:'🏰', label:'Torre (del logo)' },
+    { value:'aguila', emoji:'🦅', label:'Águila' },
+    { value:'tridente', emoji:'🔱', label:'Tridente' }
+  ];
+
   export var VIEW_AS_ROLES = [
     { value: '', label: 'Yo (Admin)' },
     { value: 'jefe_seccion', label: 'Jefe de sección/depto' },

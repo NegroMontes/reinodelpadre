@@ -20,6 +20,13 @@
 // entorno a partir del PNG bajado completo — se aisló el componente central
 // (las tres flechas unidas con una cruz) y se descartaron el anillo de
 // texto y el fondo, quedando como `assets/depto-fasta.png` (transparente).
+//
+// Ícono para admin/comando central (09/10/2026, pedido del usuario — no
+// tenían ningún ícono, a diferencia de sección/depto): a elegir entre una
+// lista chica de emoji (CUPULA_ICONS, config/constants.js), guardado en el
+// perfil como `cupulaIcon` (la `value`, no el emoji directo).
+
+import { CUPULA_ICONS } from '../config/constants.js';
 
 function shieldSvg(bodyColor, arrowColor){
   return '<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">'
@@ -48,6 +55,14 @@ export function fastaGlyphHtml(){
   return '<img src="assets/depto-fasta.png" alt="FASTA" style="width:100%;height:100%;object-fit:contain;padding:2px;box-sizing:border-box;">';
 }
 
+// Emoji elegido por un admin/comando central para su propio badge — '' si
+// todavía no eligió ninguno (nunca explota con un value viejo/inválido).
+export function cupulaIconEmoji(value){
+  if(!value) return '';
+  var found = CUPULA_ICONS.filter(function(o){ return o.value === value; })[0];
+  return found ? found.emoji : '';
+}
+
 // Ícono de sección/depto de UN usuario cualquiera (no necesariamente
 // currentUser) — reusado tanto por el badge del propio avatar (header.js)
 // como por las tarjetas de "Mi comando" (views/mandos.js), para no duplicar
@@ -63,5 +78,9 @@ export function userBadgeInnerHtml(u, deptoIcons){
     if(u.deptoIconChoice === 'depto'){ return (deptoIcons && deptoIcons[u.depto]) || ''; }
     return fastaGlyphHtml();
   }
-  return '';
+  // Sin sección ni depto — típicamente admin/comando central (09/10/2026):
+  // el emoji que haya elegido, o '' si todavía no eligió ninguno (mismo
+  // criterio de "sin badge" que ya tenía antes de agregar esta opción).
+  var cupulaEmoji = cupulaIconEmoji(u.cupulaIcon);
+  return cupulaEmoji ? '<span class="user-badge-emoji">' + cupulaEmoji + '</span>' : '';
 }
