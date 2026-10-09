@@ -7,6 +7,7 @@ import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, BOOTSTRAP_ADMIN_EMAIL } from '../config/constants.js';
 import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
 import { setUserRole, deleteUser } from '../services/users.service.js';
+import { copyTextToClipboard } from './feedback.js';
 import { render, renderPanel, showStatus } from '../main.js';
 
   // Filtra `usersList` según los filtros activos de la pestaña "Usuarios"
@@ -52,10 +53,34 @@ import { render, renderPanel, showStatus } from '../main.js';
   }
 
 
+  // Texto plano con lo declarado por cada usuario (09/10/2026, mismo patrón
+  // que "Copiar pendientes" de Comentarios) — pensado para pegar acá en el
+  // chat y poder revisar de una, por ejemplo, si algún ícono por actividad
+  // favorita no está matcheando bien con lo que la gente puso de verdad.
+  // Respeta la lista YA filtrada (subpestaña + filtros activos), igual que
+  // la tabla que se está mirando en pantalla.
+  export function buildUsersDeclaredText(list){
+    if(list.length === 0) return '';
+    var lines = ['Usuarios (' + list.length + '):', ''];
+    list.forEach(function(u, i){
+      var declaradoComoShown = (u.declaradoComo || '').replace(/^Capellán/, 'Consagrado');
+      var scope = u.seccion || u.depto || '';
+      lines.push((i+1) + '. ' + (u.displayName || '(sin nombre)') + ' — ' + roleLabel(u.role) + (scope ? (' · ' + scope) : '') + (u.email ? (' — ' + u.email) : ''));
+      lines.push('   Declaró: ' + (declaradoComoShown || (u.tipo === 'acampante' ? 'Acampante' : '—')));
+      if(u.rucaFundacion) lines.push('   Ruca/Fundación: ' + u.rucaFundacion);
+      if(u.actividadFavorita) lines.push('   Actividad favorita: ' + u.actividadFavorita);
+      lines.push('');
+    });
+    return lines.join('\n');
+  }
+
+
   export function renderUsersPanel(){
     var html = '';
     html += '<div class="panel-head"><div><h2>Usuarios</h2>';
-    html += '<p class="mandos-sub">Los que declararon un mando que coincide con el cuadro de mandos entraron solos (✓ verificado). Revisá los resaltados en ámbar ("pendiente") — quedaron ahí porque no coincidieron, son acampantes/lectores sin padrón para verificar, o (⚠ sugiere: Admin) matchearon un puesto de admin y están esperando que lo confirmes vos.</p></div></div>';
+    html += '<p class="mandos-sub">Los que declararon un mando que coincide con el cuadro de mandos entraron solos. Revisá los resaltados en ámbar ("pendiente") — quedaron ahí porque no coincidieron, son acampantes/lectores sin padrón para verificar, o (⚠ sugiere: Admin) matchearon un puesto de admin y están esperando que lo confirmes vos.</p></div>';
+    html += '<button class="btn ghost small" id="copyUsersBtn" type="button">Copiar declaraciones</button>';
+    html += '</div>';
 
     if(AppState.usersList.length === 0){
       html += '<p class="empty">Todavía no inició sesión nadie más.</p>';
@@ -145,7 +170,6 @@ import { render, renderPanel, showStatus } from '../main.js';
       // a cada persona de un vistazo en la lista entera.
       var rowActivityIcon = activityIcon(u.actividadFavorita);
       html += '  <td>' + (rowActivityIcon ? rowActivityIcon + ' ' : '') + escapeHtml(u.displayName || '') + (u.email === BOOTSTRAP_ADMIN_EMAIL ? ' <span class="tag seccion">admin base</span>' : '') +
-        (u.verificado ? ' <span class="tag seccion" title="Coincide con el cuadro de mandos">✓ verificado</span>' : '') +
         infoBtn + '</td>';
       // Perfiles guardados ANTES del renombre "Capellán"→"Consagrado" (ver
       // posGrupoLabel más arriba) quedaron con el string viejo grabado tal
@@ -154,8 +178,14 @@ import { render, renderPanel, showStatus } from '../main.js';
       // igual que uno nuevo, sin necesitar migrar datos (pedido del usuario,
       // caso real: Reneidi Kayembe, 23/09/2026).
       var declaradoComoShown = (u.declaradoComo || '').replace(/^Capellán/, 'Consagrado');
+      // El badge de sugerencia solo tiene sentido mientras la persona siga
+      // "pendiente" — una vez que un admin ya la guardó con un rol real
+      // (promovida a admin o asignada a otra cosa), `rolSugerido` sigue
+      // guardado en Firestore como snapshot de lo que matcheó en su momento,
+      // pero ya no hay nada pendiente de confirmar (pedido del usuario,
+      // 09/10/2026: "que desaparezca la sugerencia" una vez resuelta).
       html += '  <td>' + escapeHtml(declaradoComoShown || (u.tipo === 'acampante' ? 'Acampante' : '—')) +
-        (u.rolSugerido === 'admin' ? ' <span class="tag imagen" title="Nombre y mando coinciden con un puesto que otorgaría Admin, pero requiere que un admin lo confirme a mano">⚠ sugiere: Admin</span>' : '') + '</td>';
+        (isPendiente && u.rolSugerido === 'admin' ? ' <span class="tag imagen" title="Nombre y mando coinciden con un puesto que otorgaría Admin, pero requiere que un admin lo confirme a mano">⚠ sugiere: Admin</span>' : '') + '</td>';
       html += '  <td>' + escapeHtml(u.email || '') + '</td>';
       html += '  <td><select class="uRole">';
       ['pendiente','lector','subjefe','consagrado','jefe_seccion','admin'].forEach(function(r){
@@ -199,6 +229,13 @@ import { render, renderPanel, showStatus } from '../main.js';
 
 
   export function attachUsersEvents(){
+    var copyUsersBtn = document.getElementById('copyUsersBtn');
+    if(copyUsersBtn){
+      copyUsersBtn.onclick = function(){
+        copyTextToClipboard(buildUsersDeclaredText(filteredUsersList()), copyUsersBtn);
+      };
+    }
+
     document.querySelectorAll('[data-subtab]').forEach(function(btn){
       btn.onclick = function(){
         AppState.usersActiveSubTab = btn.getAttribute('data-subtab');
