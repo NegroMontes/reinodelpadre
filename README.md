@@ -1,12 +1,8 @@
-# FORDOC — Reino del Padre MDZ 2027 (copia pública)
+# FORDOC — Reino del Padre MDZ 2027
 
-Código fuente de la página del Campamento Nacional "Reino del Padre" (AMJM, FASTA, Mendoza 2027) — la herramienta del comando de Formación Doctrinal (FORDOC) para cargar y compartir el plan formativo por día de campamento.
+Página web del Campamento Nacional "Reino del Padre" (AMJM, FASTA, Mendoza 2027) — la herramienta del comando de Formación Doctrinal (FORDOC) para cargar y compartir el plan formativo por día de campamento, y el link que usa el comando para entrar.
 
-**Esta es una copia pública/informativa.** El sitio operativo real que usa el comando (login, carga de contenido, roles) es privado. Esta copia:
-
-- No tiene el cuadro de mandos (nombres del comando) — esos datos viven en Firestore, nunca en el código.
-- No tiene ningún mail ni dato personal — se sacaron antes de publicar.
-- Iniciar sesión acá no otorga ningún rol de administrador (el mail de arranque se quitó de este espejo a propósito).
+Sin datos sensibles en el código: el cuadro de mandos (nombres del comando) vive en Firestore, nunca acá — y el mail de admin bootstrap se sacó de este espejo a propósito (iniciar sesión acá no otorga ningún rol de admin de una, igual que en el sitio operativo).
 
 ## Stack
 

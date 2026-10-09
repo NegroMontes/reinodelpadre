@@ -1,9 +1,6 @@
   // Primer admin del sistema: se auto-asigna rol admin la primera vez que
   // este mail inicia sesión. Los demás admins los agrega un admin ya
   // existente desde la pestaña "Usuarios".
-  // NOTA (copia pública/informativa): este mail se sacó a propósito de este
-  // espejo — el sitio operativo real es privado. Esta copia es solo para
-  // mostrar el código; iniciar sesión acá no le da rol admin a nadie.
   export var BOOTSTRAP_ADMIN_EMAIL = '';
   export var SECCIONES = ['Escuderos', 'Templarios Menores', 'Templarios Intermedios', 'Templarios Mayores'];
 
