@@ -5,7 +5,8 @@
 import { GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import { doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { auth, db, DRIVE_UPLOAD_SCOPE } from '../config/firebase.js';
-import { BOOTSTRAP_ADMIN_EMAIL, CUPULA_ICONS, CONSAGRADO_ICONS } from '../config/constants.js';
+import { BOOTSTRAP_ADMIN_EMAIL, CONSAGRADO_ICONS } from '../config/constants.js';
+import { isValidCupulaIconValue } from '../utils/badge-icons.js';
 import { AppState } from '../app-state.js';
 import { posGrupoLabel } from '../utils/helpers.js';
 import { declaredBucketFromForm, buildMandosIndex, findMandoByName, bucketsMatch } from '../utils/mandos-matcher.js';
@@ -225,9 +226,10 @@ import { render } from '../main.js';
     // CLAUDE.md) solo aceptan estos campos en un self-update.
     if(fields.deptoIconChoice === 'fasta' || fields.deptoIconChoice === 'depto'){ data.deptoIconChoice = fields.deptoIconChoice; }
     // Ícono de admin/comando central (09/10/2026, "yo no tengo ninguno
-    // jajajaj") — validado contra la lista real de CUPULA_ICONS, nunca un
-    // string suelto sin chequear.
-    if(fields.cupulaIcon && CUPULA_ICONS.some(function(o){ return o.value === fields.cupulaIcon; })){
+    // jajajaj" — rediseñado el mismo día a un menú agrupado por sección/
+    // depto/consagrado/cocina, ver utils/badge-icons.js) — validado contra
+    // los datos reales, nunca un string suelto sin chequear.
+    if(fields.cupulaIcon && isValidCupulaIconValue(fields.cupulaIcon)){
       data.cupulaIcon = fields.cupulaIcon;
     }
     // Ícono de consagrado (09/10/2026, mismo pedido: "consagrado una cruz o

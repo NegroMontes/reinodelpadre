@@ -96,20 +96,21 @@
 
   // Ícono del badge para quien no tiene sección NI departamento (admin /
   // comando central) — 09/10/2026, pedido del usuario ("Yo no tengo ninguno
-  // jajajaj"). A diferencia de sección (automático, sin elegir) o depto
-  // (elige entre 2 opciones fijas), acá hay que elegir uno de una lista chica
-  // — se guarda la `value` (no el emoji directo) para poder validarlo en
-  // `updateMyProfile()` igual que `deptoIconChoice`.
-  export var CUPULA_ICONS = [
-    { value:'corona', emoji:'👑', label:'Corona' },
-    { value:'escudo', emoji:'🛡️', label:'Escudo' },
-    { value:'estrella', emoji:'⭐', label:'Estrella' },
-    { value:'medalla', emoji:'🎖️', label:'Medalla' },
-    { value:'cruz', emoji:'✝️', label:'Cruz' },
-    { value:'torre', emoji:'🏰', label:'Torre (del logo)' },
-    { value:'aguila', emoji:'🦅', label:'Águila' },
-    { value:'tridente', emoji:'🔱', label:'Tridente' }
-  ];
+  // jajajaj"). Primera versión: una lista chica de emoji heráldicos sueltos
+  // (corona/escudo/estrella/medalla/cruz/torre/águila/tridente), sin ligar a
+  // nada real del campamento. El usuario probó esa lista y pidió algo más
+  // acotado, el mismo día: "Me gusta solamente el escudo, dame a elegir
+  // solamente entre los iconos de las secciones y departamentos (o
+  // consagrados)" — así que se reemplazó por un menú agrupado que reusa los
+  // mismos escudos/íconos ya existentes de sección (ver `sectionShieldHtml`),
+  // departamento (`DEPARTAMENTO_ICONS`) y consagrado (`CONSAGRADO_ICONS`),
+  // más "Cocina" (que faltaba del todo — ver `COCINA_ICON` abajo). Se guarda
+  // como un string con prefijo (`seccion:Escuderos`, `depto:Logística`,
+  // `consagrado:cruz`, `cocina`) en vez de un id plano — ver
+  // `cupulaIconBadgeHtml()`/`cupulaIconOptionsHtml()`/`isValidCupulaIconValue()`
+  // en `utils/badge-icons.js`, que arman el HTML y validan contra estos
+  // mismos datos en vez de mantener una lista aparte.
+  export var COCINA_ICON = '🍲';
 
   export var VIEW_AS_ROLES = [
     { value: '', label: 'Yo (Admin)' },

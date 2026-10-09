@@ -2,9 +2,9 @@
 // Novedades) y sus datos: qué contenido nuevo hay, y dónde vive.
 
 import { AppState } from '../app-state.js';
-import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CUPULA_ICONS, CONSAGRADO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS } from '../config/constants.js';
+import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS } from '../config/constants.js';
 import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
-import { userBadgeInnerHtml } from '../utils/badge-icons.js';
+import { userBadgeInnerHtml, cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { saveNovedadesSeenAt } from '../utils/storage.js';
 import { lectorModeActive, realIsAdmin, isComandoNonAdmin, canSeeEntry } from '../services/permissions.js';
 import { signOutUser, updateMyProfile } from '../services/auth.service.js';
@@ -259,9 +259,7 @@ import { render } from '../main.js';
       if(!AppState.currentUser.seccion && !AppState.currentUser.depto){
         html += '    <label>Tu ícono en el avatar<select id="userProfileCupulaIconSelect">';
         if(!draft.cupulaIcon){ html += '  <option value="" selected disabled>Elegí uno…</option>'; }
-        CUPULA_ICONS.forEach(function(o){
-          html += '  <option value="' + o.value + '"' + (draft.cupulaIcon === o.value ? ' selected' : '') + '>' + o.emoji + ' ' + escapeHtml(o.label) + '</option>';
-        });
+        html += cupulaIconOptionsHtml(draft.cupulaIcon);
         html += '</select></label>';
       }
       // Un consagrado por default muestra el escudo de su sección (como
