@@ -5,7 +5,7 @@
 import { GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import { doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { auth, db, DRIVE_UPLOAD_SCOPE } from '../config/firebase.js';
-import { BOOTSTRAP_ADMIN_EMAIL, CUPULA_ICONS } from '../config/constants.js';
+import { BOOTSTRAP_ADMIN_EMAIL, CUPULA_ICONS, CONSAGRADO_ICONS } from '../config/constants.js';
 import { AppState } from '../app-state.js';
 import { posGrupoLabel } from '../utils/helpers.js';
 import { declaredBucketFromForm, buildMandosIndex, findMandoByName, bucketsMatch } from '../utils/mandos-matcher.js';
@@ -54,7 +54,7 @@ import { render } from '../main.js';
       if(snap.exists()){
         var data = snap.data();
         AppState.pendingFbUser = null;
-        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta', cupulaIcon: data.cupulaIcon || '' };
+        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta', cupulaIcon: data.cupulaIcon || '', consagradoIconChoice: data.consagradoIconChoice || '' };
       } else if(fbUser.email === BOOTSTRAP_ADMIN_EMAIL){
         // El admin bootstrap no pasa por el formulario: se auto-crea directo.
         var bootstrapProfile = {
@@ -68,7 +68,7 @@ import { render } from '../main.js';
         };
         try{ await setDoc(profileRef, bootstrapProfile); }catch(e){ console.error('No se pudo crear el perfil admin:', e); }
         AppState.pendingFbUser = null;
-        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: bootstrapProfile.displayName, role: bootstrapProfile.role, seccion: null, depto: null, readDepartamentos: false, esFormacion: false, tipo: bootstrapProfile.tipo, actividadFavorita: '', rucaFundacion: '', photoURL: fbUser.photoURL || null, deptoIconChoice: 'fasta', cupulaIcon: '' };
+        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: bootstrapProfile.displayName, role: bootstrapProfile.role, seccion: null, depto: null, readDepartamentos: false, esFormacion: false, tipo: bootstrapProfile.tipo, actividadFavorita: '', rucaFundacion: '', photoURL: fbUser.photoURL || null, deptoIconChoice: 'fasta', cupulaIcon: '', consagradoIconChoice: '' };
       } else {
         // Primera vez que este usuario inicia sesión: todavía no tiene perfil.
         // Le mostramos el formulario de "¿quién sos?" en vez de crear un perfil pendiente ciego.
@@ -210,9 +210,10 @@ import { render } from '../main.js';
   // sección, depto ni nada que afecte permisos. Las reglas de Firestore (ver
   // CLAUDE.md) refuerzan esto mismo del lado del servidor: un self-update
   // solo se acepta si los campos que cambian son un subconjunto exacto de
-  // {actividadFavorita, rucaFundacion, deptoIconChoice, cupulaIcon} —
-  // cualquier otro campo en el mismo write (role incluido) lo rechaza,
-  // aunque alguien lo intente forzando la consola del navegador.
+  // {actividadFavorita, rucaFundacion, deptoIconChoice, cupulaIcon,
+  // consagradoIconChoice} — cualquier otro campo en el mismo write (role
+  // incluido) lo rechaza, aunque alguien lo intente forzando la consola del
+  // navegador.
   export async function updateMyProfile(fields){
     if(!AppState.currentUser) return;
     var data = {};
@@ -221,13 +222,20 @@ import { render } from '../main.js';
     // Elegir entre el ícono propio del depto o el glifo genérico de FASTA
     // para el badge del avatar (09/10/2026) — mismo criterio de autoservicio
     // acotado que los dos campos de arriba; las reglas de Firestore (ver
-    // CLAUDE.md) solo aceptan estos 3 campos en un self-update.
+    // CLAUDE.md) solo aceptan estos campos en un self-update.
     if(fields.deptoIconChoice === 'fasta' || fields.deptoIconChoice === 'depto'){ data.deptoIconChoice = fields.deptoIconChoice; }
     // Ícono de admin/comando central (09/10/2026, "yo no tengo ninguno
     // jajajaj") — validado contra la lista real de CUPULA_ICONS, nunca un
     // string suelto sin chequear.
     if(fields.cupulaIcon && CUPULA_ICONS.some(function(o){ return o.value === fields.cupulaIcon; })){
       data.cupulaIcon = fields.cupulaIcon;
+    }
+    // Ícono de consagrado (09/10/2026, mismo pedido: "consagrado una cruz o
+    // un pan") — opt-in sobre el default (escudo de sección); '' es un valor
+    // válido acá (volver al default), a diferencia de cupulaIcon que no
+    // tiene vuelta atrás a "nada".
+    if(fields.consagradoIconChoice === '' || CONSAGRADO_ICONS.some(function(o){ return o.value === fields.consagradoIconChoice; })){
+      data.consagradoIconChoice = fields.consagradoIconChoice;
     }
     if(Object.keys(data).length === 0) return;
     try{

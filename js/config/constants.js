@@ -63,20 +63,36 @@
   };
   export var LIBROS_ORDER = ['youcat', 'docat', 'compendio', 'enciclica', 'yconfirmacion'];
 
-  // Ícono por departamento (09/10/2026, pedido del usuario) — propuesta de
-  // emoji, mismo criterio que activityIcon() en utils/helpers.js, pensado
-  // para el badge chico del avatar de usuario (ver header.js). Quien tiene
-  // un depto puede elegir, desde "Perfil", entre este ícono propio o el
-  // glifo genérico de FASTA (ver DEPARTAMENTO_ICON_FASTA más abajo) — ver
-  // CLAUDE.md para el detalle de la decisión.
+  // Ícono por departamento (09/10/2026, pedido del usuario) — pensado para
+  // el badge chico del avatar de usuario (ver header.js). Quien tiene un
+  // depto puede elegir, desde "Perfil", entre este ícono propio o el glifo
+  // genérico de FASTA. Ligado a la función real de cada departamento (no
+  // arbitrario — pedido del usuario, 09/10/2026, mismo día: "Intendencia
+  // podría tener un martillo, Administración dinero"): Administración
+  // 📋→💰 e Intendencia 🍲→🔨 se corrigieron ese mismo día para reflejar
+  // mejor su tarea real (dinero/facturas, construcción/materiales) — los
+  // otros 4 ya encajaban (Formación=libro, Logística=caja, Comunicaciones=
+  // altavoz, Actividades=juegos) y no se tocaron.
   export var DEPARTAMENTO_ICONS = {
     'Formación': '📖',
     'Logística': '📦',
     'Comunicaciones': '📣',
-    'Administración': '📋',
-    'Intendencia': '🍲',
+    'Administración': '💰',
+    'Intendencia': '🔨',
     'Actividades': '🎯'
   };
+
+  // Ícono propio para el rol "Consagrado" (09/10/2026, mismo pedido de
+  // arriba) — antes mostraba siempre el escudo de su sección (como
+  // cualquier jefe/subjefe de esa sección), sin nada que lo distinguiera
+  // como consagrado. Opt-in desde "Perfil" (ver CONSAGRADO_ICONS más abajo):
+  // por default sigue mostrando el escudo de su sección (compatibilidad
+  // hacia atrás, nada cambia para quien no elige nada), pero puede optar
+  // por un ícono que lo identifique como consagrado en su lugar.
+  export var CONSAGRADO_ICONS = [
+    { value:'cruz', emoji:'✝️', label:'Cruz' },
+    { value:'pan', emoji:'🍞', label:'Pan' }
+  ];
 
   // Ícono del badge para quien no tiene sección NI departamento (admin /
   // comando central) — 09/10/2026, pedido del usuario ("Yo no tengo ninguno

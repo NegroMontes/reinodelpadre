@@ -2,7 +2,7 @@
 // Novedades) y sus datos: qué contenido nuevo hay, y dónde vive.
 
 import { AppState } from '../app-state.js';
-import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CUPULA_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS } from '../config/constants.js';
+import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CUPULA_ICONS, CONSAGRADO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS } from '../config/constants.js';
 import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
 import { userBadgeInnerHtml } from '../utils/badge-icons.js';
 import { saveNovedadesSeenAt } from '../utils/storage.js';
@@ -239,7 +239,7 @@ import { render } from '../main.js';
     var html = '<div class="user-menu-panel" id="userMenuPanel">';
     html += '  <div class="user-menu-header"><strong>' + escapeHtml(AppState.currentUser.displayName) + '</strong><span class="mandos-sub">' + escapeHtml(roleLabel(AppState.currentUser.role)) + '</span></div>';
     if(AppState.userMenuEditingProfile){
-      var draft = AppState.userProfileDraft || { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta', cupulaIcon: AppState.currentUser.cupulaIcon || '' };
+      var draft = AppState.userProfileDraft || { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta', cupulaIcon: AppState.currentUser.cupulaIcon || '', consagradoIconChoice: AppState.currentUser.consagradoIconChoice || '' };
       html += '  <div class="user-menu-profile-form">';
       html += '    <label>Actividad favorita<input id="userProfileActividadInput" type="text" value="' + escapeHtml(draft.actividadFavorita) + '" placeholder="Ej: Jugar al fútbol"></label>';
       html += '    <label>Ruca / Fundación de origen<input id="userProfileRucaInput" type="text" value="' + escapeHtml(draft.rucaFundacion) + '" placeholder="Ej: Ruca Chapelco"></label>';
@@ -261,6 +261,17 @@ import { render } from '../main.js';
         if(!draft.cupulaIcon){ html += '  <option value="" selected disabled>Elegí uno…</option>'; }
         CUPULA_ICONS.forEach(function(o){
           html += '  <option value="' + o.value + '"' + (draft.cupulaIcon === o.value ? ' selected' : '') + '>' + o.emoji + ' ' + escapeHtml(o.label) + '</option>';
+        });
+        html += '</select></label>';
+      }
+      // Un consagrado por default muestra el escudo de su sección (como
+      // cualquiera de esa sección) — acá puede optar por un ícono propio
+      // (cruz/pan) que lo distinga como consagrado en su lugar.
+      if(AppState.currentUser.role === 'consagrado'){
+        html += '    <label>Tu ícono en el avatar<select id="userProfileConsagradoIconSelect">';
+        html += '  <option value=""' + (!draft.consagradoIconChoice ? ' selected' : '') + '>Escudo de tu sección (default)</option>';
+        CONSAGRADO_ICONS.forEach(function(o){
+          html += '  <option value="' + o.value + '"' + (draft.consagradoIconChoice === o.value ? ' selected' : '') + '>' + o.emoji + ' ' + escapeHtml(o.label) + '</option>';
         });
         html += '</select></label>';
       }
@@ -291,7 +302,7 @@ import { render } from '../main.js';
     if(profileBtn){
       profileBtn.onclick = function(){
         AppState.userMenuEditingProfile = true;
-        AppState.userProfileDraft = { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta', cupulaIcon: AppState.currentUser.cupulaIcon || '' };
+        AppState.userProfileDraft = { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta', cupulaIcon: AppState.currentUser.cupulaIcon || '', consagradoIconChoice: AppState.currentUser.consagradoIconChoice || '' };
         renderAuthBar();
       };
     }
@@ -306,6 +317,8 @@ import { render } from '../main.js';
     if(deptoIconSelect){ deptoIconSelect.onchange = function(){ AppState.userProfileDraft.deptoIconChoice = deptoIconSelect.value; }; }
     var cupulaIconSelect = document.getElementById('userProfileCupulaIconSelect');
     if(cupulaIconSelect){ cupulaIconSelect.onchange = function(){ AppState.userProfileDraft.cupulaIcon = cupulaIconSelect.value; }; }
+    var consagradoIconSelect = document.getElementById('userProfileConsagradoIconSelect');
+    if(consagradoIconSelect){ consagradoIconSelect.onchange = function(){ AppState.userProfileDraft.consagradoIconChoice = consagradoIconSelect.value; }; }
 
     var saveBtn = document.getElementById('userProfileSaveBtn');
     if(saveBtn){

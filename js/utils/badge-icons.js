@@ -3,17 +3,18 @@
 // favorita (ya existente, ver activityIcon() en helpers.js), del lado
 // opuesto del avatar, inclinado en espejo.
 //
-// Los dos escudos de sección (Escuderos/Templarios) son una RECREACIÓN en
-// SVG a partir de los archivos reales que pasó el usuario por Drive
-// ("Escuderos.png"/"Templarios.png") — no una copia de píxel a píxel (este
-// entorno no pudo bajar esos dos archivos completos sin corromperlos, ver
-// CLAUDE.md), armada a partir de haberlos visto directamente en el chat:
-// mismo escudo (capuchón negro arriba + cuerpo redondeado abajo, con una
-// flecha central) en dos variantes de color — blanco con flecha verde
-// (Escuderos) y verde con flecha blanca (Templarios). Las 3 secciones de
-// Templarios (Menores/Intermedios/Mayores) comparten el mismo escudo — el
-// usuario solo pasó un diseño para "Templarios" en general, sin variantes
-// por tier.
+// Los dos escudos de sección (Escuderos/Templarios) son los archivos REALES
+// que el usuario subió — primero quedaron truncados al pasar por Drive (por
+// debajo del umbral de tamaño que hace que este entorno guarde el resultado
+// a disco de forma confiable, ver CLAUDE.md), así que se armó una
+// recreación en SVG como primera versión; el mismo día el usuario los
+// volvió a mandar subiéndolos directo a GitHub (sin ese límite), y se
+// reemplazó la recreación por el recorte real (fondo negro de Canva sacado
+// con flood-fill desde los bordes, mismo criterio que `depto-fasta.png`) —
+// `assets/escudo-escuderos.png` / `assets/escudo-templarios.png`. Las 3
+// secciones de Templarios (Menores/Intermedios/Mayores) comparten el mismo
+// escudo — el usuario solo pasó un diseño para "Templarios" en general, sin
+// variantes por tier.
 //
 // El glifo de FASTA (ícono DEFAULT para cualquier departamento) sí es el
 // archivo real del usuario ("Escudo de Fasta.png"), recortado por este
@@ -26,26 +27,19 @@
 // lista chica de emoji (CUPULA_ICONS, config/constants.js), guardado en el
 // perfil como `cupulaIcon` (la `value`, no el emoji directo).
 
-import { CUPULA_ICONS } from '../config/constants.js';
+import { CUPULA_ICONS, CONSAGRADO_ICONS } from '../config/constants.js';
 
-function shieldSvg(bodyColor, arrowColor){
-  return '<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">'
-    + '<path d="M6 4 H94 V42 L50 66 L6 42 Z" fill="#000"/>'
-    + '<path d="M6 42 L50 66 L94 42 V58 Q94 102 50 118 Q6 102 6 58 Z" fill="' + bodyColor + '" stroke="#000" stroke-width="4" stroke-linejoin="round"/>'
-    + '<path d="M50 48 L70 68 H59 V106 H41 V68 H30 Z" fill="' + arrowColor + '" stroke="#000" stroke-width="3" stroke-linejoin="round"/>'
-    + '</svg>';
-}
-
-var ESCUDEROS_SVG = shieldSvg('#FFFFFF', '#5a9e6f');
-var TEMPLARIOS_SVG = shieldSvg('#5a9e6f', '#FFFFFF');
-
-// Devuelve el SVG del escudo correspondiente a una sección, o '' si el
-// nombre no matchea ninguna (defensivo — nunca debería pasar con los
+// Devuelve el <img> del escudo real correspondiente a una sección, o '' si
+// el nombre no matchea ninguna (defensivo — nunca debería pasar con los
 // valores reales de SECCIONES).
-export function sectionShieldSvg(seccion){
+export function sectionShieldHtml(seccion){
   if(!seccion) return '';
-  if(seccion === 'Escuderos') return ESCUDEROS_SVG;
-  if(seccion.indexOf('Templarios') === 0) return TEMPLARIOS_SVG;
+  if(seccion === 'Escuderos'){
+    return '<img src="assets/escudo-escuderos.png" alt="Escuderos" style="width:100%;height:100%;object-fit:contain;">';
+  }
+  if(seccion.indexOf('Templarios') === 0){
+    return '<img src="assets/escudo-templarios.png" alt="Templarios" style="width:100%;height:100%;object-fit:contain;">';
+  }
   return '';
 }
 
@@ -63,6 +57,15 @@ export function cupulaIconEmoji(value){
   return found ? found.emoji : '';
 }
 
+// Emoji elegido por un consagrado para su propio badge (opt-in, en vez del
+// escudo de su sección) — '' si no eligió ninguno (el default sigue siendo
+// el escudo, ver userBadgeInnerHtml()).
+export function consagradoIconEmoji(value){
+  if(!value) return '';
+  var found = CONSAGRADO_ICONS.filter(function(o){ return o.value === value; })[0];
+  return found ? found.emoji : '';
+}
+
 // Ícono de sección/depto de UN usuario cualquiera (no necesariamente
 // currentUser) — reusado tanto por el badge del propio avatar (header.js)
 // como por las tarjetas de "Mi comando" (views/mandos.js), para no duplicar
@@ -71,8 +74,16 @@ export function cupulaIconEmoji(value){
 // circular con config/constants.js).
 export function userBadgeInnerHtml(u, deptoIcons){
   if(!u) return '';
+  // Un consagrado que optó por un ícono propio (cruz/pan) lo muestra en vez
+  // del escudo de su sección — chequeo antes de `u.seccion`, porque un
+  // consagrado SIEMPRE tiene una sección asignada (es cómo se auto-aprueba
+  // en el onboarding) y por default seguiría cayendo en esa rama.
+  if(u.role === 'consagrado'){
+    var consagradoEmoji = consagradoIconEmoji(u.consagradoIconChoice);
+    if(consagradoEmoji) return '<span class="user-badge-emoji">' + consagradoEmoji + '</span>';
+  }
   if(u.seccion){
-    return sectionShieldSvg(u.seccion);
+    return sectionShieldHtml(u.seccion);
   }
   if(u.depto){
     if(u.deptoIconChoice === 'depto'){ return (deptoIcons && deptoIcons[u.depto]) || ''; }
