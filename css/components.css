@@ -380,6 +380,28 @@ h2.day-title{
     margin-bottom:10px;
   }
 
+/* "El circulito" (feedback de Comunicaciones, 09/10/2026, comentario 2) —
+     reemplaza al viejo tag de tipo de contenido ("Texto"/"Secuencial"/etc.).
+     Un solo estilo para cualquier departamento/sección (nunca un color por
+     grupo — el usuario eligió a propósito la opción "iniciales" en vez de
+     "color sólido" para no tener que inventar una paleta de 10 tonos sin
+     romper el contraste que pide el manual de marca) — las iniciales son lo
+     que distingue a cada grupo, no el color del círculo. */
+.author-grupo-circle{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:var(--teal);
+    color:var(--white);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.01em;
+    flex-shrink:0;
+  }
+
 /* Chips en pastilla, con fondo tenue del mismo color que el texto (06/10/2026,
      estética tipo "Encuentros" — `.tchip`) en vez del outline plano de antes.
      `color-mix()` deriva el fondo del propio `currentColor` de cada

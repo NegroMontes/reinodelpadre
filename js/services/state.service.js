@@ -60,14 +60,14 @@ import { render, renderPanel, showStatus } from '../main.js';
     ];
 
     var entries = [
-      { id: uid(), dayId: d[0], type:'texto', title:'La originalidad de la dignidad de hijos', author:'FORDOC', seccion:'', createdAt: Date.now(), body:
+      { id: uid(), dayId: d[0], type:'texto', title:'La originalidad de la dignidad de hijos', author:'FORDOC', authorGrupo:'FORDOC', seccion:'', createdAt: Date.now(), body:
         'Para adentrarnos en el ser hijos, debemos mirar al Hijo. Lo central en este primer eje es la relación del Hijo con el Padre. Jesús es la imagen visible del Dios invisible. En Él podemos contemplar al Padre, porque el Hijo revela plenamente quién y cómo es.\n\n'+
         'Fuimos creados a imagen y semejanza de Dios. Durante la creación, la imagen que el Padre tiene de nosotros para crearnos es la de Jesús, el Hijo. Desde el génesis fuimos pensados como hijos, y por lo tanto tal es nuestra dignidad.\n\n'+
         'Al encarnarse, Jesús une en su persona lo divino y lo humano. De este modo, devuelve al hombre la dignidad perdida a causa del pecado original, dignidad que es elevada por la pasión, muerte y resurrección de Jesús.\n\n'+
         'No sólo hemos sido creados a semejanza del Hijo, sino hacia la semejanza. Dios nos ha pensado desde el origen para ser cada vez más parecidos al Hijo (Cristificación).\n\n'+
         'Por Cristo, somos llamados a vivir la filiación: el ser hijos en el Hijo.' },
 
-      { id: uid(), dayId: d[1], type:'texto', title:'Lo que el Hijo revela del Padre', author:'FORDOC', seccion:'', createdAt: Date.now(), body:
+      { id: uid(), dayId: d[1], type:'texto', title:'Lo que el Hijo revela del Padre', author:'FORDOC', authorGrupo:'FORDOC', seccion:'', createdAt: Date.now(), body:
         'El Padre es motor y fuerza del Hijo. Todo lo que el Hijo hace, lo hace por y para el Padre. Jesús se hace hombre para salvarnos, pero también para revelarnos quién y cómo es el Padre.\n\n'+
         'Aunque no lo necesite, en varios pasajes del evangelio dialoga en voz alta con el Padre para que podamos entender cómo es su relación. No es mera obediencia. Toda la fuerza del Hijo proviene de saberse amado y elegido por el Padre.\n\n'+
         'El diálogo entre el Hijo y el Padre nos invita a poner el foco en la oración.\n\n'+
@@ -75,33 +75,33 @@ import { render, renderPanel, showStatus } from '../main.js';
         '«Yo te alabo, Padre, Señor del cielo y de la tierra, porque has ocultado estas cosas a los sabios y a los prudentes y las has revelado a los pequeños. [...] Nadie conoce al Hijo sino el Padre, así como nadie conoce al Padre sino el Hijo y aquel a quien el Hijo se lo quiera revelar» (Mateo 11, 25-27).\n\n'+
         '«Padre, te doy gracias porque me has escuchado. Yo sé que siempre me escuchas, pero digo esto por la multitud que me rodea, para que crean que tú me has enviado» (Juan 11, 41-42).' },
 
-      { id: uid(), dayId: d[2], type:'texto', title:'El Bautismo', author:'FORDOC', seccion:'', createdAt: Date.now(), body:
+      { id: uid(), dayId: d[2], type:'texto', title:'El Bautismo', author:'FORDOC', authorGrupo:'FORDOC', seccion:'', createdAt: Date.now(), body:
         'Por el Bautismo somos sumergidos a una nueva vida. Cristo nos rescata del pecado, y a la vez eleva y perfecciona nuestra dignidad original. Por su muerte estamos llamados a vivir la filiación: el ser hijos en el Hijo.\n\n'+
         'El Bautismo tiene su fundamento en la Pascua. Esto puede verse claramente en la misa de Vigilia Pascual, donde toda la liturgia de la Palabra va anticipando la redención del hombre y preparando la liturgia del agua, en donde son renovadas las promesas bautismales. Así como la Pascua es el paso de la muerte a la vida, el bautismo es nuestro paso de creaturas a hijos.\n\n'+
         'Por el Bautismo recibimos la gracia de Dios, en donde prometemos renunciar al pecado para abrazar el amor del Padre, que quiere habitar en nosotros, a la manera en que el Hijo y el Padre son uno. Jesús, en quien somos hijos, nos enseña el Padrenuestro, la oración de los hijos.' },
 
-      { id: uid(), dayId: d[3], type:'texto', title:'La construcción del Reino en el corazón', author:'FORDOC', seccion:'', createdAt: Date.now(), body:
+      { id: uid(), dayId: d[3], type:'texto', title:'La construcción del Reino en el corazón', author:'FORDOC', authorGrupo:'FORDOC', seccion:'', createdAt: Date.now(), body:
         'Ser heredero es asumir la condición de hijo y permanecer en el Padre. Comienza primero en el corazón. El Reino de Dios es una realidad existencial que atraviesa toda la vida del hombre. Es una realidad dinámica: crece a medida que se fortalece nuestra relación con el Padre y se debilita cuando nos alejamos de Dios.\n\n'+
         'El Reino de Dios es el Reino de los corazones. La espiritualidad, el modo de relacionarnos con Dios que Él quiere, es aquella en la que nuestro corazón está alineado con el suyo, y no una espiritualidad basada en corregir conductas.\n\n'+
         'Constituidos hijos por el bautismo, la espiritualidad filial se sostiene en tres pilares: la gratitud, el amor y la confianza.' },
 
-      { id: uid(), dayId: d[4], type:'texto', title:'La misericordia del Padre', author:'FORDOC', seccion:'', createdAt: Date.now(), body:
+      { id: uid(), dayId: d[4], type:'texto', title:'La misericordia del Padre', author:'FORDOC', authorGrupo:'FORDOC', seccion:'', createdAt: Date.now(), body:
         'Aún redimidos por el Hijo, no estamos exentos de pecar, porque todos somos pecadores. Sin embargo, en las miserias es donde Dios se muestra más cercano, porque "donde abundó el pecado sobreabundó la gracia" (Romanos 5, 20).\n\n'+
         'El Padre conoce nuestras debilidades, pero no es ajeno a ellas. Sufre con nuestro sufrimiento, es cercano, escucha, abraza y consuela. Espera con los brazos abiertos a que nosotros nos dejemos abrazar por su amor que todo lo perdona, todo lo repara, todo lo puede.\n\n'+
         'El ruca es imagen de la casa del Padre, porque es refugio donde el miliciano puede encontrarse con Dios, ser abrazado y descansar. Encontrarse con el Padre funciona en dos sentidos: me encuentro siendo hijo o me encuentro ejerciendo un rol de paternidad.' },
 
-      { id: uid(), dayId: d[5], type:'texto', title:'El Pan de Vida', author:'FORDOC', seccion:'', createdAt: Date.now(), body:
+      { id: uid(), dayId: d[5], type:'texto', title:'El Pan de Vida', author:'FORDOC', authorGrupo:'FORDOC', seccion:'', createdAt: Date.now(), body:
         'En continuidad con lo anterior, este es el día en que, con el suficiente tacto y acorde a cada edad, podemos tratar las heridas espirituales, así como también el perdón.\n\n'+
         'Queremos acercar a los milicianos al médico de la Vida, a aquel que cargó todas las heridas a cuestas en su espalda, y quien nos dio su propio cuerpo y sangre como alimento de vida.\n\n'+
         'La Eucaristía es la plenitud de la unión íntima con Dios. Es la presencia sacramental del Reino de los Cielos en el hombre.' },
 
-      { id: uid(), dayId: d[6], type:'texto', title:'El Espíritu anuncia el Reino', author:'FORDOC', seccion:'', createdAt: Date.now(), body:
+      { id: uid(), dayId: d[6], type:'texto', title:'El Espíritu anuncia el Reino', author:'FORDOC', authorGrupo:'FORDOC', seccion:'', createdAt: Date.now(), body:
         'En este campamento no queremos transmitir la repetida idea de "volver a contar lo que hemos escuchado", sino que queremos ir más profundo: quien anuncia y hace presente el Reino es el Espíritu de Dios. El anuncio del Reino no nace principalmente de una iniciativa humana ni de un esfuerzo individual: nace de la acción del Espíritu Santo en aquellos que se saben hijos de Dios. El mismo Espíritu que nos hace clamar «¡Abba, Padre!» es quien nos impulsa y nos capacita para llevar el Reino a la realidad concreta en la que vivimos.\n\n'+
         'Lo que debemos hacer, una vez custodiada la presencia de Dios en el corazón, es ser dóciles a la acción del Espíritu Santo, que irá disponiendo lo necesario para el anuncio del Evangelio.\n\n'+
         'Es importante transmitir que el "ir y anunciar la Buena Noticia" no debe ser vivido como un deber de estado por ser hijos y herederos. Por el contrario, como consecuencia de saberse hijos amados por Dios, el miliciano encarnará el Reino de Dios: un Reino que se despliega ya en el presente, comenzando en el corazón de cada uno y proyectándose sobre la ciudad, ámbito de evangelización del joven.\n\n'+
         'Aquí pueden emplearse las parábolas del Reino, que revelan con más profundidad cómo es ese Reino que estamos llamados a encarnar.' },
 
-      { id: uid(), dayId: d[7], type:'texto', title:'Implementación por ámbitos', author:'FORDOC', seccion:'', createdAt: Date.now(), body:
+      { id: uid(), dayId: d[7], type:'texto', title:'Implementación por ámbitos', author:'FORDOC', authorGrupo:'FORDOC', seccion:'', createdAt: Date.now(), body:
         'Segunda jornada del tercer eje: bajamos el anuncio del Reino por la acción del Espíritu Santo a la implementación concreta, por ámbitos de la persona:\n\n'+
         'Espiritual — motivar en el miliciano a iniciar un modo de vincularse con Dios filial, basado más en la presencia, cercanía y confianza con el Padre que en un conductismo.\n\n'+
         'Intelectual — enseñar al miliciano, a partir de la Revelación, cómo Dios se muestra como Padre.\n\n'+

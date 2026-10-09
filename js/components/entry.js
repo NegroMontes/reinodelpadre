@@ -775,8 +775,48 @@ import { renderPanel } from '../main.js';
   }
 
 
+  // "El circulito" (feedback de Comunicaciones, 09/10/2026, comentario 2):
+  // reemplaza el tag de tipo de contenido ("Texto"/"Secuencial"/etc., ya
+  // redundante desde que casi todo es `secuencial` — ver "Tipo de contenido
+  // de nivel superior eliminado", 06/10/2026) por un círculo chico con las
+  // iniciales del departamento/sección de quien publicó, elegido por el
+  // usuario entre 3 opciones (iniciales vs. color sólido vs. esperar más
+  // detalle) — nunca por color propio (eso exigía inventar una paleta de 10
+  // tonos sin romper contraste, lo que el usuario descartó a propósito).
+  var GRUPO_INITIALS = {
+    'FORDOC': 'FD',
+    'Escuderos': 'ES',
+    'Templarios Menores': 'TM',
+    'Templarios Intermedios': 'TI',
+    'Templarios Mayores': 'TY',
+    'Formación': 'FD',
+    'Logística': 'LO',
+    'Comunicaciones': 'CO',
+    'Administración': 'AD',
+    'Intendencia': 'IN',
+    'Actividades': 'AC'
+  };
+
+  // `entry.authorGrupo` se guarda al crear la entrada (ver attachPanelEvents
+  // en form.js) — para entradas de ANTES de este cambio, que no lo tienen,
+  // la única señal retrocompatible es `author === 'FORDOC'` (las 8
+  // reflexiones precargadas de `defaultData()`); cualquier otra entrada
+  // vieja sin el dato simplemente no muestra círculo, en vez de adivinar.
+  function resolveAuthorGrupo(entry){
+    if(entry.authorGrupo) return entry.authorGrupo;
+    if(entry.author === 'FORDOC') return 'FORDOC';
+    return '';
+  }
+
+  function authorGrupoBadgeHtml(entry){
+    var grupo = resolveAuthorGrupo(entry);
+    if(!grupo) return '';
+    var initials = GRUPO_INITIALS[grupo] || grupo.slice(0, 2).toUpperCase();
+    return '<span class="author-grupo-circle" title="' + escapeHtml(grupo) + '">' + escapeHtml(initials) + '</span>';
+  }
+
+
   export function renderEntry(entry){
-    var typeLabels = { texto:'Texto', enlace:'Enlace', imagen:'Imagen', video:'Video', audio:'Audio', pdf:'PDF', libro:'Cita de libro', secuencial:'Secuencial' };
     var isCollapsed = !!AppState.collapsedEntryIds[entry.id];
     var canEdit = canEditEntry(entry);
     var html = '<div class="entry' + (isCollapsed ? ' entry-collapsed' : '') + '" data-id="' + entry.id + '">';
@@ -817,7 +857,7 @@ import { renderPanel } from '../main.js';
     var anonimoTag = (entry.anonimo && isAdmin())
       ? ' <span class="tag imagen" title="Solo vos (admin) ves esto — el resto la ve sin firma">🔒 ' + escapeHtml(entry.authorReal || '(autor desconocido)') + '</span>'
       : '';
-    html += '      <div class="entry-meta"><span class="tag ' + entry.type + '">' + typeLabels[entry.type] + '</span>' +
+    html += '      <div class="entry-meta">' + authorGrupoBadgeHtml(entry) +
       scopeTag + ocultaTag + anonimoTag +
       (entry.anonimo ? '' : (entry.author ? '<span>' + escapeHtml(entry.author) + '</span>' : '')) + '</div>';
     html += '    </div>';

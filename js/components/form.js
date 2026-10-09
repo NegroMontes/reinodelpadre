@@ -1094,6 +1094,14 @@ import { render, renderPanel, showStatus } from '../main.js';
         // Guardado siempre, independiente de `anonimo` — es lo que le permite
         // al admin ver quién publicó una entrada anónima (ver renderEntry()).
         // Nadie más lo lee nunca (`anonimoTag` está gateado por isAdmin()).
+        // Grupo del autor REAL (nunca simulado por "Ver como") — el dato que
+        // alimenta "el circulito" (feedback de Comunicaciones, 09/10/2026):
+        // admin → 'FORDOC' (el comando central de este sitio ES, en la
+        // práctica, el equipo de Formación/FORDOC); jefe_seccion siempre
+        // tiene `seccion` XOR `depto`, nunca los dos — se usa el que tenga.
+        var authorGrupo = AppState.currentUser.role === 'admin'
+          ? 'FORDOC'
+          : (AppState.currentUser.seccion || AppState.currentUser.depto || '');
         // "Entrada de bienvenida" — solo tiene sentido en Recursos, y solo
         // para una Secuencial; en cualquier otro contexto se fuerza a false,
         // por si `formBienvenida` quedó en `true` de una edición anterior de
@@ -1105,6 +1113,7 @@ import { render, renderPanel, showStatus } from '../main.js';
           if(!canEditEntry(entry)){ showStatus('No tenés permiso para editar esta entrada.'); return; }
           entry.title = title; entry.author = author; entry.anonimo = anonimo; entry.type = 'secuencial';
           entry.authorReal = entry.authorReal || AppState.currentUser.displayName;
+          entry.authorGrupo = entry.authorGrupo || authorGrupo;
           entry.secciones = secciones; entry.deptos = deptos; entry.comandoGeneral = comandoGeneral;
           entry.seccionesComandoOnly = seccionComandoOnly;
           entry.steps = steps;
@@ -1127,7 +1136,7 @@ import { render, renderPanel, showStatus } from '../main.js';
           // agrega al final como siempre (`Date.now()`).
           var newCreatedAt = AppState.insertOrderCreatedAt != null ? AppState.insertOrderCreatedAt : Date.now();
           AppState.state.entries.push({
-            id: uid(), dayId: dayIdVal, type: 'secuencial', title: title, body: '', bodyAfter: '', url: '', book: null, author: author, anonimo: anonimo, authorReal: AppState.currentUser.displayName,
+            id: uid(), dayId: dayIdVal, type: 'secuencial', title: title, body: '', bodyAfter: '', url: '', book: null, author: author, anonimo: anonimo, authorReal: AppState.currentUser.displayName, authorGrupo: authorGrupo,
             secciones: secciones, deptos: deptos, comandoGeneral: comandoGeneral, seccionesComandoOnly: seccionComandoOnly, steps: steps,
             bgMusicUrl: bgMusicUrl, closing: closing, oculta: AppState.formOculta, bienvenida: bienvenida, createdAt: newCreatedAt
           });
