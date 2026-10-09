@@ -8,7 +8,7 @@ import { SECCIONES, DEPARTAMENTOS, STEP_TYPE_LABELS, STEP_PALETTE, LIBROS_META, 
 import { escapeHtml, uid } from '../utils/helpers.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { uploadEntryFile } from '../services/drive.service.js';
-import { save, renameDay, setDayDate, setConsigna, deleteDay } from '../services/state.service.js';
+import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
 import { markProgressCompleted, saveProgressAnswer } from '../services/progress.service.js';
 import { renderAlignPicker, stopSecuencialMusic, startSecuencialMusicIfAny, setSecuencialFullscreenLock, updateSecuencialMusicForStep, scrollSecuencialToTop, renderLibroStepFields, nextVisibleStepIndex, groupRangeAt, ensureLibroLoaded, getLibroCache, renderLibroCita, searchLibroPuntos, OPCION_SEP } from './entry.js';
 import { parseEncuentrosHtml, convertEncuentroToRdpImport, dataUrlToFile, convertRdpEntryToEncuentro, buildEncuentroExportHtml, safeEncuentroFileName } from '../utils/encuentros-interop.js';
@@ -472,6 +472,16 @@ import { render, renderPanel, showStatus } from '../main.js';
     var dayDateInput = document.getElementById('dayDateInput');
     if(dayDateInput){
       dayDateInput.addEventListener('blur', function(){ setDayDate(day.id, dayDateInput.value.trim()); });
+    }
+    // Cita bíblica editable (09/10/2026) — guarda los dos campos juntos al
+    // perder el foco de cualquiera de los dos, para no pisar uno con el
+    // valor viejo del otro.
+    var dayCitaTextoInput = document.getElementById('dayCitaTextoInput');
+    var dayCitaRefInput = document.getElementById('dayCitaRefInput');
+    if(dayCitaTextoInput && dayCitaRefInput){
+      var saveCita = function(){ setDayCita(day.id, dayCitaTextoInput.value.trim(), dayCitaRefInput.value.trim()); };
+      dayCitaTextoInput.addEventListener('blur', saveCita);
+      dayCitaRefInput.addEventListener('blur', saveCita);
     }
     if(day && typeof day === 'object'){
       document.querySelectorAll('.consignaInput').forEach(function(inp){

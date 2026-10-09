@@ -7,6 +7,7 @@ h1,h2,h3,.serif{
 .main{
     flex:1;
     min-width:0; /* para que el panel pueda achicarse y no desborde */
+    padding-left:24px; /* mismo espacio que el sidebar deja antes de su línea divisoria */
   }
 
 /* AUTH BAR */
@@ -131,12 +132,13 @@ h1,h2,h3,.serif{
 
 /* PANEL */
 
+/* Ya no es un "bloque blanco" propio (feedback de Comunicaciones,
+     09/10/2026) — la página entera ya es blanca (ver body en base.css), así
+     que el panel se funde con ella en vez de flotar como una tarjeta
+     separada; el padding se mantiene para que el contenido no pegue contra
+     el borde/la línea del sidebar. */
 .panel{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:28px 30px 34px;
-    box-shadow:var(--shadow-sm);
+    padding:10px 0 34px;
   }
 
 /* Transición suave al cambiar de pestaña (09/10/2026) — el JS reinicia esta
@@ -312,12 +314,27 @@ h1,h2,h3,.serif{
 
 .entry-head-main{ min-width:0; flex:1 1 auto; }
 
+/* Jerarquía tipográfica (09/10/2026, feedback de Comunicaciones): los
+     títulos de entrada ("La originalidad de la dignidad de hijos", título
+     de día "Día 1") son "títulos secundarios" — Raleway bold, no Ragick/
+     Baloo 2, que queda reservado para los títulos principales de cada
+     pantalla ("Inicio", "Mensaje", "Comando"...), cubiertos por la regla
+     global `h1,h2,h3{Baloo 2}` de arriba. */
 .entry-title{
-    font-family:'Baloo 2',serif;
-    font-size:18px;
-    font-weight:600;
+    font-family:'Raleway',sans-serif;
+    font-size:17px;
+    font-weight:700;
     margin:0;
     color:var(--ink);
+  }
+
+/* `h2.day-title` (no solo `.day-title`) para empatar en especificidad con
+     `.panel-head h2` (que fija weight:600/color más abajo) y ganarle por
+     orden de aparición — si no, el weight 600 de esa regla le ganaba al
+     700 de acá. */
+h2.day-title{
+    font-family:'Raleway',sans-serif;
+    font-weight:700;
   }
 
 /* Colapsar/expandir el contenido de una entrada (pedido del usuario,

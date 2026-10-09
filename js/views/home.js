@@ -4,7 +4,7 @@
 
 import { AppState } from '../app-state.js';
 import { CAMP_DURATION_DAYS } from '../config/constants.js';
-import { escapeHtml } from '../utils/helpers.js';
+import { escapeHtml, linkify } from '../utils/helpers.js';
 import { canEditStructure, canSeeEntry, canCreateInfoGeneral } from '../services/permissions.js';
 import { save } from '../services/state.service.js';
 import { renderEntry, renderEntriesListHtml } from '../components/entry.js';
@@ -143,7 +143,7 @@ import { showStatus } from '../main.js';
       html += '  <div class="home-card">';
       if(feat.label){ html += '    <h3>' + escapeHtml(feat.label) + '</h3>'; }
       if(feat.day.ejeCorto){ html += '    <div class="eje-badge">' + escapeHtml(feat.day.ejeCorto) + '</div>'; }
-      html += '    <div class="cita-banner" style="margin-top:10px"><p class="cita-text">«' + escapeHtml(feat.day.citaTexto || '') + '»</p>';
+      html += '    <div class="cita-banner" style="margin-top:10px"><p class="cita-text">«' + linkify(feat.day.citaTexto || '') + '»</p>';
       if(feat.day.citaRef){ html += '<p class="cita-ref">' + escapeHtml(feat.day.citaRef) + '</p>'; }
       html += '    </div>';
       html += '  </div>';

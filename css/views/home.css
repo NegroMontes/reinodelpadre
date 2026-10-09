@@ -333,14 +333,62 @@
     box-shadow:var(--shadow-sm);
   }
 
+/* Edición de la cita bíblica (09/10/2026) — mismo contenedor .cita-banner
+     de siempre, con los dos campos editables arriba y, si ya hay texto
+     cargado, la vista previa real (con negritas aplicadas) debajo. */
+.cita-edit-label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+
+.cita-edit-label textarea{
+    display:block;
+    width:100%;
+    font-family:'Raleway',sans-serif;
+    font-size:14px;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    color:var(--ink);
+    resize:vertical;
+    box-sizing:border-box;
+  }
+
+.cita-ref-input{
+    width:100%;
+    font-family:'Raleway',sans-serif;
+    font-size:13px;
+    padding:6px 9px;
+    margin-top:8px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    color:var(--ink);
+    box-sizing:border-box;
+  }
+
+.cita-banner-preview{ margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); }
+
+/* Pedido del usuario, 09/10/2026: "si se resalta todo, en realidad no se
+     está resaltando nada" — el texto de la cita queda en peso regular
+     (500, el más liviano cargado para Baloo 2 — no hay 400 disponible) y
+     solo las palabras marcadas con **negrita** al editar la cita (ver
+     setDayCita()/linkify()) destacan en 700. */
 .cita-banner .cita-text{
     margin:0 0 6px;
     font-family:'Baloo 2',serif;
     font-size:16px;
+    font-weight:500;
     font-style:italic;
     color:var(--indigo);
     line-height:1.45;
   }
+
+.cita-banner .cita-text strong{ font-weight:700; }
 
 .cita-banner .cita-ref{
     margin:0;
@@ -423,12 +471,16 @@
 
 /* INICIO (dashboard) */
 
+/* Un solo bloque horizontal por fila (feedback de Comunicaciones,
+     09/10/2026: "así los contenidos ganan más presencia") — antes era una
+     grilla de 2 columnas en desktop (la cuenta regresiva al lado de la
+     cita); ahora la cuenta regresiva ocupa todo el ancho, y la cita queda
+     debajo, nunca al costado. */
 .home-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
+    display:flex;
+    flex-direction:column;
     gap:18px;
     margin-bottom:26px;
-    align-items:start; /* cada tarjeta ocupa solo su alto natural, no se estiran parejas */
   }
 
 .home-card{
@@ -493,7 +545,5 @@
 .eje-card:hover{ box-shadow:var(--shadow-md); transform:translateY(-2px); }
 
 @media (max-width:600px) {
-.home-grid{ grid-template-columns:1fr; }
-
 .home-ejes-grid{ grid-template-columns:1fr; }
 }

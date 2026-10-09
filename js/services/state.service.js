@@ -223,6 +223,17 @@ import { render, renderPanel, showStatus } from '../main.js';
   }
 
 
+  // Cita bíblica del día (09/10/2026, pedido del usuario) — hasta ahora
+  // `citaTexto`/`citaRef` solo se cargaban una vez, a mano, en los 8 días
+  // precargados (defaultData() más abajo) — no había forma de editarlos
+  // desde la interfaz. Mismo gate/patrón que renameDay()/setDayDate().
+  export function setDayCita(id, citaTexto, citaRef){
+    if(!canEditStructure()) return;
+    var day = AppState.state.days.find(function(d){ return d.id === id; });
+    if(day){ day.citaTexto = citaTexto; day.citaRef = citaRef; save(); renderPanel(); }
+  }
+
+
   export function setConsigna(dayId, seccion, text){
     if(!canEditConsigna(seccion)) return;
     var day = AppState.state.days.find(function(d){ return d.id === dayId; });

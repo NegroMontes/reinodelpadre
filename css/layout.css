@@ -9,20 +9,23 @@
 .layout{
     display:flex;
     align-items:flex-start;
-    gap:22px;
+    gap:0;
     margin-top:22px;
   }
 
+/* Sidebar sin bloque de color propio (feedback de Comunicaciones,
+     09/10/2026) — antes era una tarjeta celeste separada del contenido;
+     ahora se separa con una línea vertical, el mismo elemento divisor que
+     ya usaba el header debajo de "Tu herramienta formativa"
+     (`header.top{border-bottom}`), en vez de dos bloques de color
+     distintos. */
 .sidebar{
     width:230px;
     flex-shrink:0;
     position:sticky;
     top:20px;
-    background:var(--bg-alt);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:10px;
-    box-shadow:var(--shadow-sm);
+    padding:10px 24px 10px 0;
+    border-right:1px solid var(--line);
   }
 
 /* HEADER */
@@ -58,7 +61,8 @@ header.top{
 
 header.top h1{
     margin:0;
-    font-size:34px;
+    font-family:'Baloo 2',serif;
+    font-size:40px;
     font-weight:600;
     color:var(--bordeaux-deep);
     line-height:1.15;
@@ -71,20 +75,23 @@ header.top p.sub{
     font-size:14.5px;
   }
 
+/* "MDZ 2027" sacado del pill/círculo turquesa (feedback de Comunicaciones,
+     09/10/2026: "lo sacaría del círculo") — texto plano en uno de los
+     tonos cálidos secundarios de la paleta, en Raleway (ya lo estaba).
+     `--bordeaux-deep` en vez de `--amber`/`--gold` a propósito: son los
+     dos tonos cálidos más claros de la paleta, y sobre fondo blanco caen
+     por debajo del contraste mínimo que el propio manual de marca pide
+     evitar — bordeaux-deep sigue siendo un tono cálido secundario con
+     contraste de sobra. */
 header.top h1 .badge{
     display:inline-block;
     font-family:'Raleway',sans-serif;
-    font-size:13px;
+    font-size:14px;
     font-weight:700;
-    letter-spacing:0.03em;
-    text-transform:uppercase;
-    color:var(--white);
-    background:linear-gradient(135deg, var(--teal), #00828f);
-    padding:5px 12px;
-    border-radius:999px;
+    letter-spacing:0.02em;
+    color:var(--bordeaux-deep);
     vertical-align:middle;
     margin-left:10px;
-    box-shadow:0 4px 12px rgba(0,155,179,.35);
   }
 
 .auth-user .role-pill{
@@ -124,15 +131,20 @@ header.top h1 .badge{
     text-align:left;
   }
 
-.day-tab:hover{ background:rgba(255,255,255,0.65); transform:translateX(2px); }
+/* Antes el hover/activo contrastaban contra el fondo celeste propio del
+     sidebar (`--bg-alt`) — sin ese fondo (ver `.sidebar` arriba), un blanco
+     translúcido quedaría invisible sobre la página, ya blanca. Ahora los
+     dos usan el celeste `--bg` como su propio "bloque" puntual, el mismo
+     criterio que `.home-card`/`.mando-card` (feedback de Comunicaciones,
+     09/10/2026: "dándole más protagonismo a los bloques celestes"). */
+.day-tab:hover{ background:var(--bg); transform:translateX(2px); }
 
 .day-tab.active{
-    background:var(--panel);
+    background:var(--bg);
     border-color:var(--line);
     color:var(--teal);
     font-weight:600;
     border-left-color:var(--bordeaux);
-    box-shadow:var(--shadow-sm);
     z-index:2;
   }
 
@@ -206,8 +218,14 @@ header.top h1 .badge{
       top:0;
       z-index:30;
       overflow-x:auto;
+      padding:8px 10px;
+      border-right:none;
+      border-bottom:1px solid var(--line);
+      background:var(--panel);
       box-shadow:0 2px 8px rgba(var(--shadow-rgb),0.12);
     }
+
+.main{ padding-left:0; }
 
 .day-rail{
       flex-direction:row;

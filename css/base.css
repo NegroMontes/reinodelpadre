@@ -92,8 +92,19 @@ html,body{margin:0;padding:0;}
 
 html{ overflow-x:hidden; }
 
+/* Fondo de la página — BLANCO (no el celeste `--bg`), feedback de
+     Comunicaciones (09/10/2026): "haría que todo el fondo sea blanco,
+     dándole más protagonismo a los bloques celestes". Los bloques que ya
+     usaban `--bg` como fondo propio (`.home-card`, `.mando-card`,
+     `.eje-card`, el estado activo del sidebar, etc.) quedan como los
+     "bloques celestes" que ahora destacan contra la página blanca, en vez
+     de ser la única diferencia visual un panel blanco flotando sobre una
+     página celeste (el diseño de antes). En modo oscuro, el mismo criterio
+     con las variables oscuras: la página usa el tono MÁS CLARO (`--panel`)
+     y los bloques de acento el más oscuro (`--bg`) — la misma polaridad
+     invertida, sin redefinir ninguna variable de color. */
 body{
-    background:var(--bg);
+    background:var(--panel);
     color:var(--ink);
     font-family:'Raleway',system-ui,-apple-system,sans-serif;
     font-size:15px;

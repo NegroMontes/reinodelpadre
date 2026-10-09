@@ -5,7 +5,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES } from '../config/constants.js';
-import { escapeHtml } from '../utils/helpers.js';
+import { escapeHtml, linkify } from '../utils/helpers.js';
 import { entryScope, canSeeEntry, isAdmin, isJefeSeccionEditing, isJefeSeccion, effectiveDepto, effectiveSeccion, effectiveRole, lectorModeActive, isLectorLike, canEditStructure, canCreateRecurso } from '../services/permissions.js';
 import { addDay } from '../services/state.service.js';
 import { renderEntriesListHtml } from '../components/entry.js';
@@ -195,13 +195,13 @@ import { renderPanel } from '../main.js';
     html += '  <div>';
     if(day.ejeCorto){ html += '    <div class="eje-badge">' + escapeHtml(day.ejeCorto) + '</div>'; }
     if(canEditStructure()){
-      html += '    <h2 contenteditable="true" id="dayLabelEdit">' + escapeHtml(day.label) + '</h2>';
+      html += '    <h2 class="day-title" contenteditable="true" id="dayLabelEdit">' + escapeHtml(day.label) + '</h2>';
       html += '    <div class="day-meta">';
       html += '      <input type="text" id="dayDateInput" placeholder="fecha (ej: 8 de enero)" value="' + escapeHtml(day.date) + '">';
       html += '      <button class="btn ghost small" id="deleteDayBtn" type="button">Eliminar día</button>';
       html += '    </div>';
     } else {
-      html += '    <h2>' + escapeHtml(day.label) + '</h2>';
+      html += '    <h2 class="day-title">' + escapeHtml(day.label) + '</h2>';
       if(day.date){ html += '    <div class="day-meta"><span>' + escapeHtml(day.date) + '</span></div>'; }
     }
     html += '  </div>';
@@ -209,8 +209,21 @@ import { renderPanel } from '../main.js';
 
     html += renderConsignasBlock(day);
 
-    if(day.citaTexto){
-      html += '<div class="cita-banner"><p class="cita-text">«' + escapeHtml(day.citaTexto) + '»</p><p class="cita-ref">' + escapeHtml(day.citaRef||'') + '</p></div>';
+    // La cita bíblica admite el mismo markdown liviano que el resto del
+    // sitio (**negrita**/*cursiva*, linkify()) — pedido del usuario,
+    // 09/10/2026: "solo dejaría en negrita las palabras clave", en vez de
+    // que el texto entero lea con el mismo peso. Editable solo por quien
+    // puede tocar la estructura del día (mismo gate que label/fecha).
+    if(canEditStructure()){
+      html += '<div class="cita-banner cita-banner-edit">';
+      html += '  <label class="cita-edit-label">Cita bíblica — podés usar **negrita** para resaltar palabras clave<textarea id="dayCitaTextoInput" rows="3" placeholder="Texto de la cita...">' + escapeHtml(day.citaTexto || '') + '</textarea></label>';
+      html += '  <input type="text" id="dayCitaRefInput" class="cita-ref-input" placeholder="Referencia (ej: Gálatas 4, 4-7)" value="' + escapeHtml(day.citaRef || '') + '">';
+      if(day.citaTexto){
+        html += '  <div class="cita-banner-preview"><p class="cita-text">«' + linkify(day.citaTexto) + '»</p><p class="cita-ref">' + escapeHtml(day.citaRef||'') + '</p></div>';
+      }
+      html += '</div>';
+    } else if(day.citaTexto){
+      html += '<div class="cita-banner"><p class="cita-text">«' + linkify(day.citaTexto) + '»</p><p class="cita-ref">' + escapeHtml(day.citaRef||'') + '</p></div>';
     }
 
     html += '<div class="entries">';
