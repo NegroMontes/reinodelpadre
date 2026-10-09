@@ -458,10 +458,47 @@ h1,h2,h3,.serif{
 .empty{
     color:var(--ink-soft);
     font-style:italic;
-    padding:20px 0;
     font-family:'Baloo 2',serif;
     font-size:15px;
+    text-align:center;
+    padding:28px 20px;
+    margin:10px 0;
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+    background:var(--bg-alt);
   }
+.empty::before{
+    content:'🗂️';
+    display:block;
+    font-style:normal;
+    font-size:26px;
+    margin-bottom:8px;
+    opacity:.7;
+  }
+
+/* Estado de carga inline ("Cargando…") — mismo anillo giratorio en los
+   5 lugares que lo usan (gate, cuadro de mandos, cita de libro, picker de
+   libros, "quién la completó"). Puramente CSS, respeta reduced-motion. */
+.loading-inline{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+.loading-spinner{
+    width:16px;
+    height:16px;
+    border-radius:50%;
+    border:2.5px solid var(--line);
+    border-top-color:var(--teal);
+    flex-shrink:0;
+    animation:loadingSpin .7s linear infinite;
+  }
+@keyframes loadingSpin{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce){
+  .loading-spinner{ animation:none; }
+}
 
 /* EJE BADGE + CITA BANNER */
 

@@ -314,7 +314,7 @@ import { renderPanel } from '../main.js';
     var data = libroDataCache[book.lib];
     if(data === undefined || data === 'loading'){
       ensureLibroLoaded(book.lib).then(onLoaded).catch(onLoaded);
-      return '<div class="libro-cita libro-cita-loading" style="--bc:' + meta.color + '"><p class="mandos-sub">Cargando cita de ' + escapeHtml(meta.titulo) + '...</p></div>';
+      return '<div class="libro-cita libro-cita-loading" style="--bc:' + meta.color + '"><p class="loading-inline"><span class="loading-spinner"></span>Cargando cita de ' + escapeHtml(meta.titulo) + '...</p></div>';
     }
     if(data === 'error'){
       return '<div class="libro-cita" style="--bc:' + meta.color + '"><p class="mandos-sub">No se pudo cargar ' + escapeHtml(meta.titulo) + '.</p></div>';
@@ -585,7 +585,7 @@ import { renderPanel } from '../main.js';
       var cached = AppState.secuencialCompletionsCache[entry.id];
       html += '<div class="secuencial-completions">';
       if(cached === undefined){
-        html += '<p class="mandos-sub">Cargando...</p>';
+        html += '<p class="loading-inline"><span class="loading-spinner"></span>Cargando...</p>';
       } else if(cached === 'error'){
         html += '<p class="mandos-sub">No se pudo cargar (¿ya se publicaron las reglas nuevas de Firestore?).</p>';
       } else if(cached.length === 0){

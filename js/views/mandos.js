@@ -20,7 +20,9 @@ import { escapeHtml } from '../utils/helpers.js';
     // Sin datos todavía (no cargó de Firestore) — ver "Cuadro de mandos
     // movido a Firestore" en CLAUDE.md, 08/10/2026.
     if(!MANDOS){
-      html += '<p class="mandos-sub">' + (AppState.mandosLoaded ? 'Todavía no hay cuadro de mandos cargado.' : 'Cargando…') + '</p>';
+      html += AppState.mandosLoaded
+        ? '<p class="empty">Todavía no hay cuadro de mandos cargado.</p>'
+        : '<p class="loading-inline"><span class="loading-spinner"></span>Cargando…</p>';
       return html;
     }
 

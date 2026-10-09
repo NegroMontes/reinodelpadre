@@ -272,7 +272,7 @@ import { render } from '../main.js';
     function hideApp(){ layout.style.display = 'none'; }
 
     if(!AppState.authResolved){
-      gate.innerHTML = '<div class="gate-box"><p>Cargando…</p></div>';
+      gate.innerHTML = '<div class="gate-box"><p class="loading-inline"><span class="loading-spinner"></span>Cargando…</p></div>';
       hideApp();
       return true;
     }

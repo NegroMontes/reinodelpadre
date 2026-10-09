@@ -294,7 +294,7 @@ import { render, renderPanel, showStatus } from '../main.js';
     html += '  <div class="libro-picker-body">';
     html += '    <div class="libro-picker-list">';
     if(data === undefined || data === 'loading'){
-      html += '      <p class="mandos-sub">Cargando ' + escapeHtml(LIBROS_META[AppState.libroPickerBook].titulo) + '...</p>';
+      html += '      <p class="loading-inline"><span class="loading-spinner"></span>Cargando ' + escapeHtml(LIBROS_META[AppState.libroPickerBook].titulo) + '...</p>';
     } else if(data === 'error'){
       html += '      <p class="mandos-sub">No se pudo cargar esta biblioteca.</p>';
     } else {
