@@ -122,6 +122,44 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
+# Tope de conexiones que se atienden EN PARALELO a la vez (09/10/2026) --
+# ThreadingHTTPServer solo (ver mas abajo) resuelve el caso normal (una
+# carga de pagina, ~30 archivos a la vez), pero si alguien recarga varias
+# veces MUY seguidas (Ctrl+Shift+R repetido), cada recarga dispara otra
+# tanda de ~30 pedidos -- sin tope, se terminan creando cientos de threads
+# casi juntos, compitiendo por CPU/sockets, y ahi es cuando hasta un archivo
+# chico como el logo puede perderse. Con el tope, las conexiones de mas
+# esperan su turno en la cola del sistema operativo en vez de competir
+# todas a la vez -- se sirven un poco mas lento en una rafaga asi, pero
+# ninguna se pierde.
+MAX_CONEXIONES_SIMULTANEAS = 32
+
+
+class BoundedThreadingHTTPServer(http.server.ThreadingHTTPServer):
+    # Backlog del sistema operativo para conexiones ya aceptadas pero
+    # todavia sin empezar a procesar -- el default de Python (5) es chico
+    # para una rafaga de varias recargas (~30 pedidos cada una); con el tope
+    # de arriba, las conexiones de mas quedan esperando ACA mientras se
+    # libera un lugar, asi que esta cola tiene que ser generosa para no
+    # rechazarlas (ECONNRESET) en vez de simplemente hacerlas esperar.
+    request_queue_size = 128
+    _semaforo = threading.Semaphore(MAX_CONEXIONES_SIMULTANEAS)
+
+    def process_request(self, request, client_address):
+        # Se llama desde el loop principal de aceptar conexiones (un solo
+        # hilo) -- bloquear ACA antes de crear el thread de verdad es lo que
+        # evita que se disparen mas de MAX_CONEXIONES_SIMULTANEAS threads a
+        # la vez, en vez de crearlos todos juntos y que esperen ellos.
+        self._semaforo.acquire()
+        super().process_request(request, client_address)
+
+    def process_request_thread(self, request, client_address):
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self._semaforo.release()
+
+
 if __name__ == '__main__':
     # ThreadingHTTPServer (no HTTPServer a secas) -- el sitio ahora carga
     # ~30 archivos por pagina (CSS + cada modulo JS + assets); HTTPServer
@@ -130,7 +168,7 @@ if __name__ == '__main__':
     # -- la causa mas probable de que "tarda mucho en cargar" (reportado
     # 09/10/2026) y de los ConnectionAbortedError en la consola (pedidos
     # que seguian en cola y el navegador cancelaba al recargar de nuevo).
-    server = http.server.ThreadingHTTPServer(('', PORT), NoCacheHandler)
+    server = BoundedThreadingHTTPServer(('', PORT), NoCacheHandler)
     print('Sirviendo FORDOC (sin cache):')
     print('  En esta compu:  http://localhost:%d' % PORT)
     tailscale = direcciones_tailscale()
