@@ -128,9 +128,24 @@
 
 .step-cond-row select, .step-cond-row input{ width:auto; flex:1 1 140px; margin-top:0; }
 
-.step-inline-check{ display:flex; align-items:center; gap:6px; font-size:13px; margin-top:6px; }
+/* El constructor de pasos entero vive adentro de un solo `.form-row` (ver
+     `renderStepsBuilder()`), así que `.form-row label{display:block}`
+     (especificidad 0,1,1) le ganaba de una a `.step-inline-check{display:flex}`
+     (0,1,0, ni siquiera empate) — el checkbox quedaba renderizado como una
+     caja ancha con borde/padding heredados de `.step-row input` (mismo tipo
+     de bug de especificidad ya visto con `.novedades-count`/`.tag`), y el
+     texto del label caía a su propio renglón debajo. Se ancla a `.form-row`
+     para ganarle a esa regla, y a `.step-row` para ganarle a `.step-row
+     input` en el reset del checkbox mismo. */
+.form-row .step-inline-check{ display:flex; align-items:center; gap:6px; font-size:13px; margin-top:6px; }
 
-.step-inline-check input{ width:auto; margin:0; }
+.step-row .step-inline-check input{
+    width:auto;
+    padding:0;
+    border:none;
+    border-radius:0;
+    margin:0;
+  }
 
 /* Entrada "secuencial" — se recorre paso a paso en vez de mostrarse toda junta. */
 
