@@ -16,6 +16,7 @@
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { db, librosColRef } from '../config/firebase.js';
 import { idbGet, idbSet } from '../utils/idb-cache.js';
+import { decodeYoucatIndices } from '../utils/youcat-indices-codec.js';
 
 var LIBROS_CACHE_VERSION = 1;
 var CACHE_KEY = 'libros-fordoquera-v' + LIBROS_CACHE_VERSION;
@@ -38,7 +39,10 @@ async function fetchYoucatFromFirestore(){
 
 async function fetchYoucatIndicesFromFirestore(){
   var snap = await getDoc(doc(librosColRef, 'youcat_indices'));
-  return snap.exists() ? snap.data() : { index: [], defs: [] };
+  if(!snap.exists()) return { index: [], defs: [] };
+  // Deshace la codificación de rangos de libros-seed.service.js — ver
+  // utils/youcat-indices-codec.js.
+  return decodeYoucatIndices(snap.data());
 }
 
 async function fetchBibliaFromFirestore(){

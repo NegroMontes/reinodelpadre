@@ -15,6 +15,7 @@
 
 import { doc, writeBatch, collection } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { db, librosColRef } from '../config/firebase.js';
+import { encodeYoucatIndices } from '../utils/youcat-indices-codec.js';
 
 async function fetchJson(path){
   var res = await fetch(path, { cache: 'no-store' });
@@ -50,7 +51,11 @@ export async function seedLibrosFromFiles(onProgress){
 
   report('Leyendo el índice de YouCat…');
   var ycIx = await fetchJson('seed-data/youcat_indices.json');
-  writes.push({ ref: doc(librosColRef, 'youcat_indices'), data: ycIx });
+  // Ver utils/youcat-indices-codec.js: `index[].r` mezcla números sueltos
+  // con pares de rango `[a,b]` — Firestore rechaza un array que contenga
+  // directamente otro array, así que cada rango se codifica como {a,b}
+  // antes de escribir (se decodifica de vuelta al leer, en libros.service.js).
+  writes.push({ ref: doc(librosColRef, 'youcat_indices'), data: encodeYoucatIndices(ycIx) });
 
   report('Leyendo la Biblia (puede tardar, son 76 libros)…');
   var bibMeta = await fetchJson('seed-data/biblia/meta.json');
