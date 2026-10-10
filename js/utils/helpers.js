@@ -58,7 +58,6 @@
     { k: ['teatro', 'actuar'], icon: '🎭' },
     { k: ['danza', 'baile', 'bailar'], icon: '💃' },
     { k: ['trekking', 'caminata', 'montanismo', 'senderismo', 'marcha'], icon: '🥾' },
-    { k: ['vertientes'], icon: '🇦🇷' },
     { k: ['acampar', 'campamento', 'carpa'], icon: '⛺' },
     { k: ['rezar', 'orar', 'oracion', 'capilla', 'adoracion'], icon: '🙏' },
     { k: ['dormir', 'siesta'], icon: '😴' },
@@ -74,6 +73,16 @@
     // acentos, pasar a minúsculas, recortar espacios) aunque esté pensada
     // para nombres de personas — reusarla evita duplicar esa lógica.
     var norm = normalizeName(actividadFavorita);
+    // "Vertientes" — imagen real de la bandera argentina, no el emoji de
+    // bandera (10/10/2026, reporte del usuario: en su dispositivo, 🇦🇷 — una
+    // secuencia Unicode de dos "regional indicators" — cae a mostrarse como
+    // el texto plano "AR" en vez de componerse como una imagen de bandera,
+    // una limitación conocida de fuente/plataforma. Un asset real (mismo
+    // criterio ya usado para los escudos de sección en badge-icons.js) se
+    // ve igual en cualquier lado, sin depender de soporte de emoji.
+    if(norm.indexOf('vertientes') !== -1){
+      return '<img class="activity-flag-icon" src="assets/bandera-argentina.svg" alt="Argentina" style="width:16px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;display:inline-block;">';
+    }
     for(var i = 0; i < ACTIVITY_ICONS.length; i++){
       var group = ACTIVITY_ICONS[i];
       for(var j = 0; j < group.k.length; j++){

@@ -212,13 +212,31 @@ header.top h1 .badge{
        así que una tabla ancha (ej. "Comentarios") podía empujar toda la página. */
 .layout{ flex-direction:column; align-items:stretch; }
 
+/* Feedback de Joaquín Busso, 09/10/2026 (mobile/Safari): "la barra de
+       subíndices debería abarcar todo el ancho de la pantalla, que no se
+       corte antes" — antes `.sidebar` solo llegaba a `width:100%` de
+       `.main`, que a su vez hereda el padding lateral fijo de `.app`
+       (20px) más el propio inset de `max-width:94vw` — en un celular
+       angosto eso dejaba ~32px de margen de cada lado antes de que la
+       barra arrancara, visiblemente "cortada" respecto del borde real de
+       la pantalla. Truco de "full bleed" (`width:100vw` + `margin-left:50%`
+       + `translateX(-50%)`, clásico para que un elemento ignore el padding/
+       centrado de su contenedor y llegue al borde real del viewport,
+       cualquiera sea el ancho de `.app`) — seguro acá porque `.sidebar` ya
+       es el propio elemento `position:sticky` (un `transform` en un
+       ancestro rompería el sticky, pero puesto en el mismo elemento
+       sticky no lo afecta) y porque `html{overflow-x:hidden}` (base.css)
+       ya cubre el caso de que `100vw` se pase un par de px de más por el
+       ancho de una scrollbar. */
 .sidebar{
-      width:100%;
+      width:100vw;
+      margin-left:50%;
+      transform:translateX(-50%);
       position:sticky;
       top:0;
       z-index:30;
       overflow-x:auto;
-      padding:8px 10px;
+      padding:8px 14px;
       border-right:none;
       border-bottom:1px solid var(--line);
       background:var(--panel);
@@ -230,17 +248,34 @@ header.top h1 .badge{
 .day-rail{
       flex-direction:row;
       align-items:stretch;
-      gap:2px;
+      gap:6px;
       padding-bottom:2px;
     }
 
+/* Feedback de Joaquín Busso, 09/10/2026 (mobile/Safari): "los subíndices
+       que no están seleccionados deberían tener todo su rectangulito
+       marcado y no solo la línea izquierda. Que lo que haga la diferencia
+       sea el color, nada más" — antes un tab sin seleccionar solo tenía un
+       borde izquierdo de 1px (`var(--line)`) sin fondo propio, mientras
+       que el activo sumaba fondo + un borde inferior bordó — dos
+       elementos distintos (línea vs. rectángulo relleno) en vez de un
+       mismo rectángulo con dos colores. Ahora los dos estados comparten
+       exactamente la misma forma (mismo borde completo, mismo radio) —
+       mismo criterio ya usado en `.day-pill` (el selector de día de
+       "Mensaje") — y solo cambia el color de fondo/texto entre uno y otro. */
 .day-tab{
-      border-left:1px solid var(--line);
-      border-bottom:3px solid transparent;
-      border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+      background:var(--bg-alt);
+      border:1px solid var(--line);
+      border-radius:var(--radius-sm);
     }
 
-.day-tab.active{ border-left-color:var(--line); border-bottom-color:var(--bordeaux); }
+.day-tab:hover{ background:var(--bg); transform:none; }
+
+.day-tab.active{
+      background:var(--teal);
+      border-color:var(--teal);
+      color:var(--white);
+    }
 
 .day-rail-divider{ width:1px; height:auto; align-self:stretch; margin:2px 4px; }
 }
