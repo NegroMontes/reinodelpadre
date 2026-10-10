@@ -277,15 +277,21 @@ h1,h2,h3,.serif{
     font-size:16px;
     line-height:1;
     cursor:pointer;
-    /* Arranca apenas visible (no del todo en 0) — en touch no existe un
-       :hover real, así que si el botón dependiera solo de esa pseudoclase
-       quedaría invisible de por vida en mobile. Con esto sigue siendo una
-       presencia discreta (no compite con las entradas) pero es ubicable y
-       tocable sin necesidad de acercar el mouse primero. */
+    /* Default para touch (sin :hover real): apenas visible, para que siga
+       siendo ubicable y tocable sin acercar ningún mouse primero. */
     opacity:.35;
     transform:scale(.85);
     transition:opacity .15s ease, transform .15s ease;
     box-shadow:var(--shadow-sm);
+  }
+
+  /* En un dispositivo con mouse de verdad, invisible del todo hasta que se
+     acerca — pedido del usuario, 10/10/2026 ("el globo azul con el + aparece
+     siempre... debería desaparecer si el mouse no está cerca"). Se acota a
+     `(hover:hover)` para no perder el default de arriba en touch, donde
+     `:hover` nunca se dispara y el botón quedaría invisible para siempre. */
+  @media (hover:hover){
+    .entry-gap-btn{ opacity:0; }
   }
 
 .entry-gap:hover .entry-gap-btn,

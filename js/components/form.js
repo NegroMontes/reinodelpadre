@@ -22,7 +22,7 @@ import { render, renderPanel, showStatus } from '../main.js';
   // Departamentos, sin la opción de secciones — sigue siendo contenido
   // exclusivo de departamentos); un jefe de sección o de departamento sigue
   // fijo a su propio grupo (sin poder elegir otros), pero también puede tildar
-  // "Comando (sin milicianos)" para ampliar el alcance de esa entrada puntual.
+  // "Todos los comandos" para ampliar el alcance de esa entrada puntual.
   export function renderAmbitoPicker(day){
     var isDeptosTab = (day === null);
     var jefeDepto = isJefeSeccion() && effectiveDepto() && !effectiveSeccion();
@@ -43,8 +43,8 @@ import { render, renderPanel, showStatus } from '../main.js';
     // ve un miliciano — así que aclarar "(sin milicianos)" ahí es redundante
     // y confunde; se llama simplemente "General" (pedido del usuario,
     // 22/09/2026). En Mensaje/Recursos, donde sí puede haber milicianos
-    // viendo, sigue diciendo "Comando (sin milicianos)".
-    var comandoGeneralLabel = isDeptosTab ? 'General' : 'Comando (sin milicianos)';
+    // viendo, sigue diciendo "Todos los comandos".
+    var comandoGeneralLabel = isDeptosTab ? 'General' : 'Todos los comandos';
     html += '      <label class="ambito-general-check"><input type="checkbox" id="fComandoGeneral"' + (AppState.formComandoGeneral ? ' checked' : '') + '> ' + comandoGeneralLabel + '</label>';
 
     if(isAdmin()){
@@ -157,18 +157,37 @@ import { render, renderPanel, showStatus } from '../main.js';
     var title = document.getElementById('fTitle').value.trim();
     if(!title){ showStatus('Poné un título antes de continuar.'); return null; }
 
+    var comandoGeneral = (day === 'INFO_GENERAL') ? false : AppState.formComandoGeneral;
+    var editingEntryNow = AppState.editingEntryId ? AppState.state.entries.find(function(e){ return e.id === AppState.editingEntryId; }) : null;
+
     var secciones, deptos;
     if(day === 'INFO_GENERAL'){
       secciones = []; deptos = [];
     } else if(isAdmin()){
       secciones = (day === null) ? [] : AppState.formSecciones.slice();
       deptos = AppState.formDeptos.slice();
+    } else if(comandoGeneral){
+      // Si tildó "Todos los comandos", no hace falta ADEMÁS su propio grupo —
+      // alcanza con el flag general (antes quedaban los dos, mostrando dos
+      // tags donde debía verse solo el más general — bug reportado por el
+      // usuario 10/10/2026).
+      secciones = []; deptos = [];
+    } else if(editingEntryNow){
+      // No-admin editando una entrada EXISTENTE: nunca re-scopea sola la
+      // entrada al propio grupo del editor — preserva el ámbito que ya
+      // tenía (bug reportado por el usuario 10/10/2026: "cualquier jefe
+      // puede editar cualquier entrada... al guardarla esa entrada cambia
+      // de tag escuderos>comunicaciones"). El único control de ámbito que
+      // un no-admin tiene al editar es el checkbox "Todos los comandos"
+      // (ya resuelto arriba) — nunca puede elegir OTRO grupo puntual.
+      var existingScope = entryScope(editingEntryNow);
+      secciones = existingScope.secciones.slice();
+      deptos = existingScope.deptos.slice();
     } else if(isJefeSeccion() && effectiveDepto() && !effectiveSeccion()){
       secciones = []; deptos = [effectiveDepto()];
     } else {
       secciones = effectiveSeccion() ? [effectiveSeccion()] : []; deptos = [];
     }
-    var comandoGeneral = (day === 'INFO_GENERAL') ? false : AppState.formComandoGeneral;
     var seccionComandoOnly = (day === 'RESOURCES') ? AppState.formSeccionComandoOnly : false;
 
     var allowed;
@@ -188,11 +207,19 @@ import { render, renderPanel, showStatus } from '../main.js';
 
     var anonimo = AppState.formAnonimo;
     var author = anonimo ? '' : AppState.currentUser.displayName;
-    // Grupo del autor REAL (nunca simulado por "Ver como") — el dato que
-    // alimenta "el circulito" (feedback de Comunicaciones, 09/10/2026).
-    var authorGrupo = AppState.currentUser.role === 'admin'
+    // Grupo del autor — el dato que alimenta "el circulito" (feedback de
+    // Comunicaciones, 09/10/2026). Usa la identidad EFECTIVA (respeta "Ver
+    // como"), no la real — mismo criterio que ya usa el propio picker de
+    // Ámbito (`effectiveSeccion()`/`effectiveDepto()`) para mostrar el grupo
+    // fijo de quien publica: si un admin está simulando ser jefe de
+    // Comunicaciones y crea una entrada ahí, el círculo tiene que decir "CO",
+    // no "FD" — antes usaba siempre la identidad real, así que cualquier
+    // entrada creada simulando un rol quedaba con el círculo de admin (bug
+    // reportado por el usuario 10/10/2026: "sigue apareciendo el globo que
+    // dice FD... no deberían aparecer sus respectivas letras").
+    var authorGrupo = isAdmin()
       ? 'FORDOC'
-      : (AppState.currentUser.seccion || AppState.currentUser.depto || '');
+      : (effectiveSeccion() || effectiveDepto() || '');
     var bienvenida = (day === 'RESOURCES') ? AppState.formBienvenida : false;
 
     if(AppState.editingEntryId){
@@ -369,12 +396,21 @@ import { render, renderPanel, showStatus } from '../main.js';
         var wasEditing = !!AppState.editingEntryId;
         var id = saveEntryMetadata(day);
         if(!id) return;
-        AppState.formOpen = false;
-        resetFormDraftState();
-        render();
-        if(!wasEditing){
-          // Entrada recién creada, sin contenido todavía — se abre de una el
-          // editor de la Fordoquera para que se arme el contenido real.
+        if(wasEditing){
+          AppState.formOpen = false;
+          resetFormDraftState();
+          render();
+        } else {
+          // Entrada recién creada, sin contenido todavía — queda en modo
+          // edición (mismo criterio que una entrada ya existente, en vez de
+          // cerrar el formulario) y se abre de una el editor de la
+          // Fordoquera: al volver, el formulario de metadatos sigue abierto
+          // con "Guardar cambios" disponible (bug reportado por el usuario
+          // 10/10/2026 — "al cerrar el editor de la fordoquera se cierra la
+          // edición general, debería volver a la edición para poder
+          // guardarlo apretando guardar").
+          AppState.editingEntryId = id;
+          renderPanel();
           openFordoqueraEditor(id);
         }
       };

@@ -37,7 +37,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
 (function(){
   // Ámbito elegido en el form de "Agregar contenido" para una entrada nueva —
   // multi-select: cero o más secciones, cero o más departamentos, más un
-  // checkbox aparte "Comando (sin milicianos)". Se guarda acá (no solo
+  // checkbox aparte "Todos los comandos". Se guarda acá (no solo
   // en los checkboxes) para sobrevivir a re-render que disparen otros controles
   // del form (mismo patrón que obNombreDraft en el onboarding). Nada elegido y
   // el checkbox sin tildar = General (visible para todos, milicianos incluidos).

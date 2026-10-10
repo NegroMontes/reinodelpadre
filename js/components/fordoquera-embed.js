@@ -54,7 +54,7 @@ function closeOverlay(){
   active = null;
 }
 
-function buildOverlay(){
+function buildOverlay(onCloseClick){
   var overlay = document.createElement('div');
   overlay.className = 'fordoquera-overlay';
   var closeBtn = document.createElement('button');
@@ -62,7 +62,7 @@ function buildOverlay(){
   closeBtn.className = 'fordoquera-overlay-close';
   closeBtn.title = 'Cerrar';
   closeBtn.textContent = '✕';
-  closeBtn.onclick = function(){ closeOverlay(); };
+  closeBtn.onclick = onCloseClick;
   var iframe = document.createElement('iframe');
   iframe.className = 'fordoquera-overlay-iframe';
   iframe.src = FORDOQUERA_URL.replace(/\/$/, '') + '/?incrustada';
@@ -86,7 +86,15 @@ function persistEspacio(entryId, espacio){
 
 function open(opts){
   closeOverlay(); // por si quedó algo abierto de una llamada anterior
-  var built = buildOverlay();
+  // Único punto de cierre real — lo usan el botón "✕" Y los mensajes
+  // 'volver'/'cerrado' del protocolo, así los tres se comportan igual
+  // (antes el "✕" cerraba el overlay SIN llamar a `onClose`, así que un
+  // cierre por ese botón no refrescaba el panel de atrás).
+  var doClose = function(){
+    closeOverlay();
+    if(opts.onClose) opts.onClose();
+  };
+  var built = buildOverlay(doClose);
   var espacio = entryToEspacio(opts.entry);
   var subirPermitido = opts.modo === 'editar' && !!AppState.driveAccessToken;
 
@@ -117,16 +125,8 @@ function open(opts){
       if(opts.onSaved) opts.onSaved(espacio);
       return;
     }
-    if(d.fq === 'volver'){
-      closeOverlay();
-      if(opts.onClose) opts.onClose();
-      return;
-    }
-    if(d.fq === 'cerrado'){
-      closeOverlay();
-      if(opts.onClose) opts.onClose();
-      return;
-    }
+    if(d.fq === 'volver'){ doClose(); return; }
+    if(d.fq === 'cerrado'){ doClose(); return; }
     if(d.fq === 'subir'){
       var pid = d.pid, file = d.archivo;
       if(!subirPermitido){

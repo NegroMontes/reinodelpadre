@@ -117,7 +117,24 @@ import { AppState } from '../app-state.js';
     // jefe puede editar cualquier entrada sin restricción (pedido del
     // usuario, 24/09/2026: reservarla del todo al admin, no solo el checkbox
     // que la marca como tal).
-    if(entry.dayId === 'RESOURCES') return entry.bienvenida ? false : isJefeSeccion();
+    if(entry.dayId === 'RESOURCES'){
+      if(entry.bienvenida) return false;
+      if(!isJefeSeccion()) return false;
+      // Antes cualquier jefe podía editar CUALQUIER recurso, sin mirar su
+      // ámbito — bug reportado por el usuario 10/10/2026 ("cualquier jefe de
+      // sección puede editar cualquier entrada, incluso aunque no sea de su
+      // sección o departamento... esa entrada cambia de tag"). Mismo criterio
+      // que ya usa "Mensaje" más abajo: un recurso sin ningún ámbito puntual
+      // (General, o "Todos los comandos" sin elegir nada más) es colaborativo
+      // — cualquier jefe lo coedita; uno scopeado a una sección/depto puntual
+      // solo lo edita un jefe de ESE mismo grupo.
+      var scopeR = entryScope(entry);
+      if(scopeR.secciones.length === 0 && scopeR.deptos.length === 0) return true;
+      var myDeptoR = effectiveDepto(), miSeccionR = effectiveSeccion();
+      if(myDeptoR && scopeR.deptos.indexOf(myDeptoR) !== -1) return true;
+      if(miSeccionR && scopeR.secciones.indexOf(miSeccionR) !== -1) return true;
+      return false;
+    }
     if(entry.dayId === 'INFO_GENERAL') return isJefeSeccion() && effectiveDepto() === 'Logística';
     if(isJefeSeccion()){
       var scope = entryScope(entry);
@@ -167,7 +184,7 @@ import { AppState } from '../app-state.js';
       // En "Mensaje" (entrada de un día real): desde el 22/09/2026, cada jefe
       // —de sección o de departamento, incluido un delegado de Formación que
       // acompaña una sección— solo ve el mensaje General del día, lo que esté
-      // scopeado a SU propio ámbito, y lo marcado "Comando (sin milicianos)".
+      // scopeado a SU propio ámbito, y lo marcado "Todos los comandos".
       // Ya no ve el contenido específico de otras secciones/departamentos acá
       // (antes cualquier jefe veía todo en Mensaje — el usuario aclaró que esa
       // regla vieja pensaba en el caso de Formación, no en un jefe cualquiera
@@ -203,12 +220,18 @@ import { AppState } from '../app-state.js';
     if(isLectorLike(effectiveRole())){
       var myDepto = effectiveDepto();
       var mySeccion = effectiveSeccion();
-      // "Comando (sin milicianos)": cualquier subjefe/consagrado con depto
-      // propio, o un consagrado con lectura de Departamentos — nunca un
-      // miliciano puro (role:'lector', de sección o General), sea cual sea
-      // la sección/depto puntual que además tenga elegida la entrada.
+      // "Todos los comandos": cualquier miembro del comando (subjefe o
+      // consagrado, con sección O con depto — antes solo contaba con depto
+      // propio o `readDepartamentos`, así que un subjefe de SECCIÓN quedaba
+      // afuera sin querer, bug reportado por el usuario 10/10/2026: "a los
+      // subjefes no les aparece la entrada si marco el check de todo el
+      // comando") — nunca un miliciano puro (role:'lector', de sección o
+      // General), sea cual sea la sección/depto puntual que además tenga
+      // elegida la entrada. `isLectorLike(effectiveRole())` ya garantiza que
+      // el rol es 'lector'/'subjefe'/'consagrado' — alcanza con excluir el
+      // caso miliciano.
       if(scope.comandoGeneral){
-        return !!myDepto || !!(AppState.currentUser && AppState.currentUser.readDepartamentos);
+        return effectiveRole() !== 'lector';
       }
       // Una entrada puede tener secciones Y departamentos elegidos a la vez
       // (ej. "Templarios Mayores" + "Formación") — no son excluyentes, así que

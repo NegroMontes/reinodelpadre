@@ -13,7 +13,7 @@ import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '../services/permissions.js';
 
   // Uno o más tags de ámbito para una entrada (antes era siempre uno solo) —
-  // una sección/depto por cada elegido, más "Comando (sin milicianos)" si corresponde.
+  // una sección/depto por cada elegido, más "Todos los comandos" si corresponde.
   // hideWhenEmpty: en Recursos, el caso General (nada elegido) no muestra tag,
   // porque es el default de la pestaña entera (no hace falta aclararlo).
   export function scopeTagsHtml(entry, hideWhenEmpty){
@@ -22,7 +22,7 @@ import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '
     var seccionSuffix = entry.seccionesComandoOnly ? ' · solo comando' : '';
     scope.secciones.forEach(function(s){ tags.push('<span class="tag seccion">' + escapeHtml(s) + seccionSuffix + '</span>'); });
     scope.deptos.forEach(function(d){ tags.push('<span class="tag seccion">' + escapeHtml(d) + '</span>'); });
-    if(scope.comandoGeneral){ tags.push('<span class="tag seccion">' + (entry.dayId === null ? 'General' : 'Comando (sin milicianos)') + '</span>'); }
+    if(scope.comandoGeneral){ tags.push('<span class="tag seccion">' + (entry.dayId === null ? 'General' : 'Todos los comandos') + '</span>'); }
     if(tags.length === 0){ return hideWhenEmpty ? '' : '<span class="tag seccion">General</span>'; }
     return tags.join('');
   }
