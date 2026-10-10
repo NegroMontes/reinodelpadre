@@ -15,12 +15,18 @@ import { currentPageLabel } from '../main.js';
   // (22/09/2026) Habilitado también para todo el departamento de Formación —
   // marcados con `esFormacion:true` (los subjefes de Formación que acompañan una
   // sección auto-matchean con esto vía el bucket `formacion_member`; el jefe de
-  // Formación ya es admin y ya lo ve). Queda además el checkbox manual en
-  // "Usuarios" para cubrir cualquier caso que no matcheó solo.
+  // Formación ya es admin y ya lo ve). `comentaDiseno` (10/10/2026) es el campo
+  // separado para otorgar SOLO este botón, sin marcar a nadie como miembro real
+  // de Formación — antes esto se hacía reusando `esFormacion`, lo que hacía
+  // aparecer a cualquiera con el botón habilitado dentro de "Comando de
+  // Formación" en "Mi comando" (ver mandos.js, esFormacionMember()), aunque
+  // fuera de otro departamento. `esFormacion` sigue otorgando el botón también
+  // (un subjefe de Formación genuino lo necesita), pero ya no es la única vía.
   export function canSeeFeedbackWidget(){
     if(!AppState.authResolved || !AppState.currentUser || AppState.currentUser.role === 'pendiente') return false;
     if(AppState.currentUser.role === 'admin') return true;
     if(AppState.currentUser.esFormacion) return true;
+    if(AppState.currentUser.comentaDiseno) return true;
     return AppState.currentUser.role === 'jefe_seccion' && AppState.currentUser.depto === 'Comunicaciones';
   }
 

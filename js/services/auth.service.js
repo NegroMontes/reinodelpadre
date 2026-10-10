@@ -55,7 +55,7 @@ import { render } from '../main.js';
       if(snap.exists()){
         var data = snap.data();
         AppState.pendingFbUser = null;
-        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta', cupulaIcon: data.cupulaIcon || '', consagradoIconChoice: data.consagradoIconChoice || '' };
+        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, comentaDiseno: !!data.comentaDiseno, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta', cupulaIcon: data.cupulaIcon || '', consagradoIconChoice: data.consagradoIconChoice || '' };
         // `photoURL` nunca se guardaba en el perfil de Firestore — solo
         // vivía en memoria (`AppState.currentUser.photoURL`, sacado del
         // objeto de Auth en vivo), así que cualquier OTRA persona que
@@ -87,7 +87,7 @@ import { render } from '../main.js';
         };
         try{ await setDoc(profileRef, bootstrapProfile); }catch(e){ console.error('No se pudo crear el perfil admin:', e); }
         AppState.pendingFbUser = null;
-        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: bootstrapProfile.displayName, role: bootstrapProfile.role, seccion: null, depto: null, readDepartamentos: false, esFormacion: false, tipo: bootstrapProfile.tipo, actividadFavorita: '', rucaFundacion: '', photoURL: fbUser.photoURL || null, deptoIconChoice: 'fasta', cupulaIcon: '', consagradoIconChoice: '' };
+        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: bootstrapProfile.displayName, role: bootstrapProfile.role, seccion: null, depto: null, readDepartamentos: false, esFormacion: false, comentaDiseno: false, tipo: bootstrapProfile.tipo, actividadFavorita: '', rucaFundacion: '', photoURL: fbUser.photoURL || null, deptoIconChoice: 'fasta', cupulaIcon: '', consagradoIconChoice: '' };
       } else {
         // Primera vez que este usuario inicia sesión: todavía no tiene perfil.
         // Le mostramos el formulario de "¿quién sos?" en vez de crear un perfil pendiente ciego.

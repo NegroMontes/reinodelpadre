@@ -39,9 +39,14 @@ import { render, renderDayRail } from '../main.js';
   // cargarla/corregirla desde acá, para cualquier usuario — `undefined`
   // deja el campo tal como estaba (para no pisarlo con '' cuando se llama
   // desde algún lugar que todavía no lo pasa).
-  export async function setUserRole(uid, role, seccion, depto, readDepartamentos, esFormacion, actividadFavorita){
+  // `esFormacion` (membresía real de Formación — Mi comando + Mensaje) y
+  // `comentaDiseno` (solo el botón flotante de Comentarios) son campos
+  // independientes desde el 10/10/2026 — antes un solo checkbox hacía las
+  // dos cosas, lo que metía a cualquiera con el botón habilitado dentro de
+  // "Comando de Formación" en Mi comando, aunque no fuera de ese depto.
+  export async function setUserRole(uid, role, seccion, depto, readDepartamentos, esFormacion, actividadFavorita, comentaDiseno){
     try{
-      var data = { role: role, seccion: seccion || null, depto: depto || null, readDepartamentos: !!readDepartamentos, esFormacion: !!esFormacion };
+      var data = { role: role, seccion: seccion || null, depto: depto || null, readDepartamentos: !!readDepartamentos, esFormacion: !!esFormacion, comentaDiseno: !!comentaDiseno };
       if(actividadFavorita !== undefined) data.actividadFavorita = actividadFavorita;
       await setDoc(doc(db, 'users', uid), data, { merge: true });
     }catch(e){

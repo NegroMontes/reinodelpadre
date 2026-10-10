@@ -142,7 +142,16 @@ import { render, renderPanel, showStatus } from '../main.js';
       '<th>Nombre' + usersSortBtnHtml('nombre') + '</th>' +
       '<th>Declaró</th><th>Email</th><th>Rol</th><th>Sección / Depto</th>' +
       '<th title="Para consagrados: ver Departamentos en modo lectura">Lee Deptos.</th>' +
-      '<th title="Ve el botón flotante de Comentarios. Ojo: también lo marca como miembro real del comando de Formación en &quot;Mi comando&quot; (ver Comando → Mi comando) — tildalo solo para subjefes genuinos de Formación, no para dar acceso al botón nomás.">Comenta diseño</th><th></th></tr></thead><tbody>';
+      // Separadas en dos columnas (10/10/2026, pedido del usuario): antes un
+      // solo checkbox ("Comenta diseño") hacía las dos cosas a la vez — dar
+      // acceso al botón de Comentarios Y marcar a la persona como miembro
+      // real de Formación (lo que la hacía aparecer en "Mi comando" bajo
+      // "Comando de Formación" aunque fuera, por ejemplo, de Comunicaciones).
+      // Ahora son dos campos/checkboxes independientes: `esFormacion`
+      // (membresía real — Mi comando + visibilidad de Mensaje) y
+      // `comentaDiseno` (solo el botón flotante, sin ningún otro efecto).
+      '<th title="Es subjefe/jefe de Formación de verdad: aparece en &quot;Mi comando&quot; (Comando → Mi comando) bajo Comando de Formación, y ve entradas de Mensaje tageadas para Formación.">Es de Formación</th>' +
+      '<th title="Ve el botón flotante de Comentarios (diseño/estética) — no afecta nada más, ni Mi comando ni Mensaje.">Comenta diseño</th><th></th></tr></thead><tbody>';
     filtered.forEach(function(u){
       var isPendiente = u.role === 'pendiente';
       html += '<tr data-uid="' + u.uid + '"' + (isPendiente ? ' class="user-row-pendiente"' : '') + '>';
@@ -209,7 +218,8 @@ import { render, renderPanel, showStatus } from '../main.js';
       });
       html += '</optgroup></select></td>';
       html += '  <td style="text-align:center"><input type="checkbox" class="uReadDeptos"' + (u.readDepartamentos ? ' checked' : '') + ' title="Ve la pestaña Departamentos en modo lectura (pensado para consagrados)"></td>';
-      html += '  <td style="text-align:center"><input type="checkbox" class="uEsFormacion"' + (u.esFormacion ? ' checked' : '') + ' title="Lo marca como subjefe de Formación de verdad: ve el botón de Comentarios Y aparece en &quot;Mi comando&quot; (Comando → Mi comando) bajo Comando de Formación."></td>';
+      html += '  <td style="text-align:center"><input type="checkbox" class="uEsFormacion"' + (u.esFormacion ? ' checked' : '') + ' title="Membresía real de Formación — aparece en &quot;Mi comando&quot; bajo Comando de Formación y ve entradas de Mensaje de Formación. No tildar para dar solo el botón de Comentarios."></td>';
+      html += '  <td style="text-align:center"><input type="checkbox" class="uComentaDiseno"' + (u.comentaDiseno ? ' checked' : '') + ' title="Ve el botón flotante de Comentarios (diseño/estética), sin ningún otro efecto."></td>';
       // El `display:flex` tiene que vivir en un <div> ADENTRO del <td>, nunca
       // en el <td> mismo — puesto directo en la celda, deja de participar del
       // alto de fila como una celda normal (pierde `vertical-align:middle`) y
@@ -327,13 +337,14 @@ import { render, renderPanel, showStatus } from '../main.js';
         var depto = scopeVal.indexOf('depto:') === 0 ? scopeVal.slice(6) : '';
         var readDeptos = row.querySelector('.uReadDeptos').checked;
         var esFormacion = row.querySelector('.uEsFormacion').checked;
+        var comentaDiseno = row.querySelector('.uComentaDiseno').checked;
         var actividadInput = row.querySelector('.uActividad');
         var actividad = actividadInput ? actividadInput.value.trim() : '';
         if(role === 'jefe_seccion' && !seccion && !depto){
           alert('Elegí una sección o un departamento para ese rol.');
           return;
         }
-        setUserRole(uidVal, role, seccion || null, depto || null, readDeptos, esFormacion, actividad);
+        setUserRole(uidVal, role, seccion || null, depto || null, readDeptos, esFormacion, actividad, comentaDiseno);
       };
     });
 
