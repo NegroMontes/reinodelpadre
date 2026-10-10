@@ -40,8 +40,9 @@ async function fetchYoucatFromFirestore(){
 async function fetchYoucatIndicesFromFirestore(){
   var snap = await getDoc(doc(librosColRef, 'youcat_indices'));
   if(!snap.exists()) return { index: [], defs: [] };
-  // Deshace la codificación de rangos de libros-seed.service.js — ver
-  // utils/youcat-indices-codec.js.
+  // Deshace la codificación de rangos que se aplicó al importar (ver
+  // utils/youcat-indices-codec.js) — el documento quedó guardado para
+  // siempre con los rangos como {a,b}, así que esto corre en cada lectura.
   return decodeYoucatIndices(snap.data());
 }
 
