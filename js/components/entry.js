@@ -73,6 +73,7 @@ import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '
     html += '  <div class="entry-top">';
     html += '    <div class="entry-head-main">';
     html += '<div class="entry-title-row">';
+    html += authorGrupoBadgeHtml(entry);
     html += '  <h3 class="entry-title">' + escapeHtml(entry.title || espacio.title || '(sin título)') + '</h3>';
     html += '</div>';
     // En Info general no hace falta ningún tag — la pestaña entera es general y
@@ -95,12 +96,15 @@ import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '
     var anonimoTag = (entry.anonimo && isAdmin())
       ? ' <span class="tag imagen" title="Solo vos (admin) ves esto — el resto la ve sin firma">🔒 ' + escapeHtml(entry.authorReal || '(autor desconocido)') + '</span>'
       : '';
-    html += '      <div class="entry-meta">' + authorGrupoBadgeHtml(entry) +
+    html += '      <div class="entry-meta">' +
       scopeTag + ocultaTag + anonimoTag +
       (entry.anonimo ? '' : (entry.author ? '<span>' + escapeHtml(entry.author) + '</span>' : '')) + '</div>';
+    html += '      <div class="entry-start-row">';
+    html += '        <button class="btn small entry-start-btn" data-action="view" data-id="' + entry.id + '">Comenzar</button>';
+    if(stepCount){ html += '        <span class="entry-step-count">' + stepCount + ' paso' + (stepCount === 1 ? '' : 's') + '</span>'; }
+    html += '      </div>';
     html += '    </div>';
     html += '    <div class="entry-actions">';
-    html += '      <button data-action="view" data-id="' + entry.id + '">Ver' + (stepCount ? ' (' + stepCount + ' paso' + (stepCount === 1 ? '' : 's') + ')' : '') + '</button>';
     if(canEdit){
       // Publicar de un click, sin tener que abrir el editor (pedido del
       // usuario, 23/09/2026: "que se publique en un momento a elección").

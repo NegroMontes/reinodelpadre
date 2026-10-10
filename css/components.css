@@ -346,8 +346,8 @@ h2.day-title{
 
 .entry-title-row{
     display:flex;
-    align-items:baseline;
-    gap:6px;
+    align-items:flex-start;
+    gap:8px;
     margin:0 0 4px;
   }
 
@@ -379,6 +379,21 @@ h2.day-title{
     align-items:center;
     margin-bottom:10px;
   }
+
+/* Botón "Comenzar" (10/10/2026, pedido del usuario) — reemplaza al viejo
+     link "Ver" de `.entry-actions` (texto subrayado, sin jerarquía visual)
+     por un llamado a la acción real, con el mismo diseño `.btn` que ya usa
+     el resto de la app (ej. "Guardar fecha" en Inicio) — acorde al manual
+     de marca. Vive en su propia fila, debajo del título/meta, no arriba a
+     la derecha como el viejo "Ver". */
+.entry-start-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+.entry-step-count{ font-size:12px; color:var(--ink-soft); }
 
 /* "El circulito" (feedback de Comunicaciones, 09/10/2026, comentario 2) —
      reemplaza al viejo tag de tipo de contenido ("Texto"/"Secuencial"/etc.).
