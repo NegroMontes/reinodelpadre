@@ -101,6 +101,10 @@ export const AppState = {
   novedadesSeenAtLoadedForUid: null, // evita releer localStorage en cada re-fire del snapshot de perfil
   usersSeenAt: 0,
   usersSeenAtLoadedForUid: null,
+  // Evita reintentar el sync de `photoURL` (ver watchProfile()) en cada
+  // re-fire del snapshot de perfil dentro de la misma sesión — una sola
+  // vez por uid alcanza, el próximo login ya lo trae actualizado.
+  photoURLSyncedForUid: null,
   unsubUsers: null,
   unsubFeedback: null,
   myProgress: {}, // entryId -> { respuestas:{stepIdx:texto}, completedAt } | null

@@ -305,6 +305,12 @@
 .micomando-badge svg,
 .micomando-badge img{ width:100%; height:100%; display:block; }
 
+/* Badge de actividad favorita — abajo-izquierda, en espejo del badge de
+   sección/depto (abajo-derecha) — mismo criterio que .user-avatar-badge-
+   activity/.user-avatar-badge-seccion del botón de usuario de la barra
+   superior (10/10/2026, pedido del usuario). */
+.micomando-badge-activity{ left:-4px; right:auto; transform:rotate(-10deg); }
+
 .micomando-info{ display:flex; flex-direction:column; gap:1px; min-width:0; }
 
 .micomando-info strong{

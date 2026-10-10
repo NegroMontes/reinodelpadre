@@ -142,7 +142,7 @@ import { render, renderPanel, showStatus } from '../main.js';
       '<th>Nombre' + usersSortBtnHtml('nombre') + '</th>' +
       '<th>Declaró</th><th>Email</th><th>Rol</th><th>Sección / Depto</th>' +
       '<th title="Para consagrados: ver Departamentos en modo lectura">Lee Deptos.</th>' +
-      '<th title="Ve el botón flotante de Comentarios (pensado para Formación, además de Comunicaciones)">Comenta diseño</th><th></th></tr></thead><tbody>';
+      '<th title="Ve el botón flotante de Comentarios. Ojo: también lo marca como miembro real del comando de Formación en &quot;Mi comando&quot; (ver Comando → Mi comando) — tildalo solo para subjefes genuinos de Formación, no para dar acceso al botón nomás.">Comenta diseño</th><th></th></tr></thead><tbody>';
     filtered.forEach(function(u){
       var isPendiente = u.role === 'pendiente';
       html += '<tr data-uid="' + u.uid + '"' + (isPendiente ? ' class="user-row-pendiente"' : '') + '>';
@@ -209,7 +209,7 @@ import { render, renderPanel, showStatus } from '../main.js';
       });
       html += '</optgroup></select></td>';
       html += '  <td style="text-align:center"><input type="checkbox" class="uReadDeptos"' + (u.readDepartamentos ? ' checked' : '') + ' title="Ve la pestaña Departamentos en modo lectura (pensado para consagrados)"></td>';
-      html += '  <td style="text-align:center"><input type="checkbox" class="uEsFormacion"' + (u.esFormacion ? ' checked' : '') + ' title="Ve el botón flotante de Comentarios (diseño/estética), aunque no sea de Comunicaciones"></td>';
+      html += '  <td style="text-align:center"><input type="checkbox" class="uEsFormacion"' + (u.esFormacion ? ' checked' : '') + ' title="Lo marca como subjefe de Formación de verdad: ve el botón de Comentarios Y aparece en &quot;Mi comando&quot; (Comando → Mi comando) bajo Comando de Formación."></td>';
       // El `display:flex` tiene que vivir en un <div> ADENTRO del <td>, nunca
       // en el <td> mismo — puesto directo en la celda, deja de participar del
       // alto de fila como una celda normal (pierde `vertical-align:middle`) y

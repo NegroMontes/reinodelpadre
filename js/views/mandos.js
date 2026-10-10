@@ -150,11 +150,17 @@ import { renderPanel } from '../main.js';
       : '<span class="micomando-avatar-fallback">👤</span>';
     var badgeInner = userBadgeInnerHtml(u, DEPARTAMENTO_ICONS);
     var badge = badgeInner ? '<span class="micomando-badge" title="' + escapeHtml(u.seccion || u.depto || grupo || '') + '">' + badgeInner + '</span>' : '';
+    // El ícono de actividad favorita pasó de un emoji inline antes del
+    // nombre a un badge abajo-izquierda del avatar (10/10/2026, pedido del
+    // usuario) — mismo lugar/mismo criterio visual que ya usa el botón de
+    // usuario de la barra superior (.user-avatar-badge-activity, ver
+    // components/header.js y css/views/home.css).
     var actIcon = activityIcon(u.actividadFavorita);
+    var actBadge = actIcon ? '<span class="micomando-badge micomando-badge-activity" title="Actividad favorita">' + actIcon + '</span>' : '';
     var html = '<div class="micomando-card">';
-    html += '  <div class="micomando-avatar-wrap">' + avatar + badge + '</div>';
+    html += '  <div class="micomando-avatar-wrap">' + avatar + actBadge + badge + '</div>';
     html += '  <div class="micomando-info">';
-    html += '    <strong>' + (actIcon ? actIcon + ' ' : '') + escapeHtml(u.displayName || u.email) + '</strong>';
+    html += '    <strong>' + escapeHtml(u.displayName || u.email) + '</strong>';
     html += '    <span class="mandos-sub">' + escapeHtml(miComandoRoleLabel(u)) + (' · ' + escapeHtml(u.seccion || u.depto || grupo || '')) + '</span>';
     if(u.rucaFundacion){ html += '    <span class="mandos-sub">' + escapeHtml(u.rucaFundacion) + '</span>'; }
     html += '  </div>';
@@ -177,7 +183,17 @@ import { renderPanel } from '../main.js';
 
 
   function renderMiComandoHtml(){
-    var comando = (AppState.usersList || []).filter(function(u){ return !isMilicianoUser(u); });
+    // Bug real (10/10/2026, reportado por el usuario — "estoy viendo a
+    // todo los usuarios"): esta lista solo excluía milicianos
+    // (`isMilicianoUser`), nunca a quienes todavía están `role:'pendiente'`
+    // — y un pendiente típicamente no tiene `seccion` NI `depto` (recién se
+    // setean cuando un admin lo aprueba, o el onboarding lo matchea solo),
+    // así que `comandoGrupoDe()` los hacía caer SIEMPRE en "Comando central"
+    // sin importar qué declararon — inflando ese grupo con cualquiera que
+    // todavía no fue aprobado. "Mi comando" es un roster de quien YA
+    // pertenece a un mando confirmado — un pendiente, por definición, todavía
+    // no tiene ninguno.
+    var comando = (AppState.usersList || []).filter(function(u){ return !isMilicianoUser(u) && u.role !== 'pendiente'; });
     var mandosIndex = buildMandosIndex(AppState.mandosData);
     var html = '';
 

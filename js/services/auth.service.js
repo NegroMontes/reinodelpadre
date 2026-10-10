@@ -56,6 +56,23 @@ import { render } from '../main.js';
         var data = snap.data();
         AppState.pendingFbUser = null;
         AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta', cupulaIcon: data.cupulaIcon || '', consagradoIconChoice: data.consagradoIconChoice || '' };
+        // `photoURL` nunca se guardaba en el perfil de Firestore — solo
+        // vivía en memoria (`AppState.currentUser.photoURL`, sacado del
+        // objeto de Auth en vivo), así que cualquier OTRA persona que
+        // mirara "Mi comando" (que lee `usersList`, poblado desde
+        // Firestore) nunca veía la foto de nadie más que la propia barra
+        // superior (10/10/2026, reportado por el usuario). Se sincroniza
+        // acá, una sola vez por login (el guard evita escribir en cada
+        // re-fire del snapshot), para que quede disponible para el resto
+        // del comando — nunca se pisa con `null` si Google momentáneamente
+        // no trae `photoURL` (`fbUser.photoURL` ausente), para no borrar
+        // una foto ya guardada por un parpadeo de la cuenta.
+        if(AppState.photoURLSyncedForUid !== fbUser.uid){
+          AppState.photoURLSyncedForUid = fbUser.uid;
+          if(fbUser.photoURL && data.photoURL !== fbUser.photoURL){
+            setDoc(profileRef, { photoURL: fbUser.photoURL }, { merge: true }).catch(function(e){ console.error('No se pudo sincronizar la foto de perfil:', e); });
+          }
+        }
       } else if(fbUser.email === BOOTSTRAP_ADMIN_EMAIL){
         // El admin bootstrap no pasa por el formulario: se auto-crea directo.
         var bootstrapProfile = {
@@ -65,6 +82,7 @@ import { render } from '../main.js';
           seccion: null,
           tipo: 'comando',
           verificado: true,
+          photoURL: fbUser.photoURL || null,
           createdAt: Date.now()
         };
         try{ await setDoc(profileRef, bootstrapProfile); }catch(e){ console.error('No se pudo crear el perfil admin:', e); }
@@ -110,6 +128,7 @@ import { render } from '../main.js';
       tipo: tipo,
       rucaFundacion: formValues.rucaFundacion || '',
       actividadFavorita: formValues.actividadFavorita || '',
+      photoURL: fbUser.photoURL || null,
       createdAt: Date.now()
     };
 
