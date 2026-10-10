@@ -38,6 +38,24 @@ import { renderPanel } from '../main.js';
   }
 
 
+  // ¿Esta persona pertenece de verdad al comando de Formación? — el jefe
+  // (admin, matcheado por nombre contra la resolución — bucket
+  // `depto:'Formación'`, ver buildMandosIndex) o cualquier subjefe
+  // (`esFormacion:true`, sin importar qué sección acompañe cada uno). Usa
+  // SIEMPRE la identidad real (nunca `effectiveRole()`/"Ver como" —
+  // `esFormacion` es un campo real del perfil, no simulable, mismo
+  // criterio que `readDepartamentos` en el resto de la app).
+  function esFormacionMember(u, mandosIndex){
+    if(!u) return false;
+    if(u.esFormacion) return true;
+    if(u.role === 'admin'){
+      var found = findMandoByName(u.displayName || '', mandosIndex);
+      return !!(found && found.bucket.depto === 'Formación');
+    }
+    return false;
+  }
+
+
   // El grupo del propio viewer — usa effectiveSeccion()/effectiveDepto()
   // (respetan "Ver como" cuando un admin está simulando un jefe de sección/
   // depto puntual) y, si es admin (real o "Yo (Admin)" sin simular nada),
@@ -108,6 +126,19 @@ import { renderPanel } from '../main.js';
   }
 
 
+  // Etiqueta de rol para la tarjeta de "Mi comando" — un subjefe de
+  // Formación (`esFormacion:true`) usa internamente el mismo rol que
+  // cualquier jefe de sección/depto (`jefe_seccion`, ver "Jefes de
+  // departamento..." en CLAUDE.md), así que `roleLabel()` genérico los
+  // etiquetaba igual que a un jefe real — acá, solo para esta pantalla, se
+  // distinguen (pedido del usuario, 10/10/2026). `roleLabel()` en sí no se
+  // tocó — lo siguen usando "Usuarios"/el pill del header/etc. tal cual.
+  function miComandoRoleLabel(u){
+    if(u.esFormacion) return 'Subjefe de departamento de Formación';
+    return roleLabel(u.role);
+  }
+
+
   // Tarjeta de "Mi comando" — mismo espíritu que mandoCard(), pero con los
   // datos reales de perfil de quien ya se registró (no la Resolución).
   // `grupo` es el mando ya resuelto por `comandoGrupoDe()` — un admin nunca
@@ -124,9 +155,22 @@ import { renderPanel } from '../main.js';
     html += '  <div class="micomando-avatar-wrap">' + avatar + badge + '</div>';
     html += '  <div class="micomando-info">';
     html += '    <strong>' + (actIcon ? actIcon + ' ' : '') + escapeHtml(u.displayName || u.email) + '</strong>';
-    html += '    <span class="mandos-sub">' + escapeHtml(roleLabel(u.role)) + (' · ' + escapeHtml(u.seccion || u.depto || grupo || '')) + '</span>';
+    html += '    <span class="mandos-sub">' + escapeHtml(miComandoRoleLabel(u)) + (' · ' + escapeHtml(u.seccion || u.depto || grupo || '')) + '</span>';
     if(u.rucaFundacion){ html += '    <span class="mandos-sub">' + escapeHtml(u.rucaFundacion) + '</span>'; }
     html += '  </div>';
+    html += '</div>';
+    return html;
+  }
+
+
+  // Un grupo de tarjetas con su propio título — `.mandos-group-title` ya
+  // trae un `border-top` (ver css/components.css), así que encadenar dos
+  // de estos ya separa los dos comandos con una línea, sin CSS nuevo.
+  function miComandoGroupHtml(titulo, members, mandosIndex){
+    if(members.length === 0) return '';
+    var html = '<h3 class="mandos-group-title">' + escapeHtml(titulo) + '</h3>';
+    html += '<div class="micomando-grid">';
+    members.forEach(function(u){ html += miComandoCardHtml(u, comandoGrupoDe(u, mandosIndex)); });
     html += '</div>';
     return html;
   }
@@ -136,21 +180,51 @@ import { renderPanel } from '../main.js';
     var comando = (AppState.usersList || []).filter(function(u){ return !isMilicianoUser(u); });
     var mandosIndex = buildMandosIndex(AppState.mandosData);
     var html = '';
-    var members;
 
     // Modo Lector (toggle "Mi mando"/"Lector" del comando no-admin) ya
     // significa "ver TODO, sin poder editar" en cualquier otro lado de la
     // app (entradas, Departamentos) — "Mi comando" sigue el mismo criterio
     // y muestra el roster completo mientras está activo, en vez de acotarlo
-    // a un solo grupo.
+    // a uno o dos grupos.
     if(lectorModeActive()){
-      members = comando;
       html += '<p class="mandos-sub">Modo Lector — viendo todo el comando.</p>';
-    } else {
-      var miGrupo = miGrupoActual(mandosIndex);
-      members = comando.filter(function(u){ return comandoGrupoDe(u, mandosIndex) === miGrupo; });
-      html += '<p class="mandos-sub">Tu mando: <strong>' + escapeHtml(miGrupo) + '</strong></p>';
+      if(comando.length === 0) return html + '<p class="empty">Todavía no se registró nadie del comando.</p>';
+      html += '<div class="micomando-grid">';
+      comando.forEach(function(u){ html += miComandoCardHtml(u, comandoGrupoDe(u, mandosIndex)); });
+      html += '</div>';
+      return html;
     }
+
+    // Formación es el único comando con doble pertenencia (pedido del
+    // usuario, 10/10/2026): un jefe/subjefe de Formación ve, a la vez, el
+    // comando de Formación entero (jefes y subjefes, sin importar qué
+    // sección acompañe cada uno) y el comando de LA sección puntual que él
+    // mismo acompaña. Siempre con la identidad REAL — `esFormacionMember()`
+    // usa `AppState.currentUser` directo, nunca "Ver como".
+    var cu = AppState.currentUser;
+    if(cu && esFormacionMember(cu, mandosIndex)){
+      // La sección que acompaña, si tiene una — el jefe de Formación (admin,
+      // sin `seccion` propia, ver `comandoGrupoDe()`) no acompaña ninguna en
+      // particular, así que para él solo se arma el comando de Formación.
+      var miSeccion = cu.seccion || null;
+      var formacionMembers = comando.filter(function(u){ return esFormacionMember(u, mandosIndex); });
+      var seccionMembers = miSeccion ? comando.filter(function(u){ return comandoGrupoDe(u, mandosIndex) === miSeccion; }) : [];
+
+      html += '<p class="mandos-sub">Tu mando: <strong>Formación</strong>' +
+        (miSeccion ? (' · acompañás a <strong>' + escapeHtml(miSeccion) + '</strong>') : '') + '</p>';
+
+      if(formacionMembers.length === 0 && seccionMembers.length === 0){
+        return html + '<p class="empty">Todavía no se registró nadie de tu mando.</p>';
+      }
+
+      html += miComandoGroupHtml('Comando de Formación', formacionMembers, mandosIndex);
+      if(miSeccion) html += miComandoGroupHtml('Comando de ' + miSeccion, seccionMembers, mandosIndex);
+      return html;
+    }
+
+    var miGrupo = miGrupoActual(mandosIndex);
+    var members = comando.filter(function(u){ return comandoGrupoDe(u, mandosIndex) === miGrupo; });
+    html += '<p class="mandos-sub">Tu mando: <strong>' + escapeHtml(miGrupo) + '</strong></p>';
 
     if(members.length === 0){
       return html + '<p class="empty">Todavía no se registró nadie de tu mando.</p>';

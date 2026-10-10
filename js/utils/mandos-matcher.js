@@ -45,7 +45,15 @@ import { normalizeName } from './helpers.js';
         // seccion/depto) — usado por "Mi comando" (views/mandos.js) para
         // agruparlo bajo "Formación" en vez de "Comando central".
         add(dep.jefe, {type:'admin', depto: 'Formación'});
-        (dep.subjefes || []).forEach(function(n){ add(n, {type:'formacion_member'}); });
+        // `depto:'Formación'` acá también (10/10/2026, "Mi comando" — doble
+        // comando de Formación): un subjefe de Formación normalmente nunca
+        // llega a `comandoGrupoDe()` por nombre (su perfil ya tiene
+        // `esFormacion`/`seccion` seteados desde el onboarding) — este campo
+        // solo importa para el caso borde de alguien promovido a `admin` a
+        // mano desde "Usuarios" cuyo nombre matchea acá; `bucketsMatch()`
+        // nunca mira `depto` para `formacion_member`, así que esto no afecta
+        // el auto-approve del onboarding en absoluto.
+        (dep.subjefes || []).forEach(function(n){ add(n, {type:'formacion_member', depto: 'Formación'}); });
       } else {
         // Jefe de departamento → puede cargar entradas para su departamento
         // (mismo rol interno que un jefe de sección, "jefe_seccion", ver roleLabel).
