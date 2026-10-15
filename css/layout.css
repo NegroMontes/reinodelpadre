@@ -241,38 +241,32 @@ header.top{
       box-shadow:0 2px 8px rgba(var(--shadow-rgb),0.12);
     }
 
-/* Pista de "hay más pestañas, deslizá" (bug de mobile reportado por el
-       usuario, 11/10/2026: "desde el móvil en Chrome toda la página se ve
-       rara") — con el comando/admin la fila de pestañas no entra entera en
-       una pantalla angosta (ya era scrolleable con `overflow-x:auto`, de
-       arriba), pero se cortaba en seco sin ningún indicio visual de que
-       hubiera más para el lado derecho (ej. "Departamentos" a mitad de
-       palabra) — mismo problema, en espíritu, que ya se había resuelto para
-       el scroll VERTICAL de "Novedades" (`.novedades-fade-bottom`). A
-       diferencia de ese, acá es un degradé fijo (no depende de JS para
-       aparecer/desaparecer según la posición del scroll) — igual sirve como
-       pista de "esto continúa", aunque se quede visible ya scrolleado del
-       todo; `.sidebar` ya es `position:sticky`, así que alcanza para que este
-       pseudo-elemento quede anclado al borde derecho de la pantalla.
-       `width:14px` (antes 28px, 15/10/2026, reporte del usuario con captura:
-       "el botón de pestaña Departamentos tiene una línea blanca que coincide
-       con los bordes del fondo, incluso cambia a modo noche" — confirmado:
-       el ancho viejo (28px) era MÁS GRANDE que el padding derecho del propio
-       `.sidebar` acá abajo (14px), así que el degradé se metía 14px adentro
-       del área real de las pestañas — cuando una pestaña quedaba justo bajo
-       esa franja, el degradé (que termina en `var(--panel)`, por eso "cambia
-       a modo noche") se le pintaba encima, creando la línea/costura rara que
-       reportó el usuario. Con `width:14px` (exactamente el padding), el
-       degradé queda contenido en el margen vacío de después de la última
-       pestaña visible, nunca sobre el contenido de un botón. */
-.sidebar::after{
-      content:'';
-      position:absolute;
-      top:0; right:0; bottom:1px;
-      width:14px;
-      background:linear-gradient(to right, transparent, var(--panel));
-      pointer-events:none;
-    }
+/* El degradé "hay más pestañas, deslizá" (`.sidebar::after`, 11/10/2026,
+       achicado el 15/10/2026 a 14px) se sacó del todo — reporte del usuario
+       el mismo día, DESPUÉS de ese achique: "en móvil sigue viéndose sobre
+       departamentos una línea". Causa de fondo, recién encontrada: el
+       degradé está `position:absolute; right:0` sobre `.sidebar` (que es
+       `position:sticky`) — queda SIEMPRE anclado al borde derecho de la
+       PANTALLA, sin importar qué tab esté scrolleado hasta ahí en ese
+       momento. El supuesto original ("solo cae en el padding vacío después
+       del último tab, una vez scrolleado del todo") es falso: en el estado
+       por DEFAULT (sin que nadie scrollee a mano — la vista real con la que
+       se abre la página), el tab que queda cortado en el borde derecho es
+       "Departamentos" (4to de 8), no el último — confirmado con Playwright:
+       a `scrollLeft:0`, el rect de Departamentos (347–498px) queda debajo
+       del degradé (que arranca en 376px). Como el degradé termina en
+       `var(--panel)` (el fondo del SIDEBAR) y el tab tiene su propio fondo
+       `var(--bg-alt)` (un tono apenas distinto — `#16242E` vs `#1B2A35` en
+       oscuro), la superposición no se ve como un fundido suave sino como
+       una costura de color real, justo donde reportó el usuario. Angostar
+       el ancho (como se probó antes) no alcanza — el degradé siempre va a
+       terminar sentado sobre ALGÚN tab salvo en el único scroll exacto
+       donde el último tab queda perfecto contra el borde. En vez de seguir
+       persiguiendo el ancho/color exacto para cada combinación de tema y
+       estado (activo/inactivo), se sacó el degradé entero: `.sidebar` ya
+       tiene `overflow-x:auto`, que en cualquier navegador de celular
+       muestra su propio indicio nativo de scroll (inercia + una scrollbar
+       superpuesta mientras se desliza) — suficiente sin este agregado. */
 
 /* `.layout .main` (no solo `.main`) a propósito — mismo bug de
      especificidad/orden de cascada documentado varias veces en este
