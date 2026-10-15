@@ -31,6 +31,16 @@
      en el scratchpad de esta sesión). -->
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Reino del Padre">
+<!-- Modo standalone al abrir desde el ícono anclado (pedido del usuario,
+     15/10/2026: "se abre en el navegador, ¿se puede abrir independiente?") —
+     sin esto, el ícono de la pantalla de inicio solo es un acceso directo
+     que sigue abriendo Safari/Chrome con toda su barra de navegación. Estas
+     3 líneas + manifest.json hacen que abra en su propia ventana, sin esa
+     barra, como una app instalada (lo que en iOS/Android se llama PWA). -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#162937">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">
