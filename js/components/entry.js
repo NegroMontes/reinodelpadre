@@ -11,6 +11,7 @@ import { AppState } from '../app-state.js';
 import { escapeHtml } from '../utils/helpers.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '../services/permissions.js';
+import { canSeeCompletions } from '../services/progress.service.js';
 
   // Uno o más tags de ámbito para una entrada (antes era siempre uno solo) —
   // una sección/depto por cada elegido, más "Todos los comandos" si corresponde.
@@ -65,6 +66,49 @@ import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '
   }
 
 
+  // "Ver quién la completó" (admin-only) — restaurado el 11/10/2026 sobre el
+  // mensaje nuevo {fq:'progreso'} de la Fordoquera incrustada (protocolo
+  // versión 2, ver fordoquera-embed.js). `AppState.secuencialCompletions*`
+  // ya existía de antes (nunca se borró, ver CLAUDE.md "Fordoquera
+  // incrustada" 09/10/2026) — `ensureCompletionsSubs()` (progress.service.js)
+  // lo mantiene al día en vivo, esto solo lo imprime.
+  function completionsButtonHtml(entry){
+    if(!canSeeCompletions()) return '';
+    var cache = AppState.secuencialCompletionsCache[entry.id];
+    var list = Array.isArray(cache) ? cache : [];
+    var compCount = list.length;
+    var seen = AppState.secuencialCompletionsSeenCount[entry.id];
+    var isOpen = AppState.secuencialCompletionsOpenId === entry.id;
+    var html = '  <button class="btn ghost small" data-action="toggleCompletions" data-id="' + entry.id + '">' +
+      (isOpen ? ('Ocultar (' + compCount + ')') : ('Ver quién la completó (' + compCount + ')')) + '</button>';
+    if(!isOpen && seen !== undefined && compCount > seen){
+      html += ' <span class="tag imagen" title="Gente nueva que la completó desde la última vez que se abrió">+' + (compCount - seen) + '</span>';
+    }
+    return html;
+  }
+
+  function completionsPanelHtml(entry){
+    var cache = AppState.secuencialCompletionsCache[entry.id];
+    var html = '<div class="secuencial-completions">';
+    if(cache === 'error'){
+      html += '<p class="mandos-sub">No se pudo cargar.</p>';
+    } else if(!Array.isArray(cache)){
+      html += '<p class="loading-inline"><span class="loading-spinner"></span>Cargando…</p>';
+    } else if(cache.length === 0){
+      html += '<p class="mandos-sub">Todavía nadie la completó.</p>';
+    } else {
+      html += '<p class="mandos-sub">' + cache.length + ' persona' + (cache.length === 1 ? '' : 's') + ' la completó' + (cache.length === 1 ? '' : 'n') + ':</p>';
+      html += '<ul class="secuencial-completions-list">';
+      cache.forEach(function(c){
+        html += '<li>' + escapeHtml(c.displayName) + ' <span class="mandos-sub">· ' + new Date(c.completedAt).toLocaleString('es-AR', { day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit' }) + '</span></li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+
   export function renderEntry(entry){
     var canEdit = canEditEntry(entry);
     var espacio = entryToEspacio(entry);
@@ -102,7 +146,9 @@ import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '
     html += '      <div class="entry-start-row">';
     html += '        <button class="btn small entry-start-btn" data-action="view" data-id="' + entry.id + '">Comenzar</button>';
     if(stepCount){ html += '        <span class="entry-step-count">' + stepCount + ' paso' + (stepCount === 1 ? '' : 's') + '</span>'; }
+    html += completionsButtonHtml(entry);
     html += '      </div>';
+    if(AppState.secuencialCompletionsOpenId === entry.id){ html += completionsPanelHtml(entry); }
     html += '    </div>';
     html += '    <div class="entry-actions">';
     if(canEdit){

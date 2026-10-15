@@ -7,19 +7,30 @@
 // "Fordoquera incrustada" en CLAUDE.md (09/10/2026).
 //
 // Protocolo completo, documentado en index.html de encuentros-pagina
-// (sección "Fordoquera incrustada", versión 8.5): se hablan con
-// postMessage, siempre iniciado DESDE el iframe (la fordoquera → página):
-//   {fq:'lista'}                        ya cargó: le mandamos {fq:'abrir', ...}
+// (sección "Fordoquera incrustada" — versión 2 del protocolo, Fordoquera
+// 9.9, 11/10/2026): se hablan con postMessage, siempre iniciado DESDE el
+// iframe (la fordoquera → página):
+//   {fq:'lista', version}               ya cargó: le mandamos {fq:'abrir', ...} (version llegó recién en 9.9, no se exige)
 //   {fq:'cambio', espacio}              cada vez que se guarda (debounced ~450ms del lado de ella)
 //   {fq:'volver'}                       tocó «← Volver» (ya mandó un último 'cambio' antes)
 //   {fq:'cerrado'}                      cerró la presentación (modo 'presentar')
 //   {fq:'subir', pid, archivo:File}     guardá este archivo; respondemos {fq:'subido', pid, url|error}
+//   {fq:'progreso', paso, pasos, completado, respuestas}
+//                                       SOLO en modo 'presentar' — se manda cada vez que la persona
+//                                       avanza (como mucho 1 por segundo) y de una al llegar al cierre
+//                                       (completado:true). No identifica a quién está recorriendo —
+//                                       eso lo sabe RDP, que ya tiene la sesión real — así que acá se
+//                                       asocia al uid actual y se persiste en `entryProgress` (ver
+//                                       `saveFordoqueraProgreso()`, progress.service.js). Reemplaza la
+//                                       limitación aceptada el 09/10/2026 ("el progreso vive solo en el
+//                                       localStorage de la Fordoquera, nunca vuelve a RDP").
 
 import { AppState } from '../app-state.js';
 import { FORDOQUERA_URL } from '../config/constants.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { loadLibrosForFordoquera } from '../services/libros.service.js';
 import { uploadEntryFile } from '../services/drive.service.js';
+import { saveFordoqueraProgreso } from '../services/progress.service.js';
 import { save } from '../services/state.service.js';
 import { render, renderPanel } from '../main.js';
 
@@ -127,6 +138,10 @@ function open(opts){
     }
     if(d.fq === 'volver'){ doClose(); return; }
     if(d.fq === 'cerrado'){ doClose(); return; }
+    if(d.fq === 'progreso'){
+      if(opts.modo === 'presentar' && opts.entryId){ saveFordoqueraProgreso(opts.entryId, d); }
+      return;
+    }
     if(d.fq === 'subir'){
       var pid = d.pid, file = d.archivo;
       if(!subirPermitido){
@@ -163,16 +178,19 @@ export function openFordoqueraEditor(entryId){
 }
 
 // Lector: abre la entrada en modo presentación — de solo lectura, sin
-// `subir` (no hace falta: nunca se edita nada acá). El progreso (respuestas,
-// en qué paso quedó, si la completó) lo guarda la Fordoquera SOLA, en el
-// localStorage de su propio origen — no vuelve a RDP por ningún mensaje de
-// este protocolo (ver CLAUDE.md, "progreso ya no es por persona/dispositivo
-// — limitación aceptada de usar el protocolo real").
+// `subir` (no hace falta: nunca se edita nada acá). El progreso (en qué
+// paso va, qué respondió, si la completó) lo sigue guardando la Fordoquera
+// en SU PROPIO localStorage para su propia lógica de "Continuar"/"Repasar"
+// — pero desde la versión 2 del protocolo (11/10/2026) también lo avisa acá
+// vía `{fq:'progreso', ...}`, que se persiste en Firestore (`entryProgress`)
+// para el admin ("Ver quién la completó"). `entryId` es necesario para que
+// ese mensaje sepa a qué entrada asociar el progreso.
 export function openFordoqueraViewer(entryId){
   var entry = AppState.state.entries.find(function(e){ return e.id === entryId; });
   if(!entry) return;
   open({
     entry: entry,
+    entryId: entryId,
     modo: 'presentar',
     notas: false,
     onClose: function(){ render(); }

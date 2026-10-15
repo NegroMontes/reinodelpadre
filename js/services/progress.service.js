@@ -43,7 +43,15 @@ import { render } from '../main.js';
   export function ensureCompletionsSubs(){
     if(!realIsAdmin()) return;
     (AppState.state.entries || []).forEach(function(e){
-      if(e.type === 'secuencial' && !AppState.secuencialCompletionsSubs[e.id]){
+      // Antes filtraba por `e.type === 'secuencial'` (el tipo del viejo
+      // reproductor propio de RDP) — desde que se incrustó la Fordoquera
+      // real (09/10/2026) una entrada nueva nunca llega a tener `type`
+      // seteado (su contenido vive en `entry.espacio`), así que ese filtro
+      // había quedado muerto para cualquier entrada creada después de esa
+      // fecha. Se saca del todo: cualquier entrada puede abrirse en la
+      // Fordoquera y generar progreso, así que cualquiera puede tener
+      // completados que mostrar acá.
+      if(!AppState.secuencialCompletionsSubs[e.id]){
         var q = query(collection(db, 'entryProgress'), where('entryId', '==', e.id));
         AppState.secuencialCompletionsSubs[e.id] = onSnapshot(q, function(snap){
           var list = [];
@@ -95,7 +103,9 @@ import { render } from '../main.js';
   export function ensureProgressSubs(){
     if(!AppState.currentUser) return;
     (AppState.state.entries || []).forEach(function(e){
-      if(e.type === 'secuencial' && !AppState.progressSubs[e.id]){
+      // Mismo motivo que en `ensureCompletionsSubs()` — ya no filtra por
+      // `e.type === 'secuencial'`, ese campo no existe en una entrada nueva.
+      if(!AppState.progressSubs[e.id]){
         AppState.progressSubs[e.id] = onSnapshot(progressDocRef(e.id), function(snap){
           AppState.myProgress[e.id] = snap.exists() ? snap.data() : null;
           if(!AppState.formOpen) render();
@@ -137,4 +147,25 @@ import { render } from '../main.js';
         completedAt: Date.now()
       }, { merge: true });
     }catch(e){ console.error('No se pudo guardar tu avance:', e); }
+  }
+
+
+  // Progreso que manda la Fordoquera incrustada, versión 2 del protocolo
+  // (11/10/2026, Fordoquera 9.9) — `{fq:'progreso', paso, pasos, completado,
+  // respuestas}`, recibido en `fordoquera-embed.js` (modo 'presentar') y
+  // persistido acá con el mismo documento `entryProgress/<entryId>_<uid>`
+  // de siempre, así "Ver quién la completó" (`ensureCompletionsSubs()`
+  // arriba) sigue funcionando sin tocar nada de esa parte. La Fordoquera
+  // nunca manda quién sos — eso ya lo sabe RDP, por eso acá se asocia con
+  // `AppState.currentUser`.
+  export async function saveFordoqueraProgreso(entryId, msg){
+    if(!AppState.currentUser) return;
+    try{
+      var data = {
+        entryId: entryId, uid: AppState.currentUser.uid, displayName: AppState.currentUser.displayName,
+        paso: msg.paso, pasos: msg.pasos, respuestas: msg.respuestas || {}, updatedAt: Date.now()
+      };
+      if(msg.completado) data.completedAt = Date.now();
+      await setDoc(progressDocRef(entryId), data, { merge: true });
+    }catch(e){ console.error('No se pudo guardar el progreso de la Fordoquera:', e); }
   }

@@ -447,6 +447,21 @@ import { showConfirm } from './dialog.js';
       btn.onclick = function(){ openFordoqueraViewer(btn.getAttribute('data-id')); };
     });
 
+    // "Ver quién la completó" (admin-only) — togglea el panel y marca como
+    // "visto" el conteo actual (apaga el badge "+N" de gente nueva).
+    document.querySelectorAll('[data-action="toggleCompletions"]').forEach(function(btn){
+      btn.onclick = function(){
+        var id = btn.getAttribute('data-id');
+        var wasOpen = AppState.secuencialCompletionsOpenId === id;
+        AppState.secuencialCompletionsOpenId = wasOpen ? null : id;
+        if(!wasOpen){
+          var cache = AppState.secuencialCompletionsCache[id];
+          AppState.secuencialCompletionsSeenCount[id] = Array.isArray(cache) ? cache.length : 0;
+        }
+        renderPanel();
+      };
+    });
+
     document.querySelectorAll('[data-action="edit"]').forEach(function(btn){
       btn.onclick = function(){
         var id = btn.getAttribute('data-id');
