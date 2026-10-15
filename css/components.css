@@ -887,7 +887,10 @@ h2.day-title{
   }
 
 @media (max-width:600px) {
-.panel{ padding:22px 18px 26px; }
+/* 18px -> 10px (15/10/2026, ver nota en css/layout.css sobre `.app` en el
+     mismo breakpoint): junto con el padding de `.app` ya reducido, el
+     contenido queda a 20px del borde real de la pantalla (antes, 38px). */
+.panel{ padding:22px 10px 26px; }
 
 .form-cols{ flex-direction:column; }
 }

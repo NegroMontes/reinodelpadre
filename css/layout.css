@@ -265,7 +265,19 @@ header.top h1 .badge{
       pointer-events:none;
     }
 
-.main{ padding-left:0; }
+/* `.layout .main` (no solo `.main`) a propósito — mismo bug de
+     especificidad/orden de cascada documentado varias veces en este
+     proyecto (ver CLAUDE.md): `components.css` (donde vive la regla sin
+     condición `.main{padding-left:24px}`) se carga DESPUÉS de este archivo
+     (`layout.css`), así que con la misma especificidad (0,1,0 las dos) la
+     de components.css ganaba el empate y este reset de mobile NUNCA se
+     aplicaba de verdad — `.main` quedaba con 24px de más del lado
+     izquierdo únicamente (asimétrico), aun en mobile. Encontrado el
+     15/10/2026 investigando el reporte del usuario ("los elementos no
+     llegan a los extremos de la pantalla", con capturas reales de celular)
+     — con `.layout .main` (0,2,0) le gana a la de components.css sin
+     depender del orden de los <link>. */
+.layout .main{ padding-left:0; }
 
 .day-rail{
       flex-direction:row;
@@ -304,4 +316,17 @@ header.top h1 .badge{
 
 @media (max-width:600px) {
 header.top h1{ font-size:27px; }
+
+/* Reporte del usuario, 15/10/2026, con capturas reales de celular: "los
+     elementos no llegan a los extremos de la pantalla" — `.app` nunca tuvo
+     un padding lateral reducido para mobile (siempre 20px, los mismos que
+     en desktop) y, sumado al padding propio de `.panel` en este mismo
+     breakpoint (ver components.css, 18px), el contenido quedaba a 38px del
+     borde real de la pantalla por cada lado — bastante, en un celular
+     angosto, y en contraste marcado con la barra de pestañas del sidebar,
+     que sí llega al borde real desde el 09/10/2026 (ver `.sidebar` arriba).
+     Se achica a 10px — junto con el ajuste de `.panel` (components.css), el
+     contenido queda a 20px del borde real en vez de 38px. No se va a cero
+     (ningún elemento queda pegado al borde físico/notch del teléfono). */
+.app{ padding:0 10px 70px; }
 }

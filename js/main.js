@@ -527,6 +527,23 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
 
   function renderPanelImpl(){
     var panel = document.getElementById('panel');
+    // `activeDayId` sigue en `null` mientras el PRIMER snapshot de
+    // `fordoc/shared` (días/entradas, ver `load()` en state.service.js)
+    // todavía no resolvió — es un segundo viaje a Firestore, aparte del
+    // perfil/rol que ya habilitó `renderGate()` para mostrar la app. En una
+    // conexión rápida esta ventana es de milisegundos y pasa desapercibida,
+    // pero en 4G/mobile puede durar perceptiblemente — antes, ninguno de los
+    // `if` de abajo matcheaba con `null` y se caía al `panel.innerHTML=''`
+    // de la última línea, una pantalla en blanco sin ningún indicio de que
+    // algo estaba cargando (reporte del usuario, 15/10/2026, con capturas
+    // reales de celular: "tarda mucho en cargar, aparece una página sin
+    // días ni contenidos" — el sidebar ya se ve, con sus pestañas, porque
+    // esas solo dependen del rol; el panel quedaba vacío del todo mientras
+    // tanto). Mismo spinner que ya usa `renderGate()` para la espera de auth.
+    if(AppState.activeDayId === null){
+      panel.innerHTML = '<p class="loading-inline" style="padding:24px 0"><span class="loading-spinner"></span>Cargando el contenido…</p>';
+      return;
+    }
     if(AppState.activeDayId !== 'HOME'){ stopCountdownTicker(); }
     if(AppState.activeDayId === 'HOME'){
       panel.innerHTML = renderHomePanel();
