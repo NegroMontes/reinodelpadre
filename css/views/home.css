@@ -5,12 +5,23 @@
      topbar, 15/10/2026 — antes era parte de `.auth-user`, del lado
      derecho). El selector ya no depende de ningún ancestro puntual, el
      nombre de la clase alcanza. */
+/* `background`/`border` explícitos (reporte del usuario, 15/10/2026: "el
+     color del globo de la campana no se modifica en el modo noche") — sin
+     esto, el `<button>` caía al estilo nativo del navegador (fondo gris
+     claro + borde negro en relieve), que nunca depende de `--theme` porque
+     nunca se declaró acá: en modo claro pasaba casi desapercibido contra la
+     página clara, pero en modo oscuro quedaba un recuadro gris claro bien
+     visible alrededor del ícono. Mismo reset ya usado en otros botones de
+     solo-ícono del sitio (`.entry-collapse-btn`). */
 .novedades-bell{
     position:relative;
+    background:none;
+    border:none;
     text-decoration:none;
     font-size:15px;
     line-height:1;
     padding:2px;
+    cursor:pointer;
   }
 
 /* Selector más específico que ".tag" (mismo peso de especificidad que

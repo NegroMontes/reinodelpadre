@@ -127,12 +127,22 @@ header.top{
      09/10/2026: "dándole más protagonismo a los bloques celestes"). */
 .day-tab:hover{ background:var(--bg); transform:translateX(2px); }
 
+/* Sin acento de color en el borde izquierdo (reporte del usuario,
+     15/10/2026: "el botón de departamentos sigue con una línea de color")
+     — el `border-left-color:var(--bordeaux)` que tenía esta regla desde el
+     09/10/2026 quedaba como una línea bordeaux de 3px bien visible en el
+     costado de la pestaña activa, en los dos temas; el mismo criterio ya
+     aplicado al rediseño de mobile ("que la diferencia sea el color, nada
+     más" — feedback de Joaco, 09/10/2026) se extiende acá: el fondo
+     celeste + el texto turquesa + el peso de fuente ya alcanzan para marcar
+     cuál pestaña está activa, sin necesitar ningún acento de línea aparte.
+     `border-left` se queda en `transparent` (heredado de `.day-tab`), solo
+     para no correr el ancho de la pestaña al activarse. */
 .day-tab.active{
     background:var(--bg);
     border-color:var(--line);
     color:var(--teal);
     font-weight:600;
-    border-left-color:var(--bordeaux);
     z-index:2;
   }
 
