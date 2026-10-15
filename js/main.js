@@ -262,8 +262,9 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
   };
 
   // Toggle de tema claro/oscuro (09/10/2026). El botón vive en el HTML
-  // estático de la cabecera (dentro de #themeToggleHome, en .header-top-left)
-  // así funciona desde la pantalla de login/landing también, no solo ya
+  // estático de la cabecera (dentro de #themeToggleHome, en .header-top-right
+  // desde el rediseño del 15/10/2026) así funciona desde la pantalla de
+  // login/landing también, no solo ya
   // adentro de la app — pero una vez logueado, renderAuthBar() (header.js)
   // lo MUEVE (mismo nodo del DOM, no uno nuevo) al lado de la campanita de
   // Novedades dentro de #authBar, y lo devuelve a #themeToggleHome si cierra

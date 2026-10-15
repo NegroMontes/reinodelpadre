@@ -15,15 +15,26 @@ h1,h2,h3,.serif{
 .header-top-row{
     display:flex;
     justify-content:space-between;
-    align-items:flex-start;
+    align-items:center;
     gap:12px;
     flex-wrap:wrap;
   }
 
+/* Izquierda: logo + kicker (rediseño del 15/10/2026 — antes tenía el
+     kicker + el toggle de tema, que se movió a la derecha). */
 .header-top-left{
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:10px;
+  }
+
+/* Derecha: todo lo demás (toggle de tema + #authBar, con la campana/pill/
+     avatar adentro) — pedido del usuario, 15/10/2026: "a la derecha lo
+     demás". */
+.header-top-right{
+    display:flex;
+    align-items:center;
+    gap:10px;
   }
 
 /* Toggle de tema claro/oscuro (09/10/2026) — vive en el HTML estático de

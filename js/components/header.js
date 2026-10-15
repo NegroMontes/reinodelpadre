@@ -75,26 +75,11 @@ import { render } from '../main.js';
     var html = '<div class="auth-user">';
     html += '<button id="novedadesBtn" class="novedades-bell" type="button" title="Novedades de los últimos ' + NOVEDADES_WINDOW_DAYS + ' días">🔔' + (novedadesSinVer.length > 0 ? '<span class="tag imagen novedades-count">' + novedadesSinVer.length + '</span>' : '') + '</button>';
     html += '<span class="role-pill">' + escapeHtml(roleLabelScoped(AppState.currentUser)) + '</span>' + simPill + lectorPill;
-    if(realIsAdmin()){
-      var curRole = AppState.viewAsOverride ? AppState.viewAsOverride.role : '';
-      html += '<select id="viewAsRoleSelect">';
-      // "Milicianos" se puede ocultar del selector (pedido del usuario,
-      // 26/09/2026) desde Usuarios → Milicianos — ver AppState.publicConfig.
-      VIEW_AS_ROLES.filter(function(o){ return o.value !== 'lector' || AppState.publicConfig.milicianosLoginEnabled !== false; }).forEach(function(o){
-        html += '<option value="' + o.value + '"' + (o.value === curRole ? ' selected' : '') + '>' + escapeHtml(o.label) + '</option>';
-      });
-      html += '</select>';
-      if(curRole === 'jefe_seccion' || curRole === 'subjefe' || curRole === 'consagrado' || curRole === 'lector'){
-        var curScope = AppState.viewAsOverride ? (AppState.viewAsOverride.seccion ? ('seccion:' + AppState.viewAsOverride.seccion) : (AppState.viewAsOverride.depto ? ('depto:' + AppState.viewAsOverride.depto) : '')) : '';
-        html += '<select id="viewAsScopeSelect">' + viewAsScopeOptionsHtml(curRole, curScope) + '</select>';
-      }
-    }
-    // El toggle "Mi mando"/"Lector" (25/09/2026, sugerencia de Juli Ahumada)
-    // vivía acá como un <select> — se movió adentro del menú del avatar
-    // (ver renderUserMenuPanelHtml()) como un botón, pedido del usuario
-    // (11/10/2026): "que sea un botón que cambie al otro modo cuando se lo
-    // aprieta". Sigue disponible solo para isComandoNonAdmin() — nunca
-    // milicianos ni admin (que ya tiene "Ver como", que cubre lo mismo y más).
+    // El selector de "Ver como" (admin) y el toggle "Mi mando"/"Lector"
+    // (comando no-admin, sugerencia de Juli Ahumada 25/09/2026) vivían acá
+    // sueltos en la topbar — ambos se movieron adentro del menú del botón
+    // de usuario (ver renderUserMenuPanelHtml()), pedido del usuario
+    // (15/10/2026): "los desplegables siempre dentro del botón de usuario".
     html += renderUserAvatarHtml();
     html += '</div>';
     if(AppState.novedadesOpen){
@@ -170,36 +155,9 @@ import { render } from '../main.js';
         render();
       };
     });
-
-    var roleSel = document.getElementById('viewAsRoleSelect');
-    if(roleSel){
-      roleSel.onchange = function(){
-        var role = roleSel.value;
-        if(!role){ AppState.viewAsOverride = null; }
-        else if(role === 'pendiente'){ AppState.viewAsOverride = { role: 'pendiente', seccion: null, depto: null }; }
-        // 'lector' ya significa "miliciano" sin ambigüedad (rediseño de
-        // roles, 23/09/2026) — arranca en la primera sección, nunca General.
-        else if(role === 'lector'){ AppState.viewAsOverride = { role: 'lector', seccion: SECCIONES[0], depto: null }; }
-        else { AppState.viewAsOverride = { role: role, seccion: SECCIONES[0], depto: null }; } // jefe_seccion/subjefe/consagrado, arranca con la primera sección
-        // Ya no fuerza la vuelta a "Inicio" (pedido del usuario, 22/09/2026) —
-        // se queda en la pestaña que se estaba mirando. Si esa pestaña no
-        // tiene sentido para el rol simulado nuevo (ej. "Usuarios"/"Comentarios"
-        // para un no-admin, o "Departamentos" para un lector sin depto), los
-        // guards que ya existen adentro de esos `render*Panel()` la mandan
-        // solos a "Inicio" — no hace falta duplicar esa lógica acá.
-        render();
-      };
-    }
-    var scopeSel = document.getElementById('viewAsScopeSelect');
-    if(scopeSel){
-      scopeSel.onchange = function(){
-        var val = scopeSel.value;
-        if(val.indexOf('seccion:') === 0){ AppState.viewAsOverride.seccion = val.slice(8); AppState.viewAsOverride.depto = null; }
-        else if(val.indexOf('depto:') === 0){ AppState.viewAsOverride.depto = val.slice(6); AppState.viewAsOverride.seccion = null; }
-        else { AppState.viewAsOverride.seccion = null; AppState.viewAsOverride.depto = null; } // General (solo lector)
-        render();
-      };
-    }
+    // El wiring de "Ver como" (viewAsRoleSelect/viewAsScopeSelect) vive
+    // ahora en attachUserAvatarEvents() — esos <select> se movieron adentro
+    // del menú del avatar (ver renderUserMenuPanelHtml()).
   }
 
 
@@ -286,6 +244,30 @@ import { render } from '../main.js';
       html += '    </div>';
       html += '  </div>';
     } else {
+      // "Ver como" (solo admin) — vivía como dos <select> sueltos en la
+      // topbar; se movió acá adentro, pedido del usuario (15/10/2026): "los
+      // desplegables siempre dentro del botón de usuario". El rol se elige
+      // primero; si ese rol necesita un ámbito (sección/depto/General), el
+      // segundo select aparece debajo, dentro del mismo menú — el menú se
+      // queda abierto entre un cambio y el otro (AppState.userMenuOpen no
+      // se toca al cambiar ninguno de los dos).
+      if(realIsAdmin()){
+        var curRole = AppState.viewAsOverride ? AppState.viewAsOverride.role : '';
+        html += '  <div class="user-menu-viewas">';
+        html += '    <label class="user-menu-viewas-label">Ver como</label>';
+        html += '    <select id="viewAsRoleSelect">';
+        // "Milicianos" se puede ocultar del selector (pedido del usuario,
+        // 26/09/2026) desde Usuarios → Milicianos — ver AppState.publicConfig.
+        VIEW_AS_ROLES.filter(function(o){ return o.value !== 'lector' || AppState.publicConfig.milicianosLoginEnabled !== false; }).forEach(function(o){
+          html += '<option value="' + o.value + '"' + (o.value === curRole ? ' selected' : '') + '>' + escapeHtml(o.label) + '</option>';
+        });
+        html += '    </select>';
+        if(curRole === 'jefe_seccion' || curRole === 'subjefe' || curRole === 'consagrado' || curRole === 'lector'){
+          var curScope = AppState.viewAsOverride ? (AppState.viewAsOverride.seccion ? ('seccion:' + AppState.viewAsOverride.seccion) : (AppState.viewAsOverride.depto ? ('depto:' + AppState.viewAsOverride.depto) : '')) : '';
+          html += '    <select id="viewAsScopeSelect">' + viewAsScopeOptionsHtml(curRole, curScope) + '</select>';
+        }
+        html += '  </div>';
+      }
       // Toggle "Mi mando"/"Lector" (ver el comentario de renderAuthBar() —
       // se movió acá adentro, pedido del usuario, 11/10/2026). El botón
       // siempre muestra el modo al que CAMBIARÍA si se lo aprieta (no el
@@ -334,6 +316,39 @@ import { render } from '../main.js';
       lectorToggleBtn.onclick = function(){
         AppState.myLectorMode = !AppState.myLectorMode;
         AppState.formOpen = false; // por si tenía el form de "Agregar contenido" abierto al cambiar
+        render();
+      };
+    }
+
+    // "Ver como" (movido adentro del menú del avatar, ver
+    // renderUserMenuPanelHtml()) — mismo comportamiento de siempre, solo
+    // que ahora los <select> viven en otro lugar del DOM.
+    var roleSel = document.getElementById('viewAsRoleSelect');
+    if(roleSel){
+      roleSel.onchange = function(){
+        var role = roleSel.value;
+        if(!role){ AppState.viewAsOverride = null; }
+        else if(role === 'pendiente'){ AppState.viewAsOverride = { role: 'pendiente', seccion: null, depto: null }; }
+        // 'lector' ya significa "miliciano" sin ambigüedad (rediseño de
+        // roles, 23/09/2026) — arranca en la primera sección, nunca General.
+        else if(role === 'lector'){ AppState.viewAsOverride = { role: 'lector', seccion: SECCIONES[0], depto: null }; }
+        else { AppState.viewAsOverride = { role: role, seccion: SECCIONES[0], depto: null }; } // jefe_seccion/subjefe/consagrado, arranca con la primera sección
+        // Ya no fuerza la vuelta a "Inicio" (pedido del usuario, 22/09/2026) —
+        // se queda en la pestaña que se estaba mirando. Si esa pestaña no
+        // tiene sentido para el rol simulado nuevo (ej. "Usuarios"/"Comentarios"
+        // para un no-admin, o "Departamentos" para un lector sin depto), los
+        // guards que ya existen adentro de esos `render*Panel()` la mandan
+        // solos a "Inicio" — no hace falta duplicar esa lógica acá.
+        render();
+      };
+    }
+    var scopeSel = document.getElementById('viewAsScopeSelect');
+    if(scopeSel){
+      scopeSel.onchange = function(){
+        var val = scopeSel.value;
+        if(val.indexOf('seccion:') === 0){ AppState.viewAsOverride.seccion = val.slice(8); AppState.viewAsOverride.depto = null; }
+        else if(val.indexOf('depto:') === 0){ AppState.viewAsOverride.depto = val.slice(6); AppState.viewAsOverride.seccion = null; }
+        else { AppState.viewAsOverride.seccion = null; AppState.viewAsOverride.depto = null; } // General (solo lector)
         render();
       };
     }

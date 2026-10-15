@@ -36,20 +36,20 @@ header.top{
     margin-bottom:0;
   }
 
+/* Rediseño de la topbar (pedido del usuario, 15/10/2026: sin el subtítulo
+     "Tu herramienta formativa.", sin el <h1> "Reino del Padre" — izquierda
+     = logo + kicker, derecha = todo lo demás). El kicker ya no necesita
+     margen propio (vive en una fila flex junto al logo, no apilado arriba
+     de un <h1>) y absorbe el badge "MDZ 2027" que antes colgaba del <h1>
+     borrado. */
 .kicker{
     font-size:13px;
     color:var(--ink-soft);
-    margin:0 0 6px;
+    margin:0;
     letter-spacing:0.02em;
   }
 
-.brand-row{
-    display:flex;
-    align-items:center;
-    gap:14px;
-  }
-
-.brand-row img.logo-mark{
+.header-top-left img.logo-mark{
     width:44px;
     height:auto;
     flex-shrink:0;
@@ -57,23 +57,7 @@ header.top{
     transition:transform .2s ease;
   }
 
-.brand-row img.logo-mark:hover{ transform:scale(1.08) rotate(-3deg); }
-
-header.top h1{
-    margin:0;
-    font-family:'Baloo 2',serif;
-    font-size:40px;
-    font-weight:600;
-    color:var(--bordeaux-deep);
-    line-height:1.15;
-  }
-
-header.top p.sub{
-    margin:8px 0 0;
-    color:var(--ink-soft);
-    max-width:56ch;
-    font-size:14.5px;
-  }
+.header-top-left img.logo-mark:hover{ transform:scale(1.08) rotate(-3deg); }
 
 /* "MDZ 2027" sacado del pill/círculo turquesa (feedback de Comunicaciones,
      09/10/2026: "lo sacaría del círculo") — texto plano en uno de los
@@ -82,16 +66,17 @@ header.top p.sub{
      dos tonos cálidos más claros de la paleta, y sobre fondo blanco caen
      por debajo del contraste mínimo que el propio manual de marca pide
      evitar — bordeaux-deep sigue siendo un tono cálido secundario con
-     contraste de sobra. */
-header.top h1 .badge{
+     contraste de sobra. Vive ahora adentro del kicker (antes, del <h1>
+     que el pedido del 15/10/2026 sacó del todo). */
+.kicker .badge{
     display:inline-block;
     font-family:'Raleway',sans-serif;
-    font-size:14px;
+    font-size:12px;
     font-weight:700;
     letter-spacing:0.02em;
     color:var(--bordeaux-deep);
     vertical-align:middle;
-    margin-left:10px;
+    margin-left:8px;
   }
 
 .auth-user .role-pill{
@@ -330,20 +315,20 @@ header.top h1 .badge{
      demasiado espacio en móvil el logo, el botón de usuario y los textos")
      — acota explícitamente a "solo lo de arriba, no las pestañas", que ya
      tienen su propio ajuste de mobile más abajo (bloque de 760px) y no se
-     tocan acá. Achica el padding vertical del header, el logo, el título,
-     el badge "MDZ 2027" y el subtítulo — todos viven en ESTE archivo (igual
-     que su definición sin condición, más arriba), así que el reset gana el
-     empate de cascada sin necesitar especificidad extra. Los controles de
-     `.auth-user` (campana, toggle de tema, "Ver como", avatar) se achican
-     aparte, en `components.css`/`css/views/home.css` — cada uno vive en el
-     mismo archivo que su propia regla sin condición. */
+     tocan acá. Achica el padding vertical del header y el kicker — viven en
+     ESTE archivo (igual que su definición sin condición, más arriba), así
+     que el reset gana el empate de cascada sin necesitar especificidad
+     extra. Los controles de `.auth-user` (campana, toggle de tema, avatar)
+     se achican aparte, en `components.css`/`css/views/home.css` — cada uno
+     vive en el mismo archivo que su propia regla sin condición.
+     ⚠️ El logo NO se achica acá — rediseño del mismo día (ver más arriba:
+     sin <h1>/badge/subtítulo, el logo "recupera su tamaño" en los dos
+     breakpoints, pedido explícito del usuario — antes de este rediseño
+     había un `.brand-row img.logo-mark{width:32px}` en este mismo bloque,
+     ya no corresponde). */
 header.top{ padding:14px 0 10px; }
-.kicker{ margin:0 0 3px; font-size:11.5px; }
-.brand-row{ gap:8px; }
-.brand-row img.logo-mark{ width:32px; }
-header.top h1{ font-size:22px; }
-header.top h1 .badge{ font-size:11px; margin-left:6px; }
-header.top p.sub{ margin:4px 0 0; font-size:12.5px; }
+.header-top-left{ gap:6px; }
+.kicker{ font-size:11.5px; }
 
 /* Reporte del usuario, 15/10/2026, con capturas reales de celular: "los
      elementos no llegan a los extremos de la pantalla" — `.app` nunca tuvo

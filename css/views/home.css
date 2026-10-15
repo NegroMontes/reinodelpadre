@@ -249,6 +249,34 @@
 
 .user-menu-profile-actions{ display:flex; gap:8px; margin-top:2px; }
 
+/* "Ver como" (15/10/2026) — se movió acá adentro del menú del avatar desde
+   dos <select> sueltos en #authBar (pedido del usuario: "los desplegables
+   siempre dentro del botón de usuario"). Mismo criterio visual que
+   `.user-menu-lector-toggle` (línea divisoria propia) — nunca convive con
+   ese bloque (uno es admin-only, el otro isComandoNonAdmin(), mutuamente
+   excluyentes). Los <select> llevan su propia regla (en vez de depender de
+   `.auth-user select`, pensada para un control suelto en la topbar) porque
+   acá necesitan ocupar el ancho completo del menú, no un max-width chico. */
+.user-menu-viewas{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding-bottom:4px;
+    margin-bottom:4px;
+    border-bottom:1px solid var(--line);
+  }
+.user-menu-viewas-label{ padding:0 6px; font-size:11.5px; color:var(--ink-soft); }
+.user-menu-viewas select{
+    font-family:'Raleway',sans-serif;
+    font-size:12.5px;
+    padding:6px 8px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    color:var(--ink);
+    width:100%;
+  }
+
 /* Toggle "Mi mando"/"Lector" (11/10/2026) — se movió acá adentro del menú
    del avatar desde un <select> suelto en #authBar; separado del resto del
    menú por su propia línea, ya que trae una explicación debajo. */
