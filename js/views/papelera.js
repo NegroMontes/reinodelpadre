@@ -6,6 +6,7 @@ import { escapeHtml } from '../utils/helpers.js';
 import { entryLocationLabel } from '../components/header.js';
 import { save } from '../services/state.service.js';
 import { render } from '../main.js';
+import { showConfirm } from '../components/dialog.js';
 
   // "Papelera" (pedido del usuario, 24/09/2026): cuando alguien borra una
   // entrada, ya no se pierde del todo — queda en `state.entries` con
@@ -24,7 +25,11 @@ import { render } from '../main.js';
     var list = papeleraList();
     var html = '';
     html += '<div class="panel-head"><div><h2>Papelera</h2>';
-    html += '<p class="mandos-sub">Lo que se fue borrando de Mensaje, Departamentos, Recursos e Info general — nadie más lo ve, pero queda guardado acá por si hace falta recuperarlo.</p></div></div>';
+    html += '<p class="mandos-sub">Lo que se fue borrando de Mensaje, Departamentos, Recursos e Info general — nadie más lo ve, pero queda guardado acá por si hace falta recuperarlo.</p></div>';
+    if(list.length > 0){
+      html += '<button class="btn ghost small" id="emptyPapeleraBtn" type="button">Vaciar papelera</button>';
+    }
+    html += '</div>';
     if(list.length === 0){
       html += '<p class="empty">No hay nada borrado por ahora.</p>';
       return html;
@@ -52,6 +57,17 @@ import { render } from '../main.js';
 
 
   export function attachPapeleraPanelEvents(){
+    var emptyPapeleraBtn = document.getElementById('emptyPapeleraBtn');
+    if(emptyPapeleraBtn){
+      emptyPapeleraBtn.onclick = async function(){
+        var list = papeleraList();
+        if(!await showConfirm('Esto borra para siempre las ' + list.length + ' entrada' + (list.length === 1 ? '' : 's') + ' de la papelera, sin forma de recuperarlas. ¿Seguro?')) return;
+        var idsToRemove = list.map(function(e){ return e.id; });
+        AppState.state.entries = AppState.state.entries.filter(function(e){ return idsToRemove.indexOf(e.id) === -1; });
+        save();
+        render();
+      };
+    }
     document.querySelectorAll('[data-action="restoreEntry"]').forEach(function(btn){
       btn.onclick = function(){
         var id = btn.closest('tr').getAttribute('data-id');
@@ -64,9 +80,9 @@ import { render } from '../main.js';
       };
     });
     document.querySelectorAll('[data-action="purgeEntry"]').forEach(function(btn){
-      btn.onclick = function(){
+      btn.onclick = async function(){
         var id = btn.closest('tr').getAttribute('data-id');
-        if(!confirm('Esto la borra para siempre, sin forma de recuperarla. ¿Seguro?')) return;
+        if(!await showConfirm('Esto la borra para siempre, sin forma de recuperarla. ¿Seguro?')) return;
         AppState.state.entries = AppState.state.entries.filter(function(e){ return e.id !== id; });
         save();
         render();

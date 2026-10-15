@@ -112,6 +112,19 @@ body{
     min-height:100vh;
   }
 
+/* Evita el zoom automático de iOS/Android al enfocar un campo de texto en
+     mobile (pedido del usuario, 11/10/2026: "al escribir la pantalla hace
+     zoom automáticamente, que no haga zoom") — el navegador hace zoom cuando
+     el font-size EFECTIVO del campo enfocado es menor a 16px; varios campos
+     del sitio (`.form-row input`, `.auth-user select`, etc.) usan tamaños
+     más chicos a propósito en desktop, así que acá se fuerza 16px SOLO en
+     mobile, sin tocar la tipografía de desktop. `!important` a propósito:
+     cubre cualquier campo existente o nuevo sin tener que perseguir cada
+     selector particular uno por uno. */
+@media (max-width:600px){
+  input, textarea, select{ font-size:16px !important; }
+}
+
 .entry-collapsed .entry-body{ display:none; }
 
 .entry-body{

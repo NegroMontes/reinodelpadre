@@ -6,6 +6,7 @@ import { onSnapshot, setDoc, doc, deleteDoc } from "https://www.gstatic.com/fire
 import { db, usersColRef } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { render, renderDayRail } from '../main.js';
+import { showAlert } from '../components/dialog.js';
 
   // Se suscribe para admins (pestaña "Usuarios", con edición) Y, desde
   // 09/10/2026, también para cualquier comando no-admin (jefe de sección/
@@ -51,7 +52,7 @@ import { render, renderDayRail } from '../main.js';
       await setDoc(doc(db, 'users', uid), data, { merge: true });
     }catch(e){
       console.error('No se pudo actualizar el usuario:', e);
-      alert('No se pudo guardar el cambio: ' + e.message);
+      showAlert('No se pudo guardar el cambio: ' + e.message);
     }
   }
 
@@ -65,6 +66,6 @@ import { render, renderDayRail } from '../main.js';
       await deleteDoc(doc(db, 'users', uid));
     }catch(e){
       console.error('No se pudo borrar el usuario:', e);
-      alert('No se pudo borrar: ' + e.message);
+      showAlert('No se pudo borrar: ' + e.message);
     }
   }

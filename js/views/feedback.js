@@ -6,6 +6,7 @@ import { AppState } from '../app-state.js';
 import { escapeHtml, roleLabel } from '../utils/helpers.js';
 import { toggleFeedbackResuelto, deleteFeedbackItem } from '../services/feedback.service.js';
 import { renderPanel } from '../main.js';
+import { showAlert, showConfirm } from '../components/dialog.js';
 
   // Arma un texto plano con todos los comentarios pendientes (sin resolver),
   // listo para pegarle directo a Claude — así el admin no tiene que transcribir
@@ -41,7 +42,7 @@ import { renderPanel } from '../main.js';
       btn.textContent = '¡Copiado!';
       setTimeout(function(){ btn.textContent = original; }, 1500);
     }).catch(function(){
-      alert('No se pudo copiar automáticamente. Copiá este texto a mano:\n\n' + text);
+      showAlert('No se pudo copiar automáticamente. Copiá este texto a mano:\n\n' + text);
     });
   }
 
@@ -172,9 +173,9 @@ import { renderPanel } from '../main.js';
     }
     var bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
     if(bulkDeleteBtn){
-      bulkDeleteBtn.onclick = function(){
+      bulkDeleteBtn.onclick = async function(){
         var ids = AppState.feedbackSelectedIds.slice();
-        if(!confirm('¿Borrar ' + ids.length + ' comentario' + (ids.length === 1 ? '' : 's') + '?')) return;
+        if(!await showConfirm('¿Borrar ' + ids.length + ' comentario' + (ids.length === 1 ? '' : 's') + '?')) return;
         AppState.feedbackSelectedIds = [];
         renderPanel(); // saca la barra de acciones y los checks de una, sin esperar el viaje a Firestore
         Promise.all(ids.map(function(id){ return deleteFeedbackItem(id); }));
@@ -200,10 +201,10 @@ import { renderPanel } from '../main.js';
       };
     });
     document.querySelectorAll('[data-action="deleteFeedback"]').forEach(function(btn){
-      btn.onclick = function(){
+      btn.onclick = async function(){
         var row = btn.closest('tr');
         var id = row.getAttribute('data-id');
-        if(!confirm('¿Borrar este comentario?')) return;
+        if(!await showConfirm('¿Borrar este comentario?')) return;
         deleteFeedbackItem(id);
       };
     });

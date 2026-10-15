@@ -15,6 +15,7 @@ import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from 
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { openFordoqueraEditor, openFordoqueraViewer } from './fordoquera-embed.js';
 import { render, renderPanel, showStatus } from '../main.js';
+import { showConfirm } from './dialog.js';
 
   // Selector de Ámbito reusado en Mensaje (día real), Departamentos (day===null)
   // y Recursos (day==='RESOURCES') — nunca en Info general, que no lo usa.
@@ -473,9 +474,9 @@ import { render, renderPanel, showStatus } from '../main.js';
     });
 
     document.querySelectorAll('[data-action="delete"]').forEach(function(btn){
-      btn.onclick = function(){
+      btn.onclick = async function(){
         var id = btn.getAttribute('data-id');
-        if(!confirm('¿Eliminar este contenido?')) return;
+        if(!await showConfirm('¿Eliminar este contenido?')) return;
         // Borrado suave (pedido del usuario, 24/09/2026): ya no se saca del
         // array — queda marcada y desaparece del feed normal (canSeeEntry),
         // pero sigue recuperable desde "Papelera".

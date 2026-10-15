@@ -3,7 +3,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS } from '../config/constants.js';
-import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
+import { escapeHtml, roleLabel, roleLabelScoped, activityIcon } from '../utils/helpers.js';
 import { userBadgeInnerHtml, cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { saveNovedadesSeenAt } from '../utils/storage.js';
 import { lectorModeActive, realIsAdmin, isComandoNonAdmin, canSeeEntry } from '../services/permissions.js';
@@ -43,6 +43,17 @@ import { render } from '../main.js';
 
   export function renderAuthBar(){
     var el = document.getElementById('authBar');
+    // El botón de tema claro/oscuro (ver main.js) es un único nodo del DOM
+    // que se MUEVE entre su placeholder original (#themeToggleHome, en la
+    // cabecera estática) y el lado de la campanita de Novedades acá adentro
+    // — nunca se recrea, así conserva su propio listener. Antes de vaciar
+    // #authBar (sin sesión) hay que devolverlo a su placeholder, si no
+    // innerHTML='' se lo llevaría puesto.
+    var themeToggleBtn = document.getElementById('themeToggleBtn');
+    var themeToggleHome = document.getElementById('themeToggleHome');
+    if(themeToggleBtn && themeToggleHome && themeToggleBtn.parentElement !== themeToggleHome){
+      themeToggleHome.appendChild(themeToggleBtn);
+    }
     if(!AppState.authResolved || !AppState.currentUser){ el.innerHTML = ''; return; }
     var simPill = '';
     if(AppState.viewAsOverride){
@@ -63,7 +74,7 @@ import { render } from '../main.js';
     var novedadesSinVer = novedades.filter(function(e){ return e.createdAt > AppState.novedadesSeenAt; });
     var html = '<div class="auth-user">';
     html += '<button id="novedadesBtn" class="novedades-bell" type="button" title="Novedades de los últimos ' + NOVEDADES_WINDOW_DAYS + ' días">🔔' + (novedadesSinVer.length > 0 ? '<span class="tag imagen novedades-count">' + novedadesSinVer.length + '</span>' : '') + '</button>';
-    html += '<span class="role-pill">' + escapeHtml(roleLabel(AppState.currentUser.role)) + '</span>' + simPill + lectorPill;
+    html += '<span class="role-pill">' + escapeHtml(roleLabelScoped(AppState.currentUser)) + '</span>' + simPill + lectorPill;
     if(realIsAdmin()){
       var curRole = AppState.viewAsOverride ? AppState.viewAsOverride.role : '';
       html += '<select id="viewAsRoleSelect">';
@@ -77,16 +88,13 @@ import { render } from '../main.js';
         var curScope = AppState.viewAsOverride ? (AppState.viewAsOverride.seccion ? ('seccion:' + AppState.viewAsOverride.seccion) : (AppState.viewAsOverride.depto ? ('depto:' + AppState.viewAsOverride.depto) : '')) : '';
         html += '<select id="viewAsScopeSelect">' + viewAsScopeOptionsHtml(curRole, curScope) + '</select>';
       }
-    } else if(isComandoNonAdmin()){
-      // Toggle "Mi mando" / "Lector" (25/09/2026, sugerencia de Juli
-      // Ahumada): disponible para cualquier jefe de sección/depto, subjefe o
-      // consagrado — nunca milicianos (confirmado por el usuario) ni admin
-      // (ya tiene "Ver como", que cubre lo mismo y más).
-      html += '<select id="myLectorModeSelect" title="Mi mando: tus permisos de siempre. Lector: leés todo el comando (todas las secciones y departamentos), sin poder editar nada mientras esté activo.">';
-      html += '  <option value="mando"' + (!AppState.myLectorMode ? ' selected' : '') + '>Mi mando</option>';
-      html += '  <option value="lector"' + (AppState.myLectorMode ? ' selected' : '') + '>Lector (todo el comando)</option>';
-      html += '</select>';
     }
+    // El toggle "Mi mando"/"Lector" (25/09/2026, sugerencia de Juli Ahumada)
+    // vivía acá como un <select> — se movió adentro del menú del avatar
+    // (ver renderUserMenuPanelHtml()) como un botón, pedido del usuario
+    // (11/10/2026): "que sea un botón que cambie al otro modo cuando se lo
+    // aprieta". Sigue disponible solo para isComandoNonAdmin() — nunca
+    // milicianos ni admin (que ya tiene "Ver como", que cubre lo mismo y más).
     html += renderUserAvatarHtml();
     html += '</div>';
     if(AppState.novedadesOpen){
@@ -109,13 +117,12 @@ import { render } from '../main.js';
     el.innerHTML = html;
     attachUserAvatarEvents();
 
-    var myLectorModeSelect = document.getElementById('myLectorModeSelect');
-    if(myLectorModeSelect){
-      myLectorModeSelect.onchange = function(){
-        AppState.myLectorMode = (myLectorModeSelect.value === 'lector');
-        AppState.formOpen = false; // por si tenía el form de "Agregar contenido" abierto al cambiar
-        render();
-      };
+    // Recién ahora, con la campanita ya en el DOM, se puede mover el botón
+    // de tema al lado suyo (ver el comentario de arriba, al principio de
+    // esta función, y el de main.js).
+    if(themeToggleBtn){
+      var novedadesBtnForTheme = document.getElementById('novedadesBtn');
+      if(novedadesBtnForTheme){ novedadesBtnForTheme.insertAdjacentElement('afterend', themeToggleBtn); }
     }
 
     var novedadesBtn = document.getElementById('novedadesBtn');
@@ -237,7 +244,7 @@ import { render } from '../main.js';
 
   function renderUserMenuPanelHtml(){
     var html = '<div class="user-menu-panel" id="userMenuPanel">';
-    html += '  <div class="user-menu-header"><strong>' + escapeHtml(AppState.currentUser.displayName) + '</strong><span class="mandos-sub">' + escapeHtml(roleLabel(AppState.currentUser.role)) + '</span></div>';
+    html += '  <div class="user-menu-header"><strong>' + escapeHtml(AppState.currentUser.displayName) + '</strong><span class="mandos-sub">' + escapeHtml(roleLabelScoped(AppState.currentUser)) + '</span></div>';
     if(AppState.userMenuEditingProfile){
       var draft = AppState.userProfileDraft || { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta', cupulaIcon: AppState.currentUser.cupulaIcon || '', consagradoIconChoice: AppState.currentUser.consagradoIconChoice || '' };
       html += '  <div class="user-menu-profile-form">';
@@ -279,6 +286,21 @@ import { render } from '../main.js';
       html += '    </div>';
       html += '  </div>';
     } else {
+      // Toggle "Mi mando"/"Lector" (ver el comentario de renderAuthBar() —
+      // se movió acá adentro, pedido del usuario, 11/10/2026). El botón
+      // siempre muestra el modo al que CAMBIARÍA si se lo aprieta (no el
+      // modo actual), y debajo una explicación de qué significa el modo en
+      // el que está ahora.
+      if(isComandoNonAdmin()){
+        var lectorTargetLabel = AppState.myLectorMode ? 'Mi mando' : 'Lector';
+        var lectorCurrentExplain = AppState.myLectorMode
+          ? 'Estás en Lector: leés todo el comando (todas las secciones y departamentos), sin poder editar nada mientras esté activo.'
+          : 'Estás en Mi mando: tus permisos de siempre, sobre tu sección o departamento.';
+        html += '  <div class="user-menu-lector-toggle">';
+        html += '    <button class="user-menu-item" id="userMenuLectorToggleBtn" type="button">Cambiar a ' + escapeHtml(lectorTargetLabel) + '</button>';
+        html += '    <p class="mandos-sub user-menu-lector-explain">' + escapeHtml(lectorCurrentExplain) + '</p>';
+        html += '  </div>';
+      }
       html += '  <button class="user-menu-item" id="userMenuProfileBtn" type="button">👤 Perfil</button>';
       html += '  <button class="user-menu-item" id="userMenuSignOutBtn" type="button">Cerrar sesión</button>';
     }
@@ -306,6 +328,15 @@ import { render } from '../main.js';
     }
     var menuSignOutBtn = document.getElementById('userMenuSignOutBtn');
     if(menuSignOutBtn){ menuSignOutBtn.onclick = signOutUser; }
+
+    var lectorToggleBtn = document.getElementById('userMenuLectorToggleBtn');
+    if(lectorToggleBtn){
+      lectorToggleBtn.onclick = function(){
+        AppState.myLectorMode = !AppState.myLectorMode;
+        AppState.formOpen = false; // por si tenía el form de "Agregar contenido" abierto al cambiar
+        render();
+      };
+    }
 
     var actInput = document.getElementById('userProfileActividadInput');
     if(actInput){ actInput.oninput = function(){ AppState.userProfileDraft.actividadFavorita = actInput.value; }; }

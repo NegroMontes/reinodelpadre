@@ -12,6 +12,7 @@ import { posGrupoLabel } from '../utils/helpers.js';
 import { declaredBucketFromForm, buildMandosIndex, findMandoByName, bucketsMatch } from '../utils/mandos-matcher.js';
 import { loadNovedadesSeenAt, loadUsersSeenAt } from '../utils/storage.js';
 import { isComandoNonAdmin } from './permissions.js';
+import { showAlert } from '../components/dialog.js';
 import { watchUsers } from './users.service.js';
 import { watchFeedback } from './feedback.service.js';
 import { load } from './state.service.js';
@@ -38,7 +39,7 @@ import { render } from '../main.js';
       if(AppState.authResolved){ render(); }
     }).catch(function(e){
       console.error('Error de login:', e);
-      alert('No se pudo iniciar sesión: ' + e.message);
+      showAlert('No se pudo iniciar sesión: ' + e.message);
     });
   }
 
@@ -218,7 +219,7 @@ import { render } from '../main.js';
       await setDoc(doc(db, 'users', fbUser.uid), profile);
     }catch(e){
       console.error('No se pudo guardar tu perfil:', e);
-      alert('No se pudo guardar: ' + e.message);
+      showAlert('No se pudo guardar: ' + e.message);
     }
   }
 
@@ -266,6 +267,6 @@ import { render } from '../main.js';
       // cuanto el write resuelva — no hace falta tocar nada más acá.
     }catch(e){
       console.error('No se pudo actualizar tu perfil:', e);
-      alert('No se pudo guardar: ' + e.message);
+      showAlert('No se pudo guardar: ' + e.message);
     }
   }

@@ -10,6 +10,7 @@ import { decodeHash } from '../utils/hash-router.js';
 import { canEditStructure, canEditConsigna } from './permissions.js';
 import { ensureProgressSubs, ensureCompletionsSubs } from './progress.service.js';
 import { render, renderPanel, showStatus } from '../main.js';
+import { showConfirm } from '../components/dialog.js';
 
   // Flag pública (26/09/2026, pedido del usuario): permite a un admin ocultar
   // "Soy miliciano" del login y "Milicianos" de "Ver como" — ver comentario
@@ -244,10 +245,10 @@ import { render, renderPanel, showStatus } from '../main.js';
   }
 
 
-  export function deleteDay(id){
+  export async function deleteDay(id){
     if(!canEditStructure()) return;
     if(AppState.state.days.length <= 1){ showStatus('Tiene que quedar al menos un día.'); return; }
-    if(!confirm('¿Eliminar este día y todo su contenido?')) return;
+    if(!await showConfirm('¿Eliminar este día y todo su contenido?')) return;
     AppState.state.days = AppState.state.days.filter(function(d){ return d.id !== id; });
     AppState.state.entries = AppState.state.entries.filter(function(e){ return e.dayId !== id; });
     AppState.activeMensajeDayId = AppState.state.days.length ? AppState.state.days[0].id : null;

@@ -243,6 +243,28 @@ header.top h1 .badge{
       box-shadow:0 2px 8px rgba(var(--shadow-rgb),0.12);
     }
 
+/* Pista de "hay más pestañas, deslizá" (bug de mobile reportado por el
+       usuario, 11/10/2026: "desde el móvil en Chrome toda la página se ve
+       rara") — con el comando/admin la fila de pestañas no entra entera en
+       una pantalla angosta (ya era scrolleable con `overflow-x:auto`, de
+       arriba), pero se cortaba en seco sin ningún indicio visual de que
+       hubiera más para el lado derecho (ej. "Departamentos" a mitad de
+       palabra) — mismo problema, en espíritu, que ya se había resuelto para
+       el scroll VERTICAL de "Novedades" (`.novedades-fade-bottom`). A
+       diferencia de ese, acá es un degradé fijo (no depende de JS para
+       aparecer/desaparecer según la posición del scroll) — igual sirve como
+       pista de "esto continúa", aunque se quede visible ya scrolleado del
+       todo; `.sidebar` ya es `position:sticky`, así que alcanza para que este
+       pseudo-elemento quede anclado al borde derecho de la pantalla. */
+.sidebar::after{
+      content:'';
+      position:absolute;
+      top:0; right:0; bottom:1px;
+      width:28px;
+      background:linear-gradient(to right, transparent, var(--panel));
+      pointer-events:none;
+    }
+
 .main{ padding-left:0; }
 
 .day-rail{

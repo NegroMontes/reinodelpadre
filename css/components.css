@@ -74,6 +74,24 @@ h1,h2,h3,.serif{
     justify-content:flex-end;
   }
 
+/* Bug de mobile Chrome reportado por el usuario (11/10/2026: "desde el
+     móvil en Chrome toda la página se ve rara") — encontrado tomando una
+     captura a ancho de celular: en pantallas angostas `.auth-user` (la
+     campanita, el toggle de tema, "Ver como" y el avatar) no entra en una
+     sola línea — sobre todo para un admin, con el selector de "Ver como" de
+     más — y se envuelve, pero con `justify-content:flex-end` cada línea
+     envuelta se pegaba de nuevo contra el borde derecho por su cuenta, así
+     que el avatar (el único control que termina solo en la segunda línea)
+     quedaba flotando suelto contra el borde derecho, lejos de todo lo de
+     arriba, en vez de simplemente continuar la fila debajo. `flex-start`
+     en mobile arregla el salto de línea sin tocar el desktop (que nunca
+     envuelve, de sobra de ancho). Va DESPUÉS de la regla de arriba, en el
+     mismo archivo — una media query no suma especificidad, así que necesita
+     perder el empate por orden en la cascada contra la regla sin condición. */
+@media (max-width:600px){
+  .auth-user{ justify-content:flex-start; }
+}
+
 .auth-user select{
     font-family:'Raleway',sans-serif;
     font-size:11.5px;
@@ -579,8 +597,6 @@ h2.day-title{
 
 /* CUADRO DE MANDOS */
 
-.mandos-tab{ font-style:italic; }
-
 .mandos-sub{
     margin:6px 0 0;
     font-size:13px;
@@ -894,3 +910,36 @@ h2.day-title{
     box-shadow:var(--shadow-sm);
   }
 .fordoquera-overlay-close:hover{ background:var(--bordeaux); color:#fff; border-color:var(--bordeaux); }
+
+/* Diálogos propios (10/10/2026) — reemplazan a alert()/confirm() nativos del
+   navegador (sin estilo propio posible) por un modal con la estética del
+   sitio. Ver js/components/dialog.js — regla de acá en más, cualquier aviso/
+   confirmación nuevo tiene que usar ese módulo, nunca alert()/confirm(). */
+.app-dialog-overlay{
+    position:fixed; inset:0; z-index:600;
+    background:rgba(var(--shadow-rgb),.5);
+    display:flex; align-items:center; justify-content:center;
+    padding:16px;
+  }
+.app-dialog-box{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-md);
+    padding:22px 24px;
+    max-width:420px;
+    width:100%;
+  }
+.app-dialog-message{
+    margin:0 0 18px;
+    font-size:15px;
+    line-height:1.5;
+    color:var(--ink);
+    word-break:break-word;
+    white-space:pre-wrap;
+  }
+.app-dialog-actions{
+    display:flex;
+    gap:8px;
+    justify-content:flex-end;
+  }

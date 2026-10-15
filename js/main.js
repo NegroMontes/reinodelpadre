@@ -261,13 +261,19 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     render();
   };
 
-  // Toggle de tema claro/oscuro (09/10/2026) — vive en el HTML estático de
-  // la cabecera (no en #authBar, que renderAuthBar() vacía por completo
-  // antes del login) así funciona desde la pantalla de login/landing
-  // también, no solo ya adentro de la app. Listener único; el estado real
-  // (qué tema está activo) vive en el atributo `data-theme` de <html>, ya
-  // seteado al cargar la página por el script inline de index.html (evita
-  // el flash del tema equivocado antes de que este módulo llegue a correr).
+  // Toggle de tema claro/oscuro (09/10/2026). El botón vive en el HTML
+  // estático de la cabecera (dentro de #themeToggleHome, en .header-top-left)
+  // así funciona desde la pantalla de login/landing también, no solo ya
+  // adentro de la app — pero una vez logueado, renderAuthBar() (header.js)
+  // lo MUEVE (mismo nodo del DOM, no uno nuevo) al lado de la campanita de
+  // Novedades dentro de #authBar, y lo devuelve a #themeToggleHome si cierra
+  // sesión (pedido del usuario, 11/10/2026: "mover el botón del modo noche
+  // al lado de la campanita"). El listener de acá abajo sigue sirviendo en
+  // los dos casos: se enancha una sola vez sobre el id, que es el mismo
+  // elemento dondequiera que esté parado. El estado real (qué tema está
+  // activo) vive en el atributo `data-theme` de <html>, ya seteado al cargar
+  // la página por el script inline de index.html (evita el flash del tema
+  // equivocado antes de que este módulo llegue a correr).
   document.getElementById('themeToggleBtn').onclick = function(){
     // El tema "actual" lo decide la clase que ya dejó updateThemeToggleIcon()
     // al cargar (si no hay elección explícita, esa clase refleja la
@@ -291,14 +297,21 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     btn.title = esOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
   }
 
-  // La lectura de `AppState.publicConfig` (ver app-state.js) se espera antes
-  // de enganchar `onAuthStateChanged` — así, para cuando se resuelve si hay o
-  // no sesión (lo que dispara el primer render real, sacando el "Cargando…"),
-  // ya se sabe si la opción "Soy miliciano" tiene que verse o no, sin un
-  // flash del valor por default. Con timeout de 3s por si la lectura tarda o
-  // falla — no vale la pena bloquear el login entero por esto.
-  var publicConfigTimeout = new Promise(function(resolve){ setTimeout(resolve, 3000); });
-  Promise.race([loadPublicConfig(), publicConfigTimeout]).then(startAuthListener);
+  // `AppState.publicConfig` ya arranca con un default sensato (ver
+  // app-state.js: `milicianosLoginEnabled: true`, el caso común) — antes se
+  // esperaba a que `loadPublicConfig()` resolviera (o un timeout de 3s) ANTES
+  // de siquiera enganchar `onAuthStateChanged`, así que CUALQUIERA (incluido
+  // alguien que ya tenía sesión iniciada, que no necesita este dato para
+  // nada) se quedaba viendo el spinner "Cargando…" hasta 3 segundos de más
+  // en una conexión de mobile lenta (bug reportado por el usuario,
+  // 11/10/2026: "al entrar desde móvil le cuesta cargar la pantalla
+  // principal"). Ahora los dos arrancan en paralelo: `onAuthStateChanged` ya
+  // no espera nada, y `loadPublicConfig()` solo dispara un re-render si
+  // todavía no se pasó el gate (si ya se pasó, el valor real — que solo
+  // afecta la pantalla de login/"Ver como"/Usuarios, nunca la pantalla
+  // principal — ya no tiene nada que corregir).
+  loadPublicConfig().then(function(){ if(!AppState.currentUser){ render(); } });
+  startAuthListener();
 
   function startAuthListener(){
   onAuthStateChanged(auth, function(fbUser){

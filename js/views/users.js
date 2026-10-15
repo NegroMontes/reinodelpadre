@@ -9,6 +9,7 @@ import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
 import { setUserRole, deleteUser } from '../services/users.service.js';
 import { copyTextToClipboard } from './feedback.js';
 import { render, renderPanel, showStatus } from '../main.js';
+import { showAlert, showConfirm } from '../components/dialog.js';
 
   // Filtra `usersList` según los filtros activos de la pestaña "Usuarios"
   // (pedido del usuario, 23/09/2026: filtrar por rol, sección, fecha y nombre).
@@ -341,7 +342,7 @@ import { render, renderPanel, showStatus } from '../main.js';
         var actividadInput = row.querySelector('.uActividad');
         var actividad = actividadInput ? actividadInput.value.trim() : '';
         if(role === 'jefe_seccion' && !seccion && !depto){
-          alert('Elegí una sección o un departamento para ese rol.');
+          showAlert('Elegí una sección o un departamento para ese rol.');
           return;
         }
         setUserRole(uidVal, role, seccion || null, depto || null, readDeptos, esFormacion, actividad, comentaDiseno);
@@ -349,7 +350,7 @@ import { render, renderPanel, showStatus } from '../main.js';
     });
 
     document.querySelectorAll('[data-action="deleteUser"]').forEach(function(btn){
-      btn.onclick = function(){
+      btn.onclick = async function(){
         var row = btn.closest('tr');
         var uidVal = row.getAttribute('data-uid');
         // 2da celda (la 1ra es "Se logueó" desde el reordenamiento de
@@ -364,7 +365,7 @@ import { render, renderPanel, showStatus } from '../main.js';
           if(popover) popover.remove();
           nombre = clone.textContent.trim();
         }
-        if(!confirm('¿Borrar el perfil de "' + nombre + '"? Va a tener que volver a completar el formulario de onboarding la próxima vez que inicie sesión.')) return;
+        if(!await showConfirm('¿Borrar el perfil de "' + nombre + '"? Va a tener que volver a completar el formulario de onboarding la próxima vez que inicie sesión.')) return;
         deleteUser(uidVal);
       };
     });

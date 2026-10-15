@@ -132,6 +132,22 @@
   }
 
 
+  // Variante de roleLabel() que reemplaza el placeholder genérico
+  // "sección/depto" por la sección o departamento real del usuario
+  // (pedido del usuario, 11/10/2026: el tag de arriba a la derecha decía
+  // literalmente "Jefe de sección/depto" en vez de, por ejemplo, "Jefe de
+  // Formación"). Solo afecta jefe_seccion/subjefe — los únicos roles cuya
+  // etiqueta base contiene ese placeholder.
+  export function roleLabelScoped(user){
+    var label = roleLabel(user ? user.role : null);
+    var scope = user ? (user.seccion || user.depto) : null;
+    if(scope && label.indexOf('sección/depto') !== -1){
+      return label.replace('sección/depto', scope);
+    }
+    return label;
+  }
+
+
   export function posGrupoLabel(posGrupo){
     return {
       cupula: 'Comando central',

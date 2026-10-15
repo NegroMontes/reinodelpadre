@@ -6,6 +6,7 @@ import { db, feedbackColRef } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { uid } from '../utils/helpers.js';
 import { render, renderDayRail, currentPageLabel } from '../main.js';
+import { showAlert } from '../components/dialog.js';
 
   // "Comentarios" — feedback de diseño/estética dejado con el botón flotante.
   // Documentos sueltos en `feedback` (no en `fordoc/shared`): solo un admin
@@ -51,7 +52,7 @@ import { render, renderDayRail, currentPageLabel } from '../main.js';
       await setDoc(doc(db, 'feedback', id), { resuelto: resuelto }, { merge: true });
     }catch(e){
       console.error('No se pudo actualizar el comentario:', e);
-      alert('No se pudo guardar el cambio: ' + e.message);
+      showAlert('No se pudo guardar el cambio: ' + e.message);
     }
   }
 
@@ -61,6 +62,6 @@ import { render, renderDayRail, currentPageLabel } from '../main.js';
       await deleteDoc(doc(db, 'feedback', id));
     }catch(e){
       console.error('No se pudo borrar el comentario:', e);
-      alert('No se pudo borrar: ' + e.message);
+      showAlert('No se pudo borrar: ' + e.message);
     }
   }
