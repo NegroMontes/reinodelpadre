@@ -255,12 +255,23 @@ header.top h1 .badge{
        aparecer/desaparecer según la posición del scroll) — igual sirve como
        pista de "esto continúa", aunque se quede visible ya scrolleado del
        todo; `.sidebar` ya es `position:sticky`, así que alcanza para que este
-       pseudo-elemento quede anclado al borde derecho de la pantalla. */
+       pseudo-elemento quede anclado al borde derecho de la pantalla.
+       `width:14px` (antes 28px, 15/10/2026, reporte del usuario con captura:
+       "el botón de pestaña Departamentos tiene una línea blanca que coincide
+       con los bordes del fondo, incluso cambia a modo noche" — confirmado:
+       el ancho viejo (28px) era MÁS GRANDE que el padding derecho del propio
+       `.sidebar` acá abajo (14px), así que el degradé se metía 14px adentro
+       del área real de las pestañas — cuando una pestaña quedaba justo bajo
+       esa franja, el degradé (que termina en `var(--panel)`, por eso "cambia
+       a modo noche") se le pintaba encima, creando la línea/costura rara que
+       reportó el usuario. Con `width:14px` (exactamente el padding), el
+       degradé queda contenido en el margen vacío de después de la última
+       pestaña visible, nunca sobre el contenido de un botón. */
 .sidebar::after{
       content:'';
       position:absolute;
       top:0; right:0; bottom:1px;
-      width:28px;
+      width:14px;
       background:linear-gradient(to right, transparent, var(--panel));
       pointer-events:none;
     }
@@ -315,7 +326,24 @@ header.top h1 .badge{
 }
 
 @media (max-width:600px) {
-header.top h1{ font-size:27px; }
+/* Topbar compacta en mobile (pedido del usuario, 15/10/2026: "ocupan
+     demasiado espacio en móvil el logo, el botón de usuario y los textos")
+     — acota explícitamente a "solo lo de arriba, no las pestañas", que ya
+     tienen su propio ajuste de mobile más abajo (bloque de 760px) y no se
+     tocan acá. Achica el padding vertical del header, el logo, el título,
+     el badge "MDZ 2027" y el subtítulo — todos viven en ESTE archivo (igual
+     que su definición sin condición, más arriba), así que el reset gana el
+     empate de cascada sin necesitar especificidad extra. Los controles de
+     `.auth-user` (campana, toggle de tema, "Ver como", avatar) se achican
+     aparte, en `components.css`/`css/views/home.css` — cada uno vive en el
+     mismo archivo que su propia regla sin condición. */
+header.top{ padding:14px 0 10px; }
+.kicker{ margin:0 0 3px; font-size:11.5px; }
+.brand-row{ gap:8px; }
+.brand-row img.logo-mark{ width:32px; }
+header.top h1{ font-size:22px; }
+header.top h1 .badge{ font-size:11px; margin-left:6px; }
+header.top p.sub{ margin:4px 0 0; font-size:12.5px; }
 
 /* Reporte del usuario, 15/10/2026, con capturas reales de celular: "los
      elementos no llegan a los extremos de la pantalla" — `.app` nunca tuvo

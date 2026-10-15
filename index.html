@@ -19,6 +19,18 @@
 })();
 </script>
 <link rel="icon" type="image/png" href="assets/favicon.png">
+<!-- Ícono al anclar a la pantalla de inicio (pedido del usuario, 15/10/2026:
+     "¿Reino del Padre tiene ícono al anclar a inicio?") — sin esto, iOS/
+     Android arman un ícono genérico (una captura recortada de la página, o
+     un bloque de color con la inicial) en vez de usar el logo real. El
+     favicon de arriba (180x217, recortado al escudo, con fondo transparente)
+     no sirve para esto: Apple exige un PNG cuadrado y opaco (rellena de
+     negro cualquier transparencia) — `apple-touch-icon.png` es una versión
+     aparte, 180x180, con el mismo celeste de fondo del manual de marca y el
+     escudo centrado con margen (ver el script que lo generó, no versionado,
+     en el scratchpad de esta sesión). -->
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Reino del Padre">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">

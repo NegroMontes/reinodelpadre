@@ -95,6 +95,17 @@
 
 @media (max-width:600px) {
 .novedades-panel{ right:14px; left:14px; width:auto; }
+
+/* Topbar compacta en mobile (pedido del usuario, 15/10/2026) — este vive
+     acá (no en layout.css/components.css) porque su regla SIN condición
+     también vive en este archivo (`css/views/home.css`), el último en
+     cargar de los tres — mismo criterio del resto de este ajuste. El resto
+     de los overrides de esta misma tanda (avatar/badges) NO pueden ir acá:
+     sus reglas sin condición viven MÁS ABAJO en este mismo archivo, así que
+     un override puesto ACÁ (antes, textualmente) perdería el empate de
+     cascada contra ellas igual — hay que ponerlos DESPUÉS (ver el bloque
+     nuevo al final del archivo). */
+.auth-user button.novedades-bell{ font-size:13px; }
 }
 
 /* Botón de usuario con avatar (09/10/2026, pedido del usuario) — reemplaza
@@ -562,4 +573,22 @@
 
 @media (max-width:600px) {
 .home-ejes-grid{ grid-template-columns:1fr; }
+}
+
+/* Topbar compacta en mobile (pedido del usuario, 15/10/2026) — el botón de
+     usuario con avatar y sus dos badges, achicados. Tiene que ir ACÁ (al
+     final del archivo), después de todas las reglas sin condición que
+     define (`.user-avatar-btn`, `.user-avatar-fallback`, `.user-avatar-
+     badge*`, más arriba en este mismo archivo) — un override puesto antes
+     de su propia regla, aunque esté en un `@media` que aplique, pierde el
+     empate de cascada contra la que viene después (encontrado al verificar
+     este mismo cambio con Playwright: el primer intento puso estos
+     overrides junto a `.novedades-panel`, bastante más arriba en el
+     archivo, y no tenían ningún efecto). */
+@media (max-width:600px) {
+.user-avatar-btn{ width:28px; height:28px; }
+.user-avatar-fallback{ font-size:13px; }
+.user-avatar-badge{ width:14px; height:14px; font-size:8px; }
+.user-avatar-badge-activity{ bottom:-2px; left:-3px; }
+.user-avatar-badge-seccion{ bottom:-2px; right:-3px; }
 }

@@ -893,6 +893,19 @@ h2.day-title{
 .panel{ padding:22px 10px 26px; }
 
 .form-cols{ flex-direction:column; }
+
+/* Topbar compacta en mobile (pedido del usuario, 15/10/2026) — estos tres
+     viven acá (no en layout.css, donde está el resto del ajuste de topbar)
+     porque sus reglas SIN condición también viven en este archivo
+     (`components.css`), que carga DESPUÉS de `layout.css` — mismo criterio
+     ya aplicado hoy con `.layout .main`: un override de mobile tiene que
+     vivir en el MISMO archivo que la regla que pisa (o ganarle en
+     especificidad) para no perder el empate de cascada contra un archivo
+     que carga después. */
+.auth-user{ gap:5px; font-size:11px; }
+.auth-user .role-pill{ font-size:9px; padding:1px 5px; }
+.auth-user select{ font-size:10px; padding:2px 4px; max-width:108px; }
+.theme-toggle-btn{ width:26px; height:26px; font-size:13px; }
 }
 
 /* La Fordoquera incrustada (09/10/2026) — overlay de pantalla completa con
