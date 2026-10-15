@@ -20,17 +20,23 @@ h1,h2,h3,.serif{
     flex-wrap:wrap;
   }
 
-/* Izquierda: logo + kicker (rediseño del 15/10/2026 — antes tenía el
-     kicker + el toggle de tema, que se movió a la derecha). */
+/* Izquierda: logo + badge "MDZ 2027" + campana de Novedades, todos a la
+     misma altura (segundo rediseño del 15/10/2026 — el kicker "Campamento
+     Nacional AMJM" se sacó de acá, ahora vive arriba de esta fila como su
+     propio párrafo, ver `.kicker` en layout.css). La campana ya no se
+     arma adentro de `.auth-user`/`#authBar` — `renderAuthBar()` la
+     construye en `#headerBellSlot`, acá a la izquierda, separada del pill
+     de rol y del avatar (que siguen del lado derecho). */
 .header-top-left{
     display:flex;
     align-items:center;
     gap:10px;
   }
 
-/* Derecha: todo lo demás (toggle de tema + #authBar, con la campana/pill/
-     avatar adentro) — pedido del usuario, 15/10/2026: "a la derecha lo
-     demás". */
+/* Derecha: toggle de tema + #authBar (pill de rol + botón de usuario,
+     "Ver como" adentro de su menú) — a la misma altura que el grupo de la
+     izquierda. El toggle de tema ya NO se mueve al lado de la campana
+     (que ahora vive del otro lado) — queda siempre acá, fijo. */
 .header-top-right{
     display:flex;
     align-items:center;

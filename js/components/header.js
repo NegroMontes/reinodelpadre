@@ -43,18 +43,14 @@ import { render } from '../main.js';
 
   export function renderAuthBar(){
     var el = document.getElementById('authBar');
-    // El botón de tema claro/oscuro (ver main.js) es un único nodo del DOM
-    // que se MUEVE entre su placeholder original (#themeToggleHome, en la
-    // cabecera estática) y el lado de la campanita de Novedades acá adentro
-    // — nunca se recrea, así conserva su propio listener. Antes de vaciar
-    // #authBar (sin sesión) hay que devolverlo a su placeholder, si no
-    // innerHTML='' se lo llevaría puesto.
-    var themeToggleBtn = document.getElementById('themeToggleBtn');
-    var themeToggleHome = document.getElementById('themeToggleHome');
-    if(themeToggleBtn && themeToggleHome && themeToggleBtn.parentElement !== themeToggleHome){
-      themeToggleHome.appendChild(themeToggleBtn);
-    }
-    if(!AppState.authResolved || !AppState.currentUser){ el.innerHTML = ''; return; }
+    // La campana de Novedades vive en #headerBellSlot (al lado del logo/
+    // badge, ver index.html) — separada de #authBar (pill de rol + avatar,
+    // del otro lado) desde el segundo rediseño de la topbar, 15/10/2026.
+    // El toggle de tema (#themeToggleBtn) ya no se mueve de su placeholder
+    // (#themeToggleHome, en .header-top-right) — antes vivía al lado de la
+    // campana, pero la campana se mudó al lado opuesto del header.
+    var bellSlot = document.getElementById('headerBellSlot');
+    if(!AppState.authResolved || !AppState.currentUser){ el.innerHTML = ''; if(bellSlot){ bellSlot.innerHTML = ''; } return; }
     var simPill = '';
     if(AppState.viewAsOverride){
       var scopeTxt = AppState.viewAsOverride.seccion ? (' · ' + AppState.viewAsOverride.seccion) : (AppState.viewAsOverride.depto ? (' · ' + AppState.viewAsOverride.depto) : '');
@@ -72,8 +68,10 @@ import { render } from '../main.js';
     var lectorPill = lectorModeActive() ? ' <span class="role-pill" style="color:var(--gold);border-color:var(--gold)" title="Estás leyendo todo el comando — no podés editar nada mientras este modo esté activo">Modo Lector</span>' : '';
     var novedades = getNovedades();
     var novedadesSinVer = novedades.filter(function(e){ return e.createdAt > AppState.novedadesSeenAt; });
+    if(bellSlot){
+      bellSlot.innerHTML = '<button id="novedadesBtn" class="novedades-bell" type="button" title="Novedades de los últimos ' + NOVEDADES_WINDOW_DAYS + ' días">🔔' + (novedadesSinVer.length > 0 ? '<span class="tag imagen novedades-count">' + novedadesSinVer.length + '</span>' : '') + '</button>';
+    }
     var html = '<div class="auth-user">';
-    html += '<button id="novedadesBtn" class="novedades-bell" type="button" title="Novedades de los últimos ' + NOVEDADES_WINDOW_DAYS + ' días">🔔' + (novedadesSinVer.length > 0 ? '<span class="tag imagen novedades-count">' + novedadesSinVer.length + '</span>' : '') + '</button>';
     html += '<span class="role-pill">' + escapeHtml(roleLabelScoped(AppState.currentUser)) + '</span>' + simPill + lectorPill;
     // El selector de "Ver como" (admin) y el toggle "Mi mando"/"Lector"
     // (comando no-admin, sugerencia de Juli Ahumada 25/09/2026) vivían acá
@@ -101,14 +99,6 @@ import { render } from '../main.js';
     }
     el.innerHTML = html;
     attachUserAvatarEvents();
-
-    // Recién ahora, con la campanita ya en el DOM, se puede mover el botón
-    // de tema al lado suyo (ver el comentario de arriba, al principio de
-    // esta función, y el de main.js).
-    if(themeToggleBtn){
-      var novedadesBtnForTheme = document.getElementById('novedadesBtn');
-      if(novedadesBtnForTheme){ novedadesBtnForTheme.insertAdjacentElement('afterend', themeToggleBtn); }
-    }
 
     var novedadesBtn = document.getElementById('novedadesBtn');
     if(novedadesBtn){

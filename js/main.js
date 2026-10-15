@@ -262,19 +262,18 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
   };
 
   // Toggle de tema claro/oscuro (09/10/2026). El botón vive en el HTML
-  // estático de la cabecera (dentro de #themeToggleHome, en .header-top-right
-  // desde el rediseño del 15/10/2026) así funciona desde la pantalla de
-  // login/landing también, no solo ya
-  // adentro de la app — pero una vez logueado, renderAuthBar() (header.js)
-  // lo MUEVE (mismo nodo del DOM, no uno nuevo) al lado de la campanita de
-  // Novedades dentro de #authBar, y lo devuelve a #themeToggleHome si cierra
-  // sesión (pedido del usuario, 11/10/2026: "mover el botón del modo noche
-  // al lado de la campanita"). El listener de acá abajo sigue sirviendo en
-  // los dos casos: se enancha una sola vez sobre el id, que es el mismo
-  // elemento dondequiera que esté parado. El estado real (qué tema está
-  // activo) vive en el atributo `data-theme` de <html>, ya seteado al cargar
-  // la página por el script inline de index.html (evita el flash del tema
-  // equivocado antes de que este módulo llegue a correr).
+  // estático de la cabecera (dentro de #themeToggleHome, en .header-top-right)
+  // así funciona desde la pantalla de login/landing también, no solo ya
+  // adentro de la app. Entre el 11/10/2026 y el 15/10/2026 renderAuthBar()
+  // (header.js) lo movía al lado de la campanita de Novedades una vez
+  // logueado — el segundo rediseño de la topbar del 15/10/2026 mudó la
+  // campana al lado OPUESTO del header (junto al logo/badge), así que ese
+  // movimiento ya no tiene sentido: el botón queda siempre fijo acá, nunca
+  // se mueve. El listener de acá abajo se engancha una sola vez sobre el
+  // id. El estado real (qué tema está activo) vive en el atributo
+  // `data-theme` de <html>, ya seteado al cargar la página por el script
+  // inline de index.html (evita el flash del tema equivocado antes de que
+  // este módulo llegue a correr).
   document.getElementById('themeToggleBtn').onclick = function(){
     // El tema "actual" lo decide la clase que ya dejó updateThemeToggleIcon()
     // al cargar (si no hay elección explícita, esa clase refleja la

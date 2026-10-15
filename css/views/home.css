@@ -1,7 +1,11 @@
 /* "Novedades" — campanario simple con lo agregado en los últimos días,
      en vez de notificaciones push reales (bastante más grande de armar). */
 
-.auth-user button.novedades-bell{
+/* Vive en #headerBellSlot, al lado del logo/badge (segundo rediseño de la
+     topbar, 15/10/2026 — antes era parte de `.auth-user`, del lado
+     derecho). El selector ya no depende de ningún ancestro puntual, el
+     nombre de la clase alcanza. */
+.novedades-bell{
     position:relative;
     text-decoration:none;
     font-size:15px;
@@ -105,7 +109,7 @@
      un override puesto ACÁ (antes, textualmente) perdería el empate de
      cascada contra ellas igual — hay que ponerlos DESPUÉS (ver el bloque
      nuevo al final del archivo). */
-.auth-user button.novedades-bell{ font-size:13px; }
+.novedades-bell{ font-size:13px; }
 }
 
 /* Botón de usuario con avatar (09/10/2026, pedido del usuario) — reemplaza

@@ -36,16 +36,19 @@ header.top{
     margin-bottom:0;
   }
 
-/* Rediseño de la topbar (pedido del usuario, 15/10/2026: sin el subtítulo
-     "Tu herramienta formativa.", sin el <h1> "Reino del Padre" — izquierda
-     = logo + kicker, derecha = todo lo demás). El kicker ya no necesita
-     margen propio (vive en una fila flex junto al logo, no apilado arriba
-     de un <h1>) y absorbe el badge "MDZ 2027" que antes colgaba del <h1>
-     borrado. */
+/* Rediseño de la topbar (pedido del usuario, 15/10/2026, dos pasadas el
+     mismo día): sin el subtítulo "Tu herramienta formativa.", sin el <h1>
+     "Reino del Padre". Primera pasada: el kicker absorbió el badge "MDZ
+     2027" y vivía en una fila junto al logo. Segunda pasada (pedido
+     explícito: "que el texto de Campamento Nacional AMJM quede encima del
+     logo, MDZ 2027 junto al logo y la campana"): el kicker vuelve a ser su
+     propia línea, ARRIBA de toda la fila logo+badge+campana/toggle+pill+
+     avatar — por eso necesita margen inferior de nuevo, y el badge se
+     separó del kicker (ver `.header-top-left .badge` más abajo). */
 .kicker{
     font-size:13px;
     color:var(--ink-soft);
-    margin:0;
+    margin:0 0 10px;
     letter-spacing:0.02em;
   }
 
@@ -66,17 +69,17 @@ header.top{
      dos tonos cálidos más claros de la paleta, y sobre fondo blanco caen
      por debajo del contraste mínimo que el propio manual de marca pide
      evitar — bordeaux-deep sigue siendo un tono cálido secundario con
-     contraste de sobra. Vive ahora adentro del kicker (antes, del <h1>
-     que el pedido del 15/10/2026 sacó del todo). */
-.kicker .badge{
+     contraste de sobra. Vive ahora junto al logo y la campana, adentro de
+     `.header-top-left` (pasó por el <h1> primero, después por el kicker,
+     ninguno de los dos el lugar final — ver el comentario de arriba). */
+.header-top-left .badge{
     display:inline-block;
     font-family:'Raleway',sans-serif;
-    font-size:12px;
+    font-size:13px;
     font-weight:700;
     letter-spacing:0.02em;
     color:var(--bordeaux-deep);
     vertical-align:middle;
-    margin-left:8px;
   }
 
 .auth-user .role-pill{
@@ -328,7 +331,7 @@ header.top{
      ya no corresponde). */
 header.top{ padding:14px 0 10px; }
 .header-top-left{ gap:6px; }
-.kicker{ font-size:11.5px; }
+.kicker{ font-size:11.5px; margin:0 0 6px; }
 
 /* Reporte del usuario, 15/10/2026, con capturas reales de celular: "los
      elementos no llegan a los extremos de la pantalla" — `.app` nunca tuvo
