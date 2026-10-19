@@ -658,3 +658,60 @@
     transition:background .15s ease, color .15s ease, transform .2s ease;
   }
 .home-card-gear:hover{ background:var(--bg-alt); color:var(--teal); transform:rotate(30deg); }
+
+/* ===== Topbar con más jerarquía (pedido del usuario, 19/10/2026) =====
+     "Se ve desproporcionada": fila de al menos 64px (52px en mobile), logo
+     y controles de la derecha más grandes, todo centrado verticalmente, y
+     vuelve el <h1> "Reino del Padre" junto al logo. Va al final de
+     home.css (el último archivo que pisa la topbar) para ganarle el empate
+     de cascada a las reglas de layout.css/components.css y a los ajustes
+     mobile del 15/10/2026. */
+.header-top-row{ min-height:64px; align-items:center; }
+.header-top-left,
+.header-top-right,
+.auth-user,
+#headerBellSlot,
+#themeToggleHome,
+#authBar{ display:flex; align-items:center; }
+.header-top-left{ gap:12px; }
+.header-top-right{ gap:12px; }
+.header-top-left img.logo-mark{ width:56px; }
+.header-title{
+    margin:0;
+    font-family:'Baloo 2',serif;
+    font-size:30px;
+    font-weight:700;
+    line-height:1;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+.header-top-left .badge{ font-size:14px; }
+.theme-toggle-btn{ width:38px; height:38px; font-size:18px; }
+.theme-toggle-btn .ui-icon,
+.novedades-bell .ui-icon{ width:21px; height:21px; }
+.novedades-bell{ font-size:18px; }
+.user-avatar-btn{ width:42px; height:42px; }
+.auth-user{ gap:10px; font-size:13.5px; }
+.auth-user .role-pill{ font-size:12px; padding:3px 9px; }
+
+@media (max-width:600px) {
+.header-top-row{ min-height:52px; }
+.header-top-left{ gap:8px; }
+.header-top-right{ gap:8px; }
+.header-top-left img.logo-mark{ width:40px; }
+/* "MDZ 2027" y el pill de rol común se esconden en mobile: con el título
+     de vuelta, logo + título + badge + campana + controles de la derecha no
+     entran en una sola fila en un celular de 360px (medido con Playwright).
+     El rol sigue visible en el menú del avatar; los pills dorados ("viendo
+     como"/"Modo Lector", con `style` inline) se mantienen siempre. */
+.header-title{ font-size:18px; }
+.auth-user .role-pill:not([style]){ display:none; }
+.header-top-left .badge{ display:none; }
+.theme-toggle-btn{ width:30px; height:30px; font-size:14px; }
+.theme-toggle-btn .ui-icon,
+.novedades-bell .ui-icon{ width:18px; height:18px; }
+.novedades-bell{ font-size:15px; }
+.user-avatar-btn{ width:32px; height:32px; }
+.auth-user{ gap:6px; font-size:12px; }
+.auth-user .role-pill{ font-size:10px; padding:2px 6px; }
+}
