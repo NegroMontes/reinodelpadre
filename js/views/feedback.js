@@ -65,7 +65,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
 
     var html = '';
     html += '<div class="panel-head"><div><h2>Comentarios</h2>';
-    html += '<p class="mandos-sub">Lo que va dejando el comando con el botón flotante "💬 Comentario" — pensado sobre todo para feedback de diseño y estética (ej. el jefe de Comunicaciones).</p></div>';
+    html += '<p class="mandos-sub">Lo que va dejando el comando con el botón flotante "Comentario" — pensado sobre todo para feedback de diseño y estética (ej. el jefe de Comunicaciones).</p></div>';
     html += '<button class="btn small" id="copyPendingBtn" type="button"' + (pendCount === 0 ? ' disabled title="No hay comentarios pendientes"' : '') + '>Copiar pendientes' + (pendCount > 0 ? ' (' + pendCount + ')' : '') + '</button>';
     html += '<button class="btn ghost small" id="toggleHideResueltosBtn" type="button">' + (AppState.feedbackHideResueltos ? 'Mostrar todos' : 'Ocultar resueltos') + '</button>';
     html += '</div>';

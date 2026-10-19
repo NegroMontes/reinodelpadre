@@ -24,6 +24,7 @@ import { AppState } from './app-state.js';
 import { uid, escapeHtml, linkify, alignStyleAttr, roleLabel } from './utils/helpers.js';
 import { saveNovedadesSeenAt, saveUsersSeenAt, saveTheme } from './utils/storage.js';
 import { encodeHash, decodeHash } from './utils/hash-router.js';
+import { icon } from './utils/icons.js';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -293,7 +294,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     else if(elegido === 'dark'){ esOscuro = true; }
     document.documentElement.classList.toggle('theme-dark-active', esOscuro);
     var btn = document.getElementById('themeToggleBtn');
-    btn.textContent = esOscuro ? '☀️' : '🌙';
+    btn.innerHTML = icon(esOscuro ? 'sun' : 'moon');
     btn.title = esOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
   }
 
@@ -402,21 +403,21 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     rail.innerHTML = '';
     var homeTab = document.createElement('div');
     homeTab.className = 'day-tab home-tab' + (AppState.activeDayId === 'HOME' ? ' active' : '');
-    homeTab.textContent = '🏠 Inicio';
+    homeTab.innerHTML = icon('house') + ' Inicio';
     homeTab.onclick = function(){ AppState.activeDayId = 'HOME'; AppState.formOpen = false; render(); };
     rail.appendChild(homeTab);
     // Los días ya no son una pestaña cada uno acá — viven todos juntos
     // adentro de "Mensaje", con un selector dinámico (ver renderMensajePanel).
     var mensajeTab = document.createElement('div');
     mensajeTab.className = 'day-tab' + (AppState.activeDayId === 'MENSAJE' ? ' active' : '');
-    mensajeTab.textContent = '📖 Mensaje';
+    mensajeTab.innerHTML = icon('book-open') + ' Mensaje';
     mensajeTab.onclick = function(){ AppState.activeDayId = 'MENSAJE'; AppState.formOpen = false; render(); };
     rail.appendChild(mensajeTab);
     // Recursos e Info general son para todos (comando y, a futuro, milicianos) —
     // van antes de "Departamentos", que es la única pestaña comando-only del grupo.
     var recursosTab = document.createElement('div');
     recursosTab.className = 'day-tab' + (AppState.activeDayId === 'RECURSOS' ? ' active' : '');
-    recursosTab.textContent = '📚 Recursos';
+    recursosTab.innerHTML = icon('library') + ' Recursos';
     recursosTab.onclick = function(){ AppState.activeDayId = 'RECURSOS'; AppState.formOpen = false; render(); };
     rail.appendChild(recursosTab);
     // Divisores fijos entre los 3 grupos del sidebar (camino formativo / contenido
@@ -432,7 +433,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     if(hasDeptosTab){
       var deptosTab = document.createElement('div');
       deptosTab.className = 'day-tab' + (AppState.activeDayId === 'DEPARTAMENTOS' ? ' active' : '');
-      deptosTab.textContent = '🗂️ Departamentos';
+      deptosTab.innerHTML = icon('folder') + ' Departamentos';
       deptosTab.onclick = function(){ AppState.activeDayId = 'DEPARTAMENTOS'; AppState.formOpen = false; render(); };
       rail.appendChild(deptosTab);
     }
@@ -452,13 +453,13 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     // usuario) — ahora tiene 2 subpestañas adentro (ver renderMandosPanel()):
     // "Cuadro de mandos" (la nómina oficial, como siempre) y "Mi comando"
     // (roster en vivo de quien ya se registró, con foto/actividad/ruca).
-    mandosTab.textContent = '🎖️ Comando';
+    mandosTab.innerHTML = icon('shield') + ' Comando';
     mandosTab.onclick = function(){ AppState.activeDayId = 'MANDOS'; AppState.formOpen = false; render(); };
     rail.appendChild(mandosTab);
     if(isAdmin()){
       var usersTab = document.createElement('div');
       usersTab.className = 'day-tab mandos-tab' + (AppState.activeDayId === 'USERS' ? ' active' : '');
-      usersTab.textContent = '👥 Usuarios';
+      usersTab.innerHTML = icon('users') + ' Usuarios';
       // "+N" = gente que se logueó por primera vez desde la última vez que se
       // abrió esta pestaña (cualquier rol) — se apaga solo al entrar (ver
       // renderPanel()). Número plano = cuántos quedaron "pendiente" ahora
@@ -486,7 +487,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
 
       var feedbackTab = document.createElement('div');
       feedbackTab.className = 'day-tab mandos-tab' + (AppState.activeDayId === 'FEEDBACK' ? ' active' : '');
-      feedbackTab.textContent = '💬 Comentarios';
+      feedbackTab.innerHTML = icon('message-circle') + ' Comentarios';
       var pendCount = AppState.feedbackList.filter(function(f){ return !f.resuelto; }).length;
       if(pendCount > 0){
         var pendBadge = document.createElement('span');
@@ -504,7 +505,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       // canSeeEntry()) pero recuperable acá.
       var papeleraTab = document.createElement('div');
       papeleraTab.className = 'day-tab mandos-tab' + (AppState.activeDayId === 'PAPELERA' ? ' active' : '');
-      papeleraTab.textContent = '🗑️ Papelera';
+      papeleraTab.innerHTML = icon('trash') + ' Papelera';
       var papeleraCount = (AppState.state.entries || []).filter(function(e){ return !!e.deletedAt; }).length;
       if(papeleraCount > 0){
         var papeleraBadge = document.createElement('span');

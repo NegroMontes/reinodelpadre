@@ -3,6 +3,7 @@
 
 import { AppState } from '../app-state.js';
 import { escapeHtml } from '../utils/helpers.js';
+import { icon } from '../utils/icons.js';
 import { submitFeedback } from '../services/feedback.service.js';
 import { currentPageLabel } from '../main.js';
 
@@ -57,7 +58,7 @@ import { currentPageLabel } from '../main.js';
       }
       html += '</div>';
     }
-    html += '<button class="feedback-fab" id="feedbackFabBtn" type="button">' + (AppState.feedbackWidgetOpen ? 'Cerrar' : '💬 Comentario') + '</button>';
+    html += '<button class="feedback-fab" id="feedbackFabBtn" type="button">' + (AppState.feedbackWidgetOpen ? 'Cerrar' : (icon('message-circle') + ' Comentario')) + '</button>';
     el.innerHTML = html;
     attachFeedbackWidgetEvents();
   }

@@ -453,7 +453,7 @@
     font-family:'Baloo 2',serif;
     font-size:16px;
     font-weight:500;
-    font-style:italic;
+    font-style:normal; /* antes cursiva — sugerencia de Gemini (19/10/2026): se lee mejor en regular, destacada por el bloque con borde (ver .cita-banner abajo) */
     color:var(--indigo);
     line-height:1.45;
   }
@@ -635,3 +635,26 @@
 .user-avatar-badge-activity{ bottom:-2px; left:-3px; }
 .user-avatar-badge-seccion{ bottom:-2px; right:-3px; }
 }
+
+/* ===== Ajustes estéticos sugeridos por Gemini (19/10/2026) ===== */
+
+/* Engranaje para corregir la fecha/hora del campamento (solo admin). */
+.home-card-countdown{ position:relative; }
+.home-card-gear{
+    position:absolute;
+    top:10px;
+    right:10px;
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid transparent;
+    border-radius:999px;
+    background:none;
+    color:var(--ink-soft);
+    font-size:16px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, transform .2s ease;
+  }
+.home-card-gear:hover{ background:var(--bg-alt); color:var(--teal); transform:rotate(30deg); }

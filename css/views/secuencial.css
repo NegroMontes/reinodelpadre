@@ -77,7 +77,7 @@
 
 .libro-cita-ref{ margin:6px 0 0; font-size:12px; color:var(--ink-soft); }
 
-.libro-cita-attr{ margin:4px 0 0; font-size:11px; color:var(--ink-soft); opacity:.75; }
+.libro-cita-attr{ margin:4px 0 0; font-size:11px; color:var(--ink-soft); }
 
 .libro-cita-preview{ margin-top:6px; }
 
@@ -149,7 +149,7 @@
 
 /* Entrada "secuencial" — se recorre paso a paso en vez de mostrarse toda junta. */
 
-.secuencial-summary{ margin:0 0 8px; font-size:13px; color:var(--indigo); opacity:.8; }
+.secuencial-summary{ margin:0 0 8px; font-size:13px; color:var(--ink-soft); }
 
 .secuencial-done{ color:var(--sage); font-weight:700; opacity:1; }
 
@@ -225,7 +225,7 @@ body.secuencial-fs-lock{ overflow:hidden; }
 /* El "X de X" ahora va al pie, junto a la navegación (antes arriba del
      todo) — pedido del usuario, 22/09/2026. */
 
-.secuencial-step-count{ margin:8px 0 0; font-size:12px; font-weight:600; color:var(--indigo); opacity:.7; text-align:center; }
+.secuencial-step-count{ margin:8px 0 0; font-size:12px; font-weight:600; color:var(--ink-soft); text-align:center; }
 
 /* El título "Te recordamos tu(s) propósito(s):" vive afuera de las cajas,
      una sola vez (singular o plural según cuántos haya) — las cajas de abajo

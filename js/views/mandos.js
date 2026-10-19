@@ -9,6 +9,7 @@ import { AppState } from '../app-state.js';
 import { DEPARTAMENTO_ICONS } from '../config/constants.js';
 import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
 import { userBadgeInnerHtml } from '../utils/badge-icons.js';
+import { icon } from '../utils/icons.js';
 import { canSeeMiComandoSubtab, effectiveRole, effectiveSeccion, effectiveDepto, lectorModeActive } from '../services/permissions.js';
 import { buildMandosIndex, findMandoByName } from '../utils/mandos-matcher.js';
 import { isMilicianoUser } from './users.js';
@@ -147,7 +148,7 @@ import { renderPanel } from '../main.js';
   function miComandoCardHtml(u, grupo){
     var avatar = u.photoURL
       ? '<img class="micomando-avatar-img" src="' + escapeHtml(u.photoURL) + '" alt="">'
-      : '<span class="micomando-avatar-fallback">👤</span>';
+      : '<span class="micomando-avatar-fallback">' + icon('user') + '</span>';
     var badgeInner = userBadgeInnerHtml(u, DEPARTAMENTO_ICONS);
     var badge = badgeInner ? '<span class="micomando-badge" title="' + escapeHtml(u.seccion || u.depto || grupo || '') + '">' + badgeInner + '</span>' : '';
     // El ícono de actividad favorita pasó de un emoji inline antes del

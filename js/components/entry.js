@@ -9,6 +9,7 @@
 
 import { AppState } from '../app-state.js';
 import { escapeHtml } from '../utils/helpers.js';
+import { icon } from '../utils/icons.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '../services/permissions.js';
 import { canSeeCompletions } from '../services/progress.service.js';
@@ -133,12 +134,12 @@ import { canSeeCompletions } from '../services/progress.service.js';
     // ya dejó pasar a quien mira — y esa función solo deja ver una entrada
     // oculta a quien puede editarla — así que este tag nunca se le escapa a
     // un lector/miliciano.
-    var ocultaTag = entry.oculta ? ' <span class="tag imagen" title="Solo la ven quienes pueden editarla — no publicada todavía">🔒 Oculta</span>' : '';
+    var ocultaTag = entry.oculta ? ' <span class="tag imagen" title="Solo la ven quienes pueden editarla — no publicada todavía">' + icon('lock') + ' Oculta</span>' : '';
     // "Permitirme ver siempre todo lo anónimo": un admin (efectivo — respeta
     // "Ver como", para poder previsualizar que un lector/jefe NO lo ve)
     // siempre ve quién publicó una entrada anónima.
     var anonimoTag = (entry.anonimo && isAdmin())
-      ? ' <span class="tag imagen" title="Solo vos (admin) ves esto — el resto la ve sin firma">🔒 ' + escapeHtml(entry.authorReal || '(autor desconocido)') + '</span>'
+      ? ' <span class="tag imagen" title="Solo vos (admin) ves esto — el resto la ve sin firma">' + icon('lock') + ' ' + escapeHtml(entry.authorReal || '(autor desconocido)') + '</span>'
       : '';
     html += '      <div class="entry-meta">' +
       scopeTag + ocultaTag + anonimoTag +

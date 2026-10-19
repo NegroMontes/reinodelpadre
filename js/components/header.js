@@ -9,6 +9,7 @@ import { saveNovedadesSeenAt } from '../utils/storage.js';
 import { lectorModeActive, realIsAdmin, isComandoNonAdmin, canSeeEntry } from '../services/permissions.js';
 import { signOutUser, updateMyProfile } from '../services/auth.service.js';
 import { render } from '../main.js';
+import { icon } from '../utils/icons.js';
 
   export function viewAsScopeOptionsHtml(role, current){
     var html = '';
@@ -69,7 +70,7 @@ import { render } from '../main.js';
     var novedades = getNovedades();
     var novedadesSinVer = novedades.filter(function(e){ return e.createdAt > AppState.novedadesSeenAt; });
     if(bellSlot){
-      bellSlot.innerHTML = '<button id="novedadesBtn" class="novedades-bell" type="button" title="Novedades de los últimos ' + NOVEDADES_WINDOW_DAYS + ' días">🔔' + (novedadesSinVer.length > 0 ? '<span class="tag imagen novedades-count">' + novedadesSinVer.length + '</span>' : '') + '</button>';
+      bellSlot.innerHTML = '<button id="novedadesBtn" class="novedades-bell" type="button" title="Novedades de los últimos ' + NOVEDADES_WINDOW_DAYS + ' días">' + icon('bell') + (novedadesSinVer.length > 0 ? '<span class="tag imagen novedades-count">' + novedadesSinVer.length + '</span>' : '') + '</button>';
     }
     var html = '<div class="auth-user">';
     html += '<span class="role-pill">' + escapeHtml(roleLabelScoped(AppState.currentUser)) + '</span>' + simPill + lectorPill;
@@ -179,7 +180,7 @@ import { render } from '../main.js';
     html += '<button id="userAvatarBtn" class="user-avatar-btn" type="button" title="' + escapeHtml(AppState.currentUser.displayName) + '">';
     html += AppState.currentUser.photoURL
       ? '<img class="user-avatar-img" src="' + escapeHtml(AppState.currentUser.photoURL) + '" alt="">'
-      : '<span class="user-avatar-fallback">👤</span>';
+      : '<span class="user-avatar-fallback">' + icon('user') + '</span>';
     if(myActivityIcon){
       html += '<span class="user-avatar-badge user-avatar-badge-activity" title="Tu actividad favorita">' + myActivityIcon + '</span>';
     }
@@ -273,7 +274,7 @@ import { render } from '../main.js';
         html += '    <p class="mandos-sub user-menu-lector-explain">' + escapeHtml(lectorCurrentExplain) + '</p>';
         html += '  </div>';
       }
-      html += '  <button class="user-menu-item" id="userMenuProfileBtn" type="button">👤 Perfil</button>';
+      html += '  <button class="user-menu-item" id="userMenuProfileBtn" type="button">' + icon('user') + ' Perfil</button>';
       html += '  <button class="user-menu-item" id="userMenuSignOutBtn" type="button">Cerrar sesión</button>';
     }
     html += '</div>';

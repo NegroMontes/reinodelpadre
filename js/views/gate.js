@@ -7,6 +7,7 @@
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
 import { escapeHtml } from '../utils/helpers.js';
+import { icon } from '../utils/icons.js';
 import { effectiveRole } from '../services/permissions.js';
 import { signIn, signOutUser, submitOnboarding } from '../services/auth.service.js';
 import { render } from '../main.js';
@@ -19,9 +20,9 @@ import { render } from '../main.js';
     // del usuario, 26/09/2026) — mientras el campamento arma su propia
     // página para milicianos, esta queda exclusiva del comando.
     if(AppState.publicConfig.milicianosLoginEnabled !== false){
-      html += '    <button type="button" class="landing-card" id="pathAcampanteBtn"><span class="landing-card-icon">⛺</span><span class="landing-card-text"><span class="landing-card-title">Soy miliciano</span><span class="landing-card-sub">Entrá a tu campamento</span></span></button>';
+      html += '    <button type="button" class="landing-card" id="pathAcampanteBtn"><span class="landing-card-icon">' + icon('tent') + '</span><span class="landing-card-text"><span class="landing-card-title">Soy miliciano</span><span class="landing-card-sub">Entrá a tu campamento</span></span></button>';
     }
-    html += '    <button type="button" class="landing-card" id="pathComandoBtn"><span class="landing-card-icon">🧭</span><span class="landing-card-text"><span class="landing-card-title">Soy del comando</span><span class="landing-card-sub">Conducí la marcha</span></span></button>';
+    html += '    <button type="button" class="landing-card" id="pathComandoBtn"><span class="landing-card-icon">' + icon('compass') + '</span><span class="landing-card-text"><span class="landing-card-title">Soy del comando</span><span class="landing-card-sub">Conducí la marcha</span></span></button>';
     html += '  </div>';
     html += '</div>';
     return html;

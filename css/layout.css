@@ -1,7 +1,7 @@
 .app{
     max-width:min(1320px, 94vw);
     margin:0 auto;
-    padding:0 20px 80px;
+    padding:0 20px 120px; /* 120px: lugar para el botón flotante "Comentario" (19/10/2026, sugerencia de Gemini) */
   }
 
 /* LAYOUT — sidebar de navegación + contenido */
@@ -348,5 +348,5 @@ header.top{ padding:14px 0 10px; }
      Se achica a 10px — junto con el ajuste de `.panel` (components.css), el
      contenido queda a 20px del borde real en vez de 38px. No se va a cero
      (ningún elemento queda pegado al borde físico/notch del teléfono). */
-.app{ padding:0 10px 70px; }
+.app{ padding:0 10px 110px; }
 }

@@ -10,6 +10,7 @@ import { save } from '../services/state.service.js';
 import { renderEntry, renderEntriesListHtml } from '../components/entry.js';
 import { renderForm } from '../components/form.js';
 import { showStatus } from '../main.js';
+import { icon } from '../utils/icons.js';
 
   export function stopCountdownTicker(){
     if(AppState.countdownInterval){ clearInterval(AppState.countdownInterval); AppState.countdownInterval = null; }
@@ -129,16 +130,16 @@ import { showStatus } from '../main.js';
 
     html += '<div class="home-grid">';
 
-    html += '  <div class="home-card">';
+    // El formulario para corregir la fecha/hora (solo admin) ya no queda a
+    // la vista de todo el tiempo — se abre desde un engranaje en la esquina
+    // de la tarjeta (19/10/2026, sugerencia de Gemini que pasó el usuario).
+    // Ver openCampStartDialog() más abajo.
+    html += '  <div class="home-card home-card-countdown">';
+    if(canEditStructure()){
+      html += '    <button class="home-card-gear" id="campStartGearBtn" type="button" title="' + (AppState.state.campStart ? 'Corregir fecha y hora de inicio' : 'Cargar fecha y hora de inicio') + '" aria-label="Configurar fecha del campamento">' + icon('settings') + '</button>';
+    }
     html += '    <h3 style="text-align:center">Cuenta regresiva</h3>';
     html += '    <div id="countdownDisplay"></div>';
-    if(canEditStructure()){
-      html += '    <div class="form-row" style="margin-top:12px">';
-      html += '      <label>' + (AppState.state.campStart ? 'Corregir fecha y hora de inicio' : 'Fecha y hora de inicio del campamento') + '</label>';
-      html += '      <input type="datetime-local" id="campStartInput" value="' + escapeHtml(AppState.state.campStart || '') + '">';
-      html += '    </div>';
-      html += '    <button class="btn small" id="campStartSaveBtn" type="button" style="margin-top:6px">Guardar fecha</button>';
-    }
     html += '  </div>';
 
     var feat = featuredDay();
@@ -217,15 +218,45 @@ import { showStatus } from '../main.js';
     // Los botones de "Ir directo a..." se sacaron de Inicio (pedido del
     // usuario, 22/09/2026) — ya no hace falta escuchar `[data-goto]`/
     // `[data-goto-day]` acá.
-    var saveBtn = document.getElementById('campStartSaveBtn');
-    if(saveBtn){
-      saveBtn.onclick = function(){
-        if(!canEditStructure()) return;
-        var val = document.getElementById('campStartInput').value;
-        AppState.state.campStart = val || '';
-        save();
-        updateCountdownDisplay();
-        showStatus(val ? 'Fecha del campamento guardada.' : 'Fecha del campamento borrada.');
-      };
+    var gearBtn = document.getElementById('campStartGearBtn');
+    if(gearBtn){ gearBtn.onclick = openCampStartDialog; }
+  }
+
+
+  // Modal para cargar/corregir la fecha y hora de inicio — mismo estilo que
+  // los diálogos propios de components/dialog.js (.app-dialog-*).
+  function openCampStartDialog(){
+    if(!canEditStructure()) return;
+    var overlay = document.createElement('div');
+    overlay.className = 'app-dialog-overlay';
+    overlay.innerHTML =
+      '<div class="app-dialog-box" role="dialog" aria-modal="true">' +
+      '  <div class="form-row">' +
+      '    <label for="campStartInput">' + (AppState.state.campStart ? 'Corregir fecha y hora de inicio' : 'Fecha y hora de inicio del campamento') + '</label>' +
+      '    <input type="datetime-local" id="campStartInput" value="' + escapeHtml(AppState.state.campStart || '') + '">' +
+      '  </div>' +
+      '  <div class="app-dialog-actions" style="margin-top:16px">' +
+      '    <button type="button" class="btn ghost small" id="campStartCancelBtn">Cancelar</button>' +
+      '    <button type="button" class="btn small" id="campStartSaveBtn">Guardar fecha</button>' +
+      '  </div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    function close(){
+      document.removeEventListener('keydown', onKey);
+      overlay.remove();
     }
+    function onKey(e){ if(e.key === 'Escape') close(); }
+    overlay.querySelector('#campStartCancelBtn').onclick = close;
+    overlay.onclick = function(e){ if(e.target === overlay) close(); };
+    overlay.querySelector('#campStartSaveBtn').onclick = function(){
+      if(!canEditStructure()) return;
+      var val = overlay.querySelector('#campStartInput').value;
+      AppState.state.campStart = val || '';
+      save();
+      updateCountdownDisplay();
+      close();
+      showStatus(val ? 'Fecha del campamento guardada.' : 'Fecha del campamento borrada.');
+    };
+    document.addEventListener('keydown', onKey);
+    overlay.querySelector('#campStartInput').focus();
   }

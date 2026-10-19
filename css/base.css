@@ -46,7 +46,7 @@
       --bg-alt: #16242E;
       --panel: #1B2A35;
       --ink: #E7EEF2;
-      --ink-soft: #9FB3BD;
+      --ink-soft: #B4C6CE;
       --bordeaux: #F0567A;
       --bordeaux-deep: #D93A5D;
       --indigo: #E7EEF2;
@@ -64,7 +64,7 @@
     --bg-alt: #16242E;
     --panel: #1B2A35;
     --ink: #E7EEF2;
-    --ink-soft: #9FB3BD;
+    --ink-soft: #B4C6CE;
     --bordeaux: #F0567A;
     --bordeaux-deep: #D93A5D;
     --indigo: #E7EEF2;
@@ -139,3 +139,19 @@ body{
 .entry-body img{ max-width:100%; margin-top:10px; border:1px solid var(--line); border-radius:var(--radius-sm); }
 
 .entry-body > .entry-text-zone:first-child{ margin-top:0; }
+
+/* Íconos de interfaz (19/10/2026) — todos del mismo set (Lucide), ver
+   js/utils/icons.js. Miden lo mismo que la letra y toman su color. */
+.ui-icon{
+    width:1.1em;
+    height:1.1em;
+    flex-shrink:0;
+    vertical-align:-0.18em;
+  }
+.theme-toggle-btn .ui-icon,
+.novedades-bell .ui-icon{ width:17px; height:17px; vertical-align:middle; }
+.novedades-bell{ color:var(--ink); }
+.user-avatar-fallback .ui-icon,
+.micomando-avatar-fallback .ui-icon{ width:1.1em; height:1.1em; vertical-align:middle; }
+.landing-card-icon .ui-icon{ width:22px; height:22px; color:var(--bordeaux); }
+.day-tab .ui-icon{ margin-right:2px; }

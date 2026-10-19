@@ -10,6 +10,7 @@
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
 import { escapeHtml, uid } from '../utils/helpers.js';
+import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
@@ -109,7 +110,7 @@ import { showConfirm } from './dialog.js';
     var editing = AppState.editingEntryId ? AppState.state.entries.find(function(e){ return e.id === AppState.editingEntryId; }) : null;
     var html = '<div class="add-form' + (AppState.formOpen ? ' open' : '') + '" id="addForm">';
     if(!editing && AppState.insertOrderNote){
-      html += '  <p class="mandos-sub insert-order-note">📍 ' + escapeHtml(AppState.insertOrderNote) + '</p>';
+      html += '  <p class="mandos-sub insert-order-note">' + icon('map-pin') + ' ' + escapeHtml(AppState.insertOrderNote) + '</p>';
     }
     var titleVal = AppState.formTitleDraft !== null ? AppState.formTitleDraft : (editing ? editing.title : '');
     var titlePlaceholder = day === 'INFO_GENERAL' ? 'Ej: Lugar de campamento' : 'Ej: La virtud de la fortaleza';
@@ -137,7 +138,7 @@ import { showConfirm } from './dialog.js';
     if(editing){
       var stepCount = entryToEspacio(editing).steps.length;
       html += '    <button class="btn" id="saveEntryBtn" type="button">Guardar cambios</button>';
-      html += '    <button class="btn" id="openFordoqueraBtn" type="button">📝 Editar contenido (' + stepCount + ' paso' + (stepCount === 1 ? '' : 's') + ')</button>';
+      html += '    <button class="btn" id="openFordoqueraBtn" type="button">' + icon('pencil') + ' Editar contenido (' + stepCount + ' paso' + (stepCount === 1 ? '' : 's') + ')</button>';
     } else {
       html += '    <button class="btn" id="saveEntryBtn" type="button">Crear entrada y abrir editor</button>';
     }
