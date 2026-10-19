@@ -9,7 +9,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
-import { escapeHtml, uid } from '../utils/helpers.js';
+import { escapeHtml, uid, isoToDayDate } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
@@ -270,7 +270,10 @@ import { showConfirm } from './dialog.js';
     }
     var dayDateInput = document.getElementById('dayDateInput');
     if(dayDateInput){
-      dayDateInput.addEventListener('blur', function(){ setDayDate(day.id, dayDateInput.value.trim()); });
+      dayDateInput.addEventListener('change', function(){
+        setDayDate(day.id, isoToDayDate(dayDateInput.value));
+        renderPanel();
+      });
     }
     // Cita bíblica editable (09/10/2026) — guarda los dos campos juntos al
     // perder el foco de cualquiera de los dos, para no pisar uno con el
@@ -280,6 +283,14 @@ import { showConfirm } from './dialog.js';
     if(dayCitaTextoInput && dayCitaRefInput){
       var saveCita = function(){ setDayCita(day.id, dayCitaTextoInput.value.trim(), dayCitaRefInput.value.trim()); };
       dayCitaTextoInput.addEventListener('blur', saveCita);
+      // Altura automática según el contenido (19/10/2026) — sin barra de
+      // scroll interna ni manija para estirar a mano.
+      var fitCita = function(){
+        dayCitaTextoInput.style.height = 'auto';
+        dayCitaTextoInput.style.height = dayCitaTextoInput.scrollHeight + 'px';
+      };
+      dayCitaTextoInput.addEventListener('input', fitCita);
+      fitCita();
       dayCitaRefInput.addEventListener('blur', saveCita);
     }
     if(day && typeof day === 'object'){

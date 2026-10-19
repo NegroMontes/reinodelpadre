@@ -414,7 +414,45 @@
     margin-bottom:4px;
   }
 
-.cita-edit-label textarea{
+/* Cabecera del campo: "Cita bíblica" + el ícono ℹ que abre la ayuda de
+     formato (19/10/2026 — antes el texto de ayuda iba pegado al título). */
+.cita-edit-head{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.cita-edit-head .cita-edit-label{ margin-bottom:0; }
+.md-hint{ position:relative; }
+.md-hint summary{
+    list-style:none;
+    cursor:pointer;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    padding:2px;
+    border-radius:999px;
+  }
+.md-hint summary::-webkit-details-marker{ display:none; }
+.md-hint summary:hover,
+.md-hint[open] summary{ color:var(--teal); }
+.md-hint summary .ui-icon{ width:15px; height:15px; }
+.md-hint-body{
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0;
+    z-index:20;
+    width:240px;
+    max-width:70vw;
+    padding:8px 10px;
+    font-size:12px;
+    line-height:1.45;
+    color:var(--ink);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    box-shadow:var(--shadow-md);
+  }
+.md-hint-body code{ font-size:11.5px; }
+
+/* Altura automática (form.js ajusta `height` al contenido en cada tecla) —
+     sin manija de estirar ni barra de scroll interna (19/10/2026). */
+.cita-edit-textarea{
     display:block;
     width:100%;
     font-family:'Raleway',sans-serif;
@@ -424,7 +462,9 @@
     border-radius:var(--radius-sm);
     background:var(--surface);
     color:var(--ink);
-    resize:vertical;
+    resize:none;
+    overflow:hidden;
+    line-height:1.45;
     box-sizing:border-box;
   }
 
@@ -442,6 +482,17 @@
   }
 
 .cita-banner-preview{ margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); }
+
+/* Etiqueta explícita sobre la cita ya renderizada (19/10/2026), para que no
+     se confunda la vista previa con los campos de edición de arriba. */
+.cita-preview-label{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
 
 /* Pedido del usuario, 09/10/2026: "si se resalta todo, en realidad no se
      está resaltando nada" — el texto de la cita queda en peso regular

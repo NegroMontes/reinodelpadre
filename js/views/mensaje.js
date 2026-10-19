@@ -5,7 +5,8 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES } from '../config/constants.js';
-import { escapeHtml, linkify } from '../utils/helpers.js';
+import { escapeHtml, linkify, dayDateToIso } from '../utils/helpers.js';
+import { icon } from '../utils/icons.js';
 import { entryScope, canSeeEntry, isAdmin, isJefeSeccionEditing, isJefeSeccion, effectiveDepto, effectiveSeccion, effectiveRole, lectorModeActive, isLectorLike, canEditStructure, canCreateRecurso } from '../services/permissions.js';
 import { addDay } from '../services/state.service.js';
 import { renderEntriesListHtml } from '../components/entry.js';
@@ -197,14 +198,24 @@ import { renderPanel } from '../main.js';
     if(canEditStructure()){
       html += '    <h2 class="day-title" contenteditable="true" id="dayLabelEdit">' + escapeHtml(day.label) + '</h2>';
       html += '    <div class="day-meta">';
-      html += '      <input type="text" id="dayDateInput" placeholder="fecha (ej: 8 de enero)" value="' + escapeHtml(day.date) + '">';
-      html += '      <button class="btn ghost small" id="deleteDayBtn" type="button">Eliminar día</button>';
+      // Selector de fecha nativo (19/10/2026) en vez de texto libre — ver
+      // dayDateToIso()/isoToDayDate() en helpers.js. Si la fecha vieja era un
+      // texto que no se puede leer como fecha, se muestra al lado para no
+      // perderla de vista hasta que se elija una nueva.
+      var dateIso = dayDateToIso(day.date);
+      html += '      <input type="date" id="dayDateInput" aria-label="Fecha del día" value="' + dateIso + '">';
+      if(day.date && !dateIso){ html += '      <span class="day-date-legacy">' + escapeHtml(day.date) + '</span>'; }
       html += '    </div>';
     } else {
       html += '    <h2 class="day-title">' + escapeHtml(day.label) + '</h2>';
       if(day.date){ html += '    <div class="day-meta"><span>' + escapeHtml(day.date) + '</span></div>'; }
     }
     html += '  </div>';
+    // "Eliminar día" pasó de botón con texto, pegado a la fecha, a un ícono
+    // de tacho en la esquina superior derecha de la cabecera (19/10/2026).
+    if(canEditStructure()){
+      html += '  <button class="day-delete-btn" id="deleteDayBtn" type="button" title="Eliminar día" aria-label="Eliminar día">' + icon('trash') + '</button>';
+    }
     html += '</div>';
 
     html += renderConsignasBlock(day);
@@ -216,10 +227,15 @@ import { renderPanel } from '../main.js';
     // puede tocar la estructura del día (mismo gate que label/fecha).
     if(canEditStructure()){
       html += '<div class="cita-banner cita-banner-edit">';
-      html += '  <label class="cita-edit-label">Cita bíblica — podés usar **negrita** para resaltar palabras clave<textarea id="dayCitaTextoInput" rows="3" placeholder="Texto de la cita...">' + escapeHtml(day.citaTexto || '') + '</textarea></label>';
+      // La ayuda de formato vive detrás de un ícono ℹ (19/10/2026) — un
+      // <details> se abre con un toque, también en el celular (un `title`
+      // no se ve sin mouse).
+      html += '  <div class="cita-edit-head"><label class="cita-edit-label" for="dayCitaTextoInput">Cita bíblica</label>';
+      html += '    <details class="md-hint"><summary title="Formato" aria-label="Ayuda de formato">' + icon('info') + '</summary><div class="md-hint-body">Escribí <code>**palabra**</code> para que salga en <strong>negrita</strong>, y <code>*palabra*</code> para <em>cursiva</em>.</div></details></div>';
+      html += '  <textarea id="dayCitaTextoInput" class="cita-edit-textarea" rows="2" placeholder="Texto de la cita...">' + escapeHtml(day.citaTexto || '') + '</textarea>';
       html += '  <input type="text" id="dayCitaRefInput" class="cita-ref-input" placeholder="Referencia (ej: Gálatas 4, 4-7)" value="' + escapeHtml(day.citaRef || '') + '">';
       if(day.citaTexto){
-        html += '  <div class="cita-banner-preview"><p class="cita-text">«' + linkify(day.citaTexto) + '»</p><p class="cita-ref">' + escapeHtml(day.citaRef||'') + '</p></div>';
+        html += '  <div class="cita-banner-preview"><div class="cita-preview-label">Vista previa</div><p class="cita-text">«' + linkify(day.citaTexto) + '»</p><p class="cita-ref">' + escapeHtml(day.citaRef||'') + '</p></div>';
       }
       html += '</div>';
     } else if(day.citaTexto){

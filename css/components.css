@@ -233,6 +233,37 @@ h1,h2,h3,.serif{
 
 .day-meta input:focus{ outline:none; border-bottom-color:var(--bordeaux); }
 
+/* Selector de fecha nativo (19/10/2026): el ícono de calendario del
+     navegador hereda el tema (claro/oscuro) con `color-scheme`. */
+.day-meta input[type="date"]{ width:auto; cursor:pointer; color-scheme:light; }
+:root[data-theme="dark"] .day-meta input[type="date"]{ color-scheme:dark; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .day-meta input[type="date"]{ color-scheme:dark; }
+}
+.day-date-legacy{ font-size:12px; color:var(--ink-soft); font-style:italic; }
+
+/* "Eliminar día" como ícono de tacho en la esquina superior derecha de la
+     cabecera del día (19/10/2026) — antes, botón con texto junto a la fecha. */
+.day-delete-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:34px;
+    height:34px;
+    flex-shrink:0;
+    border:1px solid transparent;
+    border-radius:999px;
+    background:none;
+    color:var(--bordeaux);
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+  }
+.day-delete-btn:hover{
+    background:color-mix(in srgb, var(--bordeaux) 10%, transparent);
+    border-color:color-mix(in srgb, var(--bordeaux) 35%, transparent);
+  }
+.day-delete-btn .ui-icon{ width:18px; height:18px; }
+
 .btn{
     font-family:'Raleway',sans-serif;
     font-size:13.5px;

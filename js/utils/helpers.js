@@ -67,6 +67,28 @@
     { k: ['estudiar', 'estudio'], icon: '📚' },
     { k: ['amig'], icon: '🗣️' }
   ];
+  // Fecha del día (19/10/2026): el editor pasó de texto libre a un selector
+  // de fecha (`<input type="date">`, que trabaja en formato AAAA-MM-DD), pero
+  // `day.date` se sigue guardando como texto legible ("8 de enero"), el mismo
+  // formato que ya mostraba la vista de lectura — así no hace falta migrar
+  // nada. Estas dos funciones traducen entre un formato y el otro. Sin año en
+  // el texto se asume 2027 (el año del campamento).
+  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  export function dayDateToIso(text){
+    var m = /^\s*(\d{1,2})\s+de\s+([a-záéíóú]+)(?:\s+(?:de\s+)?(\d{4}))?\s*$/i.exec(text || '');
+    if(!m) return '';
+    var mes = MESES.indexOf(m[2].toLowerCase().replace('setiembre','septiembre'));
+    if(mes < 0) return '';
+    var dia = parseInt(m[1], 10);
+    if(dia < 1 || dia > 31) return '';
+    return (m[3] || '2027') + '-' + String(mes + 1).padStart(2, '0') + '-' + String(dia).padStart(2, '0');
+  }
+  export function isoToDayDate(iso){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if(!m) return '';
+    return parseInt(m[3], 10) + ' de ' + MESES[parseInt(m[2], 10) - 1];
+  }
+
   export function activityIcon(actividadFavorita){
     if(!actividadFavorita) return '';
     // normalizeName() ya hace exactamente lo que hace falta acá (sacar
