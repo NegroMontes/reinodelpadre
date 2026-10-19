@@ -12,9 +12,14 @@
 
 .users-table th{
     font-size:11px;
+    font-weight:700;
     text-transform:uppercase;
-    letter-spacing:0.02em;
-    color:var(--ink-soft);
+    letter-spacing:0.04em;
+    /* Más contraste (19/10/2026): texto --ink (antes --ink-soft) sobre una
+       franja de fondo, con una línea inferior más marcada. */
+    color:var(--ink);
+    background:var(--bg-alt);
+    border-bottom:2px solid var(--line);
     /* El botón de orden (↕/▲/▼) quedaba en su propio renglón, debajo del
        texto del header, en vez de al lado (pedido del usuario, 23/09/2026)
        — sin esto, el ancho de columna (angosto, ajustado al contenido de
@@ -23,11 +28,31 @@
     white-space:nowrap;
   }
 
-.users-table select{
+/* Desplegables de Rol / Sección (19/10/2026) — mismo look que los inputs
+   del resto del sitio (fondo, borde, radio, flecha propia). */
+.users-table select,
+.users-filters select{
     font-family:'Raleway',sans-serif;
     font-size:12.5px;
-    padding:5px 6px;
+    padding:6px 28px 6px 10px;
     border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    background-color:var(--surface);
+    color:var(--ink);
+    -webkit-appearance:none;
+    appearance:none;
+    background-image:linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%), linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%);
+    background-position:calc(100% - 15px) 50%, calc(100% - 10px) 50%;
+    background-size:5px 5px, 5px 5px;
+    background-repeat:no-repeat;
+    cursor:pointer;
+  }
+.users-table select:focus,
+.users-filters select:focus,
+.users-filters input[type="text"]:focus{
+    outline:none;
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--teal) 18%, transparent);
   }
 
 /* Fila de filtros de "Usuarios": nombre, rol, sección/depto (el rango de
@@ -46,13 +71,38 @@
     border-radius:var(--radius-sm);
   }
 
-.users-filters input[type="text"], .users-filters select{
+.users-filters input[type="text"]{
     font-family:'Raleway',sans-serif;
     font-size:12.5px;
-    padding:5px 6px;
+    padding:6px 30px 6px 10px;
     border:1px solid var(--line);
-    border-radius:5px;
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    color:var(--ink);
   }
+
+/* Buscador con "X" adentro para borrar el texto (19/10/2026). */
+.uf-search-wrap{ position:relative; display:inline-flex; align-items:center; }
+.uf-search-clear{
+    position:absolute;
+    right:4px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px;
+    height:22px;
+    padding:0;
+    border:none;
+    border-radius:50%;
+    background:none;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+.uf-search-clear:hover{ background:var(--bg-alt); color:var(--ink); }
+.uf-search-clear .ui-icon{ width:14px; height:14px; }
+
+/* "Limpiar filtros" a la derecha del contenedor (19/10/2026). */
+.users-filters .uf-clear-btn{ margin-left:auto; }
 
 /* Botón de orden (A-Z/Z-A, o más reciente/más antiguo) en los headers de
      Nombre y Fecha (pedido del usuario, 23/09/2026) — ↕ neutro, ▲/▼ cuando

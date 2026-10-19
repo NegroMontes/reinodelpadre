@@ -25,6 +25,30 @@ import { showConfirm } from './dialog.js';
   // exclusivo de departamentos); un jefe de sección o de departamento sigue
   // fijo a su propio grupo (sin poder elegir otros), pero también puede tildar
   // "Todos los comandos" para ampliar el alcance de esa entrada puntual.
+  // Ícono ℹ️ con la aclaración en un globito (hover/foco) — reemplaza a los
+  // textos grises sueltos debajo de cada opción (19/10/2026, recomendación
+  // de diseño que pasó el usuario). Va FUERA del <label>, para que tocarlo
+  // no tilde/destilde el checkbox de al lado.
+  function helpTipHtml(text){
+    return '<span class="help-tip" tabindex="0" role="img" aria-label="' + escapeHtml(text) + '" data-tip="' + escapeHtml(text) + '">' + icon('info') + '</span>';
+  }
+
+  // Resumen de lo elegido en "Visible para" — es lo que se ve con el
+  // desplegable cerrado (ver renderAmbitoPicker, caso admin).
+  function ambitoSummaryText(isDeptosTab){
+    var parts = [];
+    if(AppState.formComandoGeneral){ parts.push(isDeptosTab ? 'General' : 'Todos los comandos'); }
+    if(!isDeptosTab){ parts = parts.concat(AppState.formSecciones); }
+    parts = parts.concat(AppState.formDeptos);
+    if(parts.length === 0){ return isDeptosTab ? 'Elegí al menos un departamento' : 'Comando y milicianos (por defecto)'; }
+    return parts.join(', ');
+  }
+
+  function updateAmbitoSummary(){
+    var el = document.getElementById('ambitoSummaryText');
+    if(el){ el.textContent = ambitoSummaryText(el.getAttribute('data-deptos-tab') === '1'); }
+  }
+
   export function renderAmbitoPicker(day){
     var isDeptosTab = (day === null);
     var jefeDepto = isJefeSeccion() && effectiveDepto() && !effectiveSeccion();
@@ -33,12 +57,16 @@ import { showConfirm } from './dialog.js';
     // label en los 3 lugares que reusan este picker (Mensaje, Departamentos,
     // Recursos).
     var html = '  <div class="form-row"><label>Visible para</label>';
-    // Nota del default (nada elegido = General) arriba de todo, entre el label
-    // y el checkbox — solo tiene sentido para el admin, el único que puede
-    // efectivamente dejar todo sin elegir (un jefe siempre está forzado a su
-    // propio grupo; Departamentos nunca permite quedar sin ámbito).
-    if(isAdmin() && !isDeptosTab){
-      html += '    <p class="mandos-sub ambito-default-note">Comando y milicianos (por defecto)</p>';
+    // Admin: todas las opciones van adentro de un desplegable (<details>)
+    // que, cerrado, muestra un resumen de lo elegido (19/10/2026,
+    // recomendación de diseño que pasó el usuario: no sobrecargar el centro
+    // de la pantalla). Reemplaza a la nota "Comando y milicianos (por
+    // defecto)" que iba arriba — ahora es el resumen cuando no hay nada
+    // elegido. El abierto/cerrado se guarda en AppState para que un
+    // re-render (ej. al tildar "Publicar sin firmar") no lo cierre solo.
+    if(isAdmin()){
+      html += '    <details class="ambito-dropdown" id="ambitoDropdown"' + (AppState.formAmbitoOpen ? ' open' : '') + '>';
+      html += '      <summary><span id="ambitoSummaryText" data-deptos-tab="' + (isDeptosTab ? '1' : '0') + '">' + escapeHtml(ambitoSummaryText(isDeptosTab)) + '</span></summary>';
     }
     html += '    <div class="ambito-picker">';
     // En Departamentos, esta pestaña es exclusivamente de comando — nunca la
@@ -50,6 +78,9 @@ import { showConfirm } from './dialog.js';
     html += '      <label class="ambito-general-check"><input type="checkbox" id="fComandoGeneral"' + (AppState.formComandoGeneral ? ' checked' : '') + '> ' + comandoGeneralLabel + '</label>';
 
     if(isAdmin()){
+      // Secciones y Departamentos en dos columnas, cada una con su grilla
+      // de checkboxes (19/10/2026) — en mobile vuelven a una sola columna.
+      html += '      <div class="ambito-groups">';
       if(!isDeptosTab){
         html += '      <div class="ambito-group"><p class="ambito-group-title">Secciones</p>';
         SECCIONES.forEach(function(s){
@@ -64,21 +95,21 @@ import { showConfirm } from './dialog.js';
         html += '<label><input type="checkbox" class="fDeptoCheck" value="' + escapeHtml(d) + '"' + (checked ? ' checked' : '') + '> ' + escapeHtml(d) + '</label>';
       });
       html += '</div>';
+      html += '      </div>';
       // Solo en Recursos (22/09/2026, comentario del usuario): permite acotar
       // la/s sección/es elegida/s a solo el comando de esa sección (subjefes,
       // secretarios — cualquier `lector` con `tipo:'comando'`), sin que lo vean
       // los milicianos de esa misma sección. Usa el campo `tipo` del perfil
       // (comando/acampante, ya se guarda desde el onboarding).
       if(day === 'RESOURCES'){
-        html += '      <label class="ambito-general-check"><input type="checkbox" id="fSeccionComandoOnly"' + (AppState.formSeccionComandoOnly ? ' checked' : '') + '> Solo el comando de la(s) sección(es) elegida(s) (no milicianos)</label>';
+        html += '      <div class="ambito-comando-only-row"><label class="ambito-general-check"><input type="checkbox" id="fSeccionComandoOnly"' + (AppState.formSeccionComandoOnly ? ' checked' : '') + '> Solo el comando de la(s) sección(es) elegida(s) (no milicianos)</label>' + helpTipHtml('No tiene efecto si no elegiste ninguna sección arriba.') + '</div>';
         // Aclaración (22/09/2026, pregunta del usuario: "¿qué pasa si elijo un
         // departamento y tildo esto?") — nada: este checkbox solo tiene efecto
         // sobre las SECCIONES tildadas arriba. Si no se tildó ninguna sección
         // (por ejemplo, se eligió únicamente un departamento), queda guardado
         // en la entrada pero sin ningún efecto real sobre quién la ve.
-        html += '      <p class="mandos-sub" style="margin:2px 0 0">No tiene efecto si no elegiste ninguna sección arriba.</p>';
       }
-      html += '    </div></div>';
+      html += '    </div></details></div>';
     } else if(jefeDepto){
       html += '      <p class="mandos-sub" style="margin:0">Se publica siempre para tu departamento: <strong>' + escapeHtml(effectiveDepto()) + '</strong></p>';
       html += '    </div></div>';
@@ -101,6 +132,7 @@ import { showConfirm } from './dialog.js';
     AppState.editingEntryId = null;
     AppState.formSecciones = []; AppState.formDeptos = []; AppState.formComandoGeneral = false; AppState.formSeccionComandoOnly = false;
     AppState.formAnonimo = false; AppState.formOculta = false; AppState.formBienvenida = false;
+    AppState.formAmbitoOpen = false;
     AppState.formTitleDraft = null;
     AppState.insertOrderCreatedAt = null; AppState.insertOrderNote = '';
   }
@@ -122,19 +154,28 @@ import { showConfirm } from './dialog.js';
     } else {
       html += renderAmbitoPicker(day);
     }
-    html += '  <div class="signature-row"><label><input type="checkbox" id="fAnonimo"' + (AppState.formAnonimo ? ' checked' : '') + '> Publicar sin firmar (queda anónimo)</label></div>';
-    html += '  <p class="mandos-sub">' + (AppState.formAnonimo ? 'Se publica sin firma (anónimo).' : ('Firma como: <strong>' + escapeHtml(AppState.currentUser.displayName) + '</strong>')) + '</p>';
+    // Las 3 opciones de abajo pasaron de checkbox a switch (interruptor),
+    // alineadas en una columna (19/10/2026, recomendación de diseño que pasó
+    // el usuario) — siguen siendo <input type="checkbox"> por dentro (mismos
+    // ids y handlers), solo cambia cómo se dibujan (ver `.switch` en CSS).
+    html += '  <div class="switch-list">';
+    html += '  <div class="signature-row switch-row"><label><input type="checkbox" class="switch" id="fAnonimo"' + (AppState.formAnonimo ? ' checked' : '') + '> Publicar sin firmar (queda anónimo)</label>' +
+      helpTipHtml(AppState.formAnonimo ? 'Se publica sin firma (anónimo).' : ('Firma como: ' + AppState.currentUser.displayName)) + '</div>';
     // "Ocultar (borrador)" (pedido del usuario, 23/09/2026) — deja armar la
     // entrada con tiempo, con sus etiquetas de sección/depto ya puestas, sin
     // que la vean todavía quienes están en esas etiquetas (ver canSeeEntry).
-    html += '  <div class="signature-row"><label><input type="checkbox" id="fOculta"' + (AppState.formOculta ? ' checked' : '') + '> Ocultar (borrador — solo vos y otros editores la ven hasta que la publiques)</label></div>';
+    html += '  <div class="signature-row switch-row"><label><input type="checkbox" class="switch" id="fOculta"' + (AppState.formOculta ? ' checked' : '') + '> Ocultar (borrador)</label>' + helpTipHtml('Solo vos y otros editores la ven hasta que la publiques.') + '</div>';
     // "Entrada de bienvenida" (pedido del usuario, 24/09/2026) — solo tiene
     // sentido en Recursos; solo el admin la ve/toca (pedido del usuario,
     // 24/09/2026).
     if(day === 'RESOURCES' && isAdmin()){
-      html += '  <div class="signature-row"><label><input type="checkbox" id="fBienvenida"' + (AppState.formBienvenida ? ' checked' : '') + '> Entrada de bienvenida (aparece arriba de todo en Inicio para quien todavía no la completó — comando y milicianos por igual)</label></div>';
+      html += '  <div class="signature-row switch-row"><label><input type="checkbox" class="switch" id="fBienvenida"' + (AppState.formBienvenida ? ' checked' : '') + '> Entrada de bienvenida</label>' + helpTipHtml('Aparece arriba de todo en Inicio para quien todavía no la completó — comando y milicianos por igual.') + '</div>';
     }
+    html += '  </div>';
+    // Acciones alineadas a la derecha, con "Cancelar" antes del botón
+    // principal (19/10/2026).
     html += '  <div class="form-actions">';
+    html += '    <button class="btn ghost" id="cancelFormBtn" type="button">Cancelar</button>';
     if(editing){
       var stepCount = entryToEspacio(editing).steps.length;
       html += '    <button class="btn" id="saveEntryBtn" type="button">Guardar cambios</button>';
@@ -142,7 +183,6 @@ import { showConfirm } from './dialog.js';
     } else {
       html += '    <button class="btn" id="saveEntryBtn" type="button">Crear entrada y abrir editor</button>';
     }
-    html += '    <button class="btn ghost" id="cancelFormBtn" type="button">Cancelar</button>';
     html += '  </div>';
     html += '  <div class="status-msg" id="statusMsg"></div>';
     html += '</div>';
@@ -362,7 +402,7 @@ import { showConfirm } from './dialog.js';
     // se mantiene tildado solo, es un <input> nativo).
     var comandoGeneralCheck = document.getElementById('fComandoGeneral');
     if(comandoGeneralCheck){
-      comandoGeneralCheck.onchange = function(){ AppState.formComandoGeneral = comandoGeneralCheck.checked; };
+      comandoGeneralCheck.onchange = function(){ AppState.formComandoGeneral = comandoGeneralCheck.checked; updateAmbitoSummary(); };
     }
     var seccionComandoOnlyCheck = document.getElementById('fSeccionComandoOnly');
     if(seccionComandoOnlyCheck){
@@ -390,6 +430,7 @@ import { showConfirm } from './dialog.js';
         var v = cb.value;
         if(cb.checked){ if(AppState.formSecciones.indexOf(v) === -1) AppState.formSecciones.push(v); }
         else { AppState.formSecciones = AppState.formSecciones.filter(function(x){ return x !== v; }); }
+        updateAmbitoSummary();
       };
     });
     document.querySelectorAll('.fDeptoCheck').forEach(function(cb){
@@ -397,8 +438,13 @@ import { showConfirm } from './dialog.js';
         var v = cb.value;
         if(cb.checked){ if(AppState.formDeptos.indexOf(v) === -1) AppState.formDeptos.push(v); }
         else { AppState.formDeptos = AppState.formDeptos.filter(function(x){ return x !== v; }); }
+        updateAmbitoSummary();
       };
     });
+    var ambitoDropdown = document.getElementById('ambitoDropdown');
+    if(ambitoDropdown){
+      ambitoDropdown.ontoggle = function(){ AppState.formAmbitoOpen = ambitoDropdown.open; };
+    }
 
     // "Guardar cambios" (entrada existente) / "Crear entrada y abrir editor"
     // (entrada nueva) — nunca toca el contenido (`espacio`): eso vive

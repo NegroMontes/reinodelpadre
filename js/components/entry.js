@@ -139,14 +139,14 @@ import { canSeeCompletions } from '../services/progress.service.js';
     // "Ver como", para poder previsualizar que un lector/jefe NO lo ve)
     // siempre ve quién publicó una entrada anónima.
     var anonimoTag = (entry.anonimo && isAdmin())
-      ? ' <span class="tag imagen" title="Solo vos (admin) ves esto — el resto la ve sin firma">' + icon('lock') + ' ' + escapeHtml(entry.authorReal || '(autor desconocido)') + '</span>'
+      ? ' <span class="tag tag-muted" title="Solo vos (admin) ves esto — el resto la ve sin firma">' + icon('lock') + ' ' + escapeHtml(entry.authorReal || '(autor desconocido)') + '</span>'
       : '';
     html += '      <div class="entry-meta">' +
       scopeTag + ocultaTag + anonimoTag +
-      (entry.anonimo ? '' : (entry.author ? '<span>' + escapeHtml(entry.author) + '</span>' : '')) + '</div>';
+      (entry.anonimo ? '' : (entry.author ? '<span class="entry-author">' + escapeHtml(entry.author) + '</span>' : '')) + '</div>';
     html += '      <div class="entry-start-row">';
     html += '        <button class="btn small entry-start-btn" data-action="view" data-id="' + entry.id + '">Comenzar</button>';
-    if(stepCount){ html += '        <span class="entry-step-count">' + stepCount + ' paso' + (stepCount === 1 ? '' : 's') + '</span>'; }
+    if(stepCount){ html += '        <span class="entry-step-count badge-neutral">' + stepCount + ' paso' + (stepCount === 1 ? '' : 's') + '</span>'; }
     html += completionsButtonHtml(entry);
     html += '      </div>';
     if(AppState.secuencialCompletionsOpenId === entry.id){ html += completionsPanelHtml(entry); }
@@ -155,9 +155,11 @@ import { canSeeCompletions } from '../services/progress.service.js';
     if(canEdit){
       // Publicar de un click, sin tener que abrir el editor (pedido del
       // usuario, 23/09/2026: "que se publique en un momento a elección").
-      if(entry.oculta){ html += '      <button data-action="publishEntry" data-id="' + entry.id + '">Publicar</button>'; }
-      html += '      <button data-action="edit" data-id="' + entry.id + '">Editar</button>';
-      html += '      <button data-action="delete" data-id="' + entry.id + '">Eliminar</button>';
+      if(entry.oculta){ html += '      <button class="entry-publish-btn" data-action="publishEntry" data-id="' + entry.id + '">Publicar</button>'; }
+      // Editar/Eliminar como íconos (19/10/2026, recomendación de diseño
+      // que pasó el usuario) — antes eran links de texto subrayado.
+      html += '      <button class="entry-icon-btn" data-action="edit" data-id="' + entry.id + '" title="Editar" aria-label="Editar">' + icon('pencil') + '</button>';
+      html += '      <button class="entry-icon-btn entry-icon-btn-danger" data-action="delete" data-id="' + entry.id + '" title="Eliminar" aria-label="Eliminar">' + icon('trash') + '</button>';
     }
     html += '    </div>';
     html += '  </div>';

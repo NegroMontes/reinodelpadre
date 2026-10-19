@@ -10,6 +10,7 @@ import { setUserRole, deleteUser } from '../services/users.service.js';
 import { copyTextToClipboard } from './feedback.js';
 import { render, renderPanel, showStatus } from '../main.js';
 import { showAlert, showConfirm } from '../components/dialog.js';
+import { icon } from '../utils/icons.js';
 
   // Filtra `usersList` según los filtros activos de la pestaña "Usuarios"
   // (pedido del usuario, 23/09/2026: filtrar por rol, sección, fecha y nombre).
@@ -76,10 +77,15 @@ import { showAlert, showConfirm } from '../components/dialog.js';
 
   export function renderUsersPanel(){
     var html = '';
-    html += '<div class="panel-head"><div><h2>Usuarios</h2>';
-    html += '<p class="mandos-sub">Los que declararon un mando que coincide con el cuadro de mandos entraron solos. Revisá los resaltados en ámbar ("pendiente") — quedaron ahí porque no coincidieron, son acampantes/lectores sin padrón para verificar, o (⚠ sugiere: Admin) matchearon un puesto de admin y están esperando que lo confirmes vos.</p></div>';
+    html += '<div class="panel-head"><div><h2>Usuarios</h2></div>';
     html += '<button class="btn ghost small" id="copyUsersBtn" type="button">Copiar actividades</button>';
     html += '</div>';
+    // La nota larga que vivía debajo del título pasó a un callout plegable
+    // (19/10/2026, recomendación de diseño que pasó el usuario) — <details>
+    // nativo, cerrado por default, sin JS propio.
+    html += '<details class="info-callout"><summary>' + icon('info') + ' ¿Quiénes quedan pendientes?</summary>';
+    html += '<p>Los que declararon un mando que coincide con el cuadro de mandos entraron solos. Revisá los resaltados en ámbar ("pendiente") — quedaron ahí porque no coincidieron, son acampantes/lectores sin padrón para verificar, o (⚠ sugiere: Admin) matchearon un puesto de admin y están esperando que lo confirmes vos.</p>';
+    html += '</details>';
 
     if(AppState.usersList.length === 0){
       html += '<p class="empty">Todavía no inició sesión nadie más.</p>';
@@ -109,7 +115,14 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     }
 
     html += '<div class="users-filters">';
-    html += '  <input type="text" id="ufName" placeholder="Buscar por nombre..." value="' + escapeHtml(AppState.usersFilterName) + '">';
+    // La "X" adentro del buscador borra solo el nombre; "Limpiar filtros"
+    // (alineado a la derecha) sigue borrando todo, y solo aparece si hay
+    // algún filtro activo (19/10/2026).
+    html += '  <span class="uf-search-wrap"><input type="text" id="ufName" placeholder="Buscar por nombre..." value="' + escapeHtml(AppState.usersFilterName) + '">';
+    if(AppState.usersFilterName){
+      html += '<button type="button" class="uf-search-clear" id="ufNameClearBtn" title="Borrar búsqueda" aria-label="Borrar búsqueda">' + icon('x') + '</button>';
+    }
+    html += '</span>';
     html += '  <select id="ufRole"><option value="">Todos los roles</option>';
     ['pendiente','lector','subjefe','consagrado','jefe_seccion','admin'].forEach(function(r){
       html += '<option value="' + r + '"' + (AppState.usersFilterRole===r ? ' selected':'') + '>' + roleLabel(r) + '</option>';
@@ -127,7 +140,9 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       html += '<option value="' + escapeHtml(v) + '"' + (AppState.usersFilterScope===v ? ' selected':'') + '>' + escapeHtml(d) + '</option>';
     });
     html += '</optgroup></select>';
-    html += '  <button class="btn ghost small" id="ufClearBtn" type="button">Limpiar filtros</button>';
+    if(AppState.usersFilterName || AppState.usersFilterRole || AppState.usersFilterScope){
+      html += '  <button class="btn ghost small uf-clear-btn" id="ufClearBtn" type="button">Limpiar filtros</button>';
+    }
     html += '</div>';
 
     var filtered = filteredUsersList();
@@ -320,6 +335,15 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     if(ufRole){ ufRole.onchange = function(){ AppState.usersFilterRole = ufRole.value; renderPanel(); }; }
     var ufScope = document.getElementById('ufScope');
     if(ufScope){ ufScope.onchange = function(){ AppState.usersFilterScope = ufScope.value; renderPanel(); }; }
+    var ufNameClearBtn = document.getElementById('ufNameClearBtn');
+    if(ufNameClearBtn){
+      ufNameClearBtn.onclick = function(){
+        AppState.usersFilterName = '';
+        renderPanel();
+        var newInput = document.getElementById('ufName');
+        if(newInput){ newInput.focus(); }
+      };
+    }
     var ufClearBtn = document.getElementById('ufClearBtn');
     if(ufClearBtn){
       ufClearBtn.onclick = function(){

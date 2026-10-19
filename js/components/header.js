@@ -230,8 +230,8 @@ import { icon } from '../utils/icons.js';
         html += '</select></label>';
       }
       html += '    <div class="user-menu-profile-actions">';
+      html += '      <button id="userProfileCancelBtn" class="btn neutral small" type="button">Cancelar</button>';
       html += '      <button id="userProfileSaveBtn" class="btn small" type="button">Guardar</button>';
-      html += '      <button id="userProfileCancelBtn" class="btn ghost small" type="button">Cancelar</button>';
       html += '    </div>';
       html += '  </div>';
     } else {
@@ -275,7 +275,7 @@ import { icon } from '../utils/icons.js';
         html += '  </div>';
       }
       html += '  <button class="user-menu-item" id="userMenuProfileBtn" type="button">' + icon('user') + ' Perfil</button>';
-      html += '  <button class="user-menu-item" id="userMenuSignOutBtn" type="button">Cerrar sesión</button>';
+      html += '  <button class="user-menu-item user-menu-item-danger" id="userMenuSignOutBtn" type="button">' + icon('log-out') + ' Cerrar sesión</button>';
     }
     html += '</div>';
     return html;

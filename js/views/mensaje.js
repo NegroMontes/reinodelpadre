@@ -93,7 +93,14 @@ import { renderPanel } from '../main.js';
 
     var html = '';
     html += '<div class="panel-head"><div><h2>Recursos</h2>';
-    html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes y oraciones para todo el campamento.</p></div></div>';
+    html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes y oraciones para todo el campamento.</p></div>';
+    // "+ Agregar entrada" arriba a la derecha, al lado del título (19/10/2026,
+    // recomendación de diseño que pasó el usuario) — el formulario sigue
+    // abriéndose debajo de la lista (toggleFormBtn ya hace scroll hasta él).
+    if(canAddHere){
+      html += '<button class="btn small" id="toggleFormBtn" type="button">' + (AppState.formOpen ? 'Cerrar' : '+ Agregar entrada') + '</button>';
+    }
+    html += '</div>';
 
     html += '<div class="entries">';
     if(items.length === 0){
@@ -104,7 +111,6 @@ import { renderPanel } from '../main.js';
     html += '</div>';
 
     if(canAddHere){
-      html += '<div class="panel-head add-entry-row"><div></div><button class="btn small" id="toggleFormBtn" type="button">' + (AppState.formOpen ? 'Cerrar' : '+ Agregar entrada') + '</button></div>';
       html += renderForm('RESOURCES');
     }
 
