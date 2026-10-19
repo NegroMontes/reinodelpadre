@@ -322,7 +322,7 @@ h1,h2,h3,.serif{
 
 .entry{
     padding:18px 20px;
-    background:var(--bg);
+    background:var(--card-bg);
     border:1px solid var(--line);
     border-radius:var(--radius);
     box-shadow:var(--shadow-sm);
@@ -745,7 +745,7 @@ h2.day-title{
     display:flex;
     flex-direction:column;
     gap:3px;
-    background:var(--bg);
+    background:var(--card-bg);
     border:1px solid var(--line);
     border-left:4px solid var(--bordeaux);
     border-radius:0 var(--radius-sm) var(--radius-sm) 0;
@@ -795,7 +795,7 @@ h2.day-title{
   }
 
 .mandos-sub-card{
-    background:var(--bg);
+    background:var(--card-bg);
     padding:10px 12px;
     border:1px solid var(--line);
     border-radius:var(--radius-sm);
@@ -824,7 +824,7 @@ h2.day-title{
   }
 
 .mandos-depto-card{
-    background:var(--bg);
+    background:var(--card-bg);
     padding:12px 14px;
     border:1px solid var(--line);
     border-top:4px solid var(--sage);

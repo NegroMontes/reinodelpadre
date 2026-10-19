@@ -24,8 +24,9 @@
     flex-shrink:0;
     position:sticky;
     top:20px;
-    padding:10px 24px 10px 0;
-    border-right:1px solid var(--line);
+    padding:12px 10px;
+    background:var(--sidebar-bg);
+    border-radius:var(--radius);
   }
 
 /* HEADER */
@@ -105,8 +106,7 @@ header.top{
     background:transparent;
     color:var(--ink-soft);
     border:1px solid transparent;
-    border-left:3px solid transparent;
-    border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+    border-radius:var(--radius-sm);
     padding:10px 14px;
     cursor:pointer;
     font-family:'Baloo 2',serif;
@@ -125,7 +125,7 @@ header.top{
      dos usan el celeste `--bg` como su propio "bloque" puntual, el mismo
      criterio que `.home-card`/`.mando-card` (feedback de Comunicaciones,
      09/10/2026: "dándole más protagonismo a los bloques celestes"). */
-.day-tab:hover{ background:var(--bg); transform:translateX(2px); }
+.day-tab:hover{ background:var(--card-bg); transform:translateX(2px); }
 
 /* Sin acento de color en el borde izquierdo (reporte del usuario,
      15/10/2026: "el botón de departamentos sigue con una línea de color")
@@ -139,7 +139,7 @@ header.top{
      `border-left` se queda en `transparent` (heredado de `.day-tab`), solo
      para no correr el ancho de la pestaña al activarse. */
 .day-tab.active{
-    background:var(--bg);
+    background:var(--card-bg);
     border-color:var(--line);
     color:var(--teal);
     font-weight:600;
@@ -237,7 +237,8 @@ header.top{
       padding:8px 14px;
       border-right:none;
       border-bottom:1px solid var(--line);
-      background:var(--panel);
+      border-radius:0;
+      background:var(--sidebar-bg);
       box-shadow:0 2px 8px rgba(var(--shadow-rgb),0.12);
     }
 

@@ -16,6 +16,9 @@
     --white: #FFFFFF;          /* texto blanco sobre fondo de color — SIEMPRE blanco, en los dos temas */
     --surface: #FFFFFF;        /* fondo de inputs/tarjetas chicas — distinto de --white (09/10/2026, separado para que el modo oscuro pueda oscurecer uno sin tocar el otro) */
     --shadow-rgb: 22,41,55;    /* mismo tono que --ink, en rgb para usar en rgba() de sombras */
+    --page-bg: #F4F6F8;        /* fondo general — gris suave en vez de blanco puro, menos fatiga visual (19/10/2026) */
+    --card-bg: #FFFFFF;        /* tarjetas de contenido (entradas, home, mandos) — blancas para resaltar sobre --page-bg */
+    --sidebar-bg: #E6EDF1;     /* panel lateral — gris azulado apenas más oscuro que --page-bg */
 
     /* Sistema de forma/profundidad (06/10/2026) — nunca cambia de color, solo
        redondea/da volumen, inspirado en la estética de "Encuentros" (tarjetas
@@ -57,6 +60,9 @@
       --line: #2E4450;
       --surface: #16242E;
       --shadow-rgb: 0,0,0;
+      --page-bg: #1B2A35;
+      --card-bg: #0F1B24;
+      --sidebar-bg: #16242E;
     }
   }
   :root[data-theme="dark"]{
@@ -75,6 +81,9 @@
     --line: #2E4450;
     --surface: #16242E;
     --shadow-rgb: 0,0,0;
+    --page-bg: #1B2A35;
+    --card-bg: #0F1B24;
+    --sidebar-bg: #16242E;
   }
 
 html,body{margin:0;padding:0;}
@@ -104,7 +113,7 @@ html{ overflow-x:hidden; }
      y los bloques de acento el más oscuro (`--bg`) — la misma polaridad
      invertida, sin redefinir ninguna variable de color. */
 body{
-    background:var(--panel);
+    background:var(--page-bg);
     color:var(--ink);
     font-family:'Raleway',system-ui,-apple-system,sans-serif;
     font-size:15px;
