@@ -2,7 +2,7 @@
 // Novedades) y sus datos: qué contenido nuevo hay, y dónde vive.
 
 import { AppState } from '../app-state.js';
-import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS } from '../config/constants.js';
+import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS, APP_VERSION, CHANGELOG } from '../config/constants.js';
 import { escapeHtml, roleLabel, roleLabelScoped, activityIcon } from '../utils/helpers.js';
 import { userBadgeInnerHtml, cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { saveNovedadesSeenAt } from '../utils/storage.js';
@@ -168,9 +168,11 @@ import { icon } from '../utils/icons.js';
   // del usuario ("pensa iconos para cada departamento para que elijan entre
   // el de fasta y el de los departamentos").
   function rightBadgeHtml(){
-    var inner = userBadgeInnerHtml(AppState.currentUser, DEPARTAMENTO_ICONS);
+    var inner = userBadgeInnerHtml(AppState.currentUser);
     if(!inner) return '';
-    var title = AppState.currentUser.seccion || AppState.currentUser.depto || '';
+    var title = AppState.currentUser.seccion
+      ? 'Sección: ' + AppState.currentUser.seccion
+      : (AppState.currentUser.depto ? 'Departamento: ' + AppState.currentUser.depto : '');
     return '<span class="user-avatar-badge user-avatar-badge-seccion" title="' + escapeHtml(title) + '">' + inner + '</span>';
   }
 
@@ -182,7 +184,7 @@ import { icon } from '../utils/icons.js';
       ? '<img class="user-avatar-img" src="' + escapeHtml(AppState.currentUser.photoURL) + '" alt="">'
       : '<span class="user-avatar-fallback">' + icon('user') + '</span>';
     if(myActivityIcon){
-      html += '<span class="user-avatar-badge user-avatar-badge-activity" title="Tu actividad favorita">' + myActivityIcon + '</span>';
+      html += '<span class="user-avatar-badge user-avatar-badge-activity" title="Actividad: ' + escapeHtml(AppState.currentUser.actividadFavorita) + '">' + myActivityIcon + '</span>';
     }
     html += rightBadgeHtml();
     html += '</button>';
@@ -276,6 +278,25 @@ import { icon } from '../utils/icons.js';
       }
       html += '  <button class="user-menu-item" id="userMenuProfileBtn" type="button">' + icon('user') + ' Perfil</button>';
       html += '  <button class="user-menu-item user-menu-item-danger" id="userMenuSignOutBtn" type="button">' + icon('log-out') + ' Cerrar sesión</button>';
+      // Versión + historial de cambios, discreto, solo admin (19/10/2026,
+      // pedido del usuario) — nunca para el resto del comando.
+      if(realIsAdmin()){
+        html += '  <div class="user-menu-version">';
+        html += '    <button class="user-menu-version-btn" id="userMenuVersionBtn" type="button" title="Ver el historial de cambios">v' + escapeHtml(APP_VERSION) + '</button>';
+        if(AppState.changelogOpen){
+          html += '    <div class="user-menu-changelog">';
+          CHANGELOG.forEach(function(entry){
+            html += '      <div class="user-menu-changelog-entry">';
+            html += '        <strong>v' + escapeHtml(entry.version) + '</strong><span class="mandos-sub"> · ' + escapeHtml(entry.date) + '</span>';
+            html += '        <ul>';
+            entry.items.forEach(function(it){ html += '<li>' + escapeHtml(it) + '</li>'; });
+            html += '        </ul>';
+            html += '      </div>';
+          });
+          html += '    </div>';
+        }
+        html += '  </div>';
+      }
     }
     html += '</div>';
     return html;
@@ -287,7 +308,7 @@ import { icon } from '../utils/icons.js';
       avatarBtn.onclick = function(e){
         e.stopPropagation(); // no lo agarre el listener de "click afuera cierra" de Novedades
         AppState.userMenuOpen = !AppState.userMenuOpen;
-        if(!AppState.userMenuOpen){ AppState.userMenuEditingProfile = false; AppState.userProfileDraft = null; }
+        if(!AppState.userMenuOpen){ AppState.userMenuEditingProfile = false; AppState.userProfileDraft = null; AppState.changelogOpen = false; }
         renderAuthBar();
       };
     }
@@ -301,6 +322,14 @@ import { icon } from '../utils/icons.js';
     }
     var menuSignOutBtn = document.getElementById('userMenuSignOutBtn');
     if(menuSignOutBtn){ menuSignOutBtn.onclick = signOutUser; }
+
+    var versionBtn = document.getElementById('userMenuVersionBtn');
+    if(versionBtn){
+      versionBtn.onclick = function(){
+        AppState.changelogOpen = !AppState.changelogOpen;
+        renderAuthBar();
+      };
+    }
 
     var lectorToggleBtn = document.getElementById('userMenuLectorToggleBtn');
     if(lectorToggleBtn){

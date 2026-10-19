@@ -6,7 +6,6 @@
 // canSeeMiComandoSubtab() en services/permissions.js).
 
 import { AppState } from '../app-state.js';
-import { DEPARTAMENTO_ICONS } from '../config/constants.js';
 import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
 import { userBadgeInnerHtml } from '../utils/badge-icons.js';
 import { icon } from '../utils/icons.js';
@@ -149,15 +148,16 @@ import { renderPanel } from '../main.js';
     var avatar = u.photoURL
       ? '<img class="micomando-avatar-img" src="' + escapeHtml(u.photoURL) + '" alt="">'
       : '<span class="micomando-avatar-fallback">' + icon('user') + '</span>';
-    var badgeInner = userBadgeInnerHtml(u, DEPARTAMENTO_ICONS);
-    var badge = badgeInner ? '<span class="micomando-badge" title="' + escapeHtml(u.seccion || u.depto || grupo || '') + '">' + badgeInner + '</span>' : '';
+    var badgeInner = userBadgeInnerHtml(u);
+    var badgeTitle = u.seccion ? ('Sección: ' + u.seccion) : (u.depto ? ('Departamento: ' + u.depto) : (grupo || ''));
+    var badge = badgeInner ? '<span class="micomando-badge" title="' + escapeHtml(badgeTitle) + '">' + badgeInner + '</span>' : '';
     // El ícono de actividad favorita pasó de un emoji inline antes del
     // nombre a un badge abajo-izquierda del avatar (10/10/2026, pedido del
     // usuario) — mismo lugar/mismo criterio visual que ya usa el botón de
     // usuario de la barra superior (.user-avatar-badge-activity, ver
     // components/header.js y css/views/home.css).
     var actIcon = activityIcon(u.actividadFavorita);
-    var actBadge = actIcon ? '<span class="micomando-badge micomando-badge-activity" title="Actividad favorita">' + actIcon + '</span>' : '';
+    var actBadge = actIcon ? '<span class="micomando-badge micomando-badge-activity" title="Actividad: ' + escapeHtml(u.actividadFavorita) + '">' + actIcon + '</span>' : '';
     var html = '<div class="micomando-card">';
     html += '  <div class="micomando-avatar-wrap">' + avatar + actBadge + badge + '</div>';
     html += '  <div class="micomando-info">';

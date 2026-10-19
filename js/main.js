@@ -25,6 +25,7 @@ import { uid, escapeHtml, linkify, alignStyleAttr, roleLabel } from './utils/hel
 import { saveNovedadesSeenAt, saveUsersSeenAt, saveTheme } from './utils/storage.js';
 import { encodeHash, decodeHash } from './utils/hash-router.js';
 import { icon } from './utils/icons.js';
+import { startVersionWatch, stopVersionWatch } from './services/version-check.service.js';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -802,6 +803,12 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
 
   render = function(){
     try{
+      // Aviso de versión nueva en segundo plano (19/10/2026) — solo admin,
+      // pedido explícito del usuario. startVersionWatch()/stopVersionWatch()
+      // son idempotentes (no duplican el intervalo ni explotan si ya estaba
+      // en el estado pedido), así que llamarlas en cada render() es seguro.
+      if(AppState.currentUser && AppState.currentUser.role === 'admin'){ startVersionWatch(); }
+      else { stopVersionWatch(); }
       renderAuthBar();
       renderFeedbackWidget();
       var gated = renderGate();

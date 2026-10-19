@@ -63,6 +63,24 @@
   // mismos datos en vez de mantener una lista aparte.
   export var COCINA_ICON = '🍲';
 
+  // Mapeos a íconos VECTORIALES (Lucide, ver utils/icons.js), para el badge
+  // redondo del avatar (19/10/2026, pedido del usuario: "mismo estilo los
+  // dos, vector monocromático, sin emoji") — los emoji de arriba
+  // (DEPARTAMENTO_ICONS/CONSAGRADO_ICONS/COCINA_ICON) siguen existiendo
+  // porque los <option> de un <select> no pueden dibujar un <svg>, así que
+  // siguen usándose ahí (ver cupulaIconOptionsHtml() en utils/badge-icons.js);
+  // estos mapeos solo se usan para lo que se dibuja en el círculo del badge.
+  export var DEPARTAMENTO_SVG_ICON = {
+    'Formación': 'book-open',
+    'Logística': 'package',
+    'Comunicaciones': 'megaphone',
+    'Administración': 'wallet',
+    'Intendencia': 'hammer',
+    'Actividades': 'target'
+  };
+  export var CONSAGRADO_SVG_ICON = { cruz: 'cross', pan: 'wheat' };
+  export var COCINA_SVG_ICON = 'soup';
+
   export var VIEW_AS_ROLES = [
     { value: '', label: 'Yo (Admin)' },
     { value: 'jefe_seccion', label: 'Jefe de sección/depto' },
@@ -78,6 +96,32 @@
   // mano", así que se agregó un botón que abre esto directo desde el botón
   // de "Importar desde la fordoquera...".
   export var FORDOQUERA_URL = 'https://negromontes.github.io/fordoquera/';
+
+  // Versión de la app, solo para admins (19/10/2026, pedido del usuario) —
+  // número discreto en el menú del avatar que, al click, abre el historial
+  // de abajo (CHANGELOG). `version-check.service.js` vuelve a bajar ESTE
+  // MISMO archivo cada tanto (fetch con cache-busting) y compara el valor
+  // acá adentro contra el que ya tiene cargado la pestaña — si difieren,
+  // avisa con un toast (significa que alguien pusheó una versión nueva
+  // mientras la página seguía abierta). Bump a mano en cada cambio grande
+  // — fecha + un contador chico si hay más de un cambio el mismo día.
+  export var APP_VERSION = '2026.10.19.1';
+
+  // Historial para el comando, en español simple — NO es el changelog
+  // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
+  // bugs/decisiones de implementación, no pensado para que lo lea nadie
+  // fuera de una sesión de Code). Curado a mano, introducido el mismo
+  // día que `APP_VERSION` — lista corta, van quedando las últimas
+  // novedades, más viejo abajo.
+  export var CHANGELOG = [
+    { version: '2026.10.19.1', date: '19/10/2026', items: [
+      'Pulido visual de Recursos, Usuarios, el formulario de agregar entrada y el menú de usuario.',
+      'Editor del día: selector de fecha, botón para eliminar, cita con altura automática, vista previa.',
+      'La app ya se puede instalar como aplicación en el celular (íconos sin fondo blanco).',
+      'Íconos de departamento/consagrado en el avatar, ahora vectoriales en vez de emoji.',
+      'Número de versión y este historial, solo visibles para administradores.'
+    ] }
+  ];
 
 // El cuadro de mandos (nombres reales) ya NO vive en este archivo — se
 // movió a Firestore (colección `mandos`, documento `data`) para que el

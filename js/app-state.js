@@ -97,6 +97,7 @@ export const AppState = {
   userMenuOpen: false,
   userMenuEditingProfile: false,
   userProfileDraft: null, // { actividadFavorita, rucaFundacion }
+  changelogOpen: false, // historial de versión, dentro del menú del avatar — solo admin (19/10/2026)
   novedadesOpen: false, // desplegable del campanario de "Novedades" en el header
   novedadesSeenAt: 0, // Date.now() de la última vez que se abrió la campana — el
   novedadesSeenAtLoadedForUid: null, // evita releer localStorage en cada re-fire del snapshot de perfil

@@ -32,8 +32,9 @@
 // más abajo. Guardado en el perfil como `cupulaIcon`, un string con prefijo
 // (`seccion:Escuderos`, `depto:Logística`, `consagrado:cruz`, o `cocina`).
 
-import { DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, COCINA_ICON } from '../config/constants.js';
+import { DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, COCINA_ICON, DEPARTAMENTO_SVG_ICON, CONSAGRADO_SVG_ICON, COCINA_SVG_ICON } from '../config/constants.js';
 import { escapeHtml } from './helpers.js';
+import { icon } from './icons.js';
 
 // Devuelve el <img> del escudo real correspondiente a una sección, o '' si
 // el nombre no matchea ninguna (defensivo — nunca debería pasar con los
@@ -55,13 +56,13 @@ export function fastaGlyphHtml(){
   return '<img src="assets/depto-fasta.png" alt="FASTA" style="width:100%;height:100%;object-fit:contain;padding:2px;box-sizing:border-box;">';
 }
 
-// Emoji elegido por un consagrado para su propio badge (opt-in, en vez del
-// escudo de su sección) — '' si no eligió ninguno (el default sigue siendo
-// el escudo, ver userBadgeInnerHtml()).
-export function consagradoIconEmoji(value){
+// Ícono VECTORIAL (no emoji, 19/10/2026) elegido por un consagrado para su
+// propio badge (opt-in, en vez del escudo de su sección) — '' si no eligió
+// ninguno (el default sigue siendo el escudo, ver userBadgeInnerHtml()).
+export function consagradoIconSvg(value){
   if(!value) return '';
-  var found = CONSAGRADO_ICONS.filter(function(o){ return o.value === value; })[0];
-  return found ? found.emoji : '';
+  var name = CONSAGRADO_SVG_ICON[value];
+  return name ? icon(name, 'user-badge-svg') : '';
 }
 
 // Ícono elegido por un admin/comando central (`u.cupulaIcon`), resuelto a su
@@ -75,15 +76,14 @@ export function cupulaIconBadgeHtml(value){
     return sectionShieldHtml(value.slice(8));
   }
   if(value.indexOf('depto:') === 0){
-    var emoji = DEPARTAMENTO_ICONS[value.slice(6)] || '';
-    return emoji ? '<span class="user-badge-emoji">' + emoji + '</span>' : '';
+    var name = DEPARTAMENTO_SVG_ICON[value.slice(6)];
+    return name ? icon(name, 'user-badge-svg') : '';
   }
   if(value.indexOf('consagrado:') === 0){
-    var cEmoji = consagradoIconEmoji(value.slice(11));
-    return cEmoji ? '<span class="user-badge-emoji">' + cEmoji + '</span>' : '';
+    return consagradoIconSvg(value.slice(11));
   }
   if(value === 'cocina'){
-    return '<span class="user-badge-emoji">' + COCINA_ICON + '</span>';
+    return icon(COCINA_SVG_ICON, 'user-badge-svg');
   }
   return '';
 }
@@ -131,24 +131,27 @@ export function isValidCupulaIconValue(value){
 // Ícono de sección/depto de UN usuario cualquiera (no necesariamente
 // currentUser) — reusado tanto por el badge del propio avatar (header.js)
 // como por las tarjetas de "Mi comando" (views/mandos.js), para no duplicar
-// este mismo criterio en dos lugares. `deptoIcons` es el mapa
-// DEPARTAMENTO_ICONS (se pasa como parámetro para no crear una dependencia
-// circular con config/constants.js).
-export function userBadgeInnerHtml(u, deptoIcons){
+// este mismo criterio en dos lugares. Desde el 19/10/2026 este badge es
+// siempre vectorial (DEPARTAMENTO_SVG_ICON, importado directo de
+// constants.js) — ya no hace falta pasarle el mapa de emoji por parámetro.
+export function userBadgeInnerHtml(u){
   if(!u) return '';
   // Un consagrado que optó por un ícono propio (cruz/pan) lo muestra en vez
   // del escudo de su sección — chequeo antes de `u.seccion`, porque un
   // consagrado SIEMPRE tiene una sección asignada (es cómo se auto-aprueba
   // en el onboarding) y por default seguiría cayendo en esa rama.
   if(u.role === 'consagrado'){
-    var consagradoEmoji = consagradoIconEmoji(u.consagradoIconChoice);
-    if(consagradoEmoji) return '<span class="user-badge-emoji">' + consagradoEmoji + '</span>';
+    var consagradoSvg = consagradoIconSvg(u.consagradoIconChoice);
+    if(consagradoSvg) return consagradoSvg;
   }
   if(u.seccion){
     return sectionShieldHtml(u.seccion);
   }
   if(u.depto){
-    if(u.deptoIconChoice === 'depto'){ return (deptoIcons && deptoIcons[u.depto]) || ''; }
+    if(u.deptoIconChoice === 'depto'){
+      var deptoName = DEPARTAMENTO_SVG_ICON[u.depto];
+      return deptoName ? icon(deptoName, 'user-badge-svg') : '';
+    }
     return fastaGlyphHtml();
   }
   // Sin sección ni depto — típicamente admin/comando central (09/10/2026):
