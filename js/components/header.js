@@ -2,7 +2,7 @@
 // Novedades) y sus datos: qué contenido nuevo hay, y dónde vive.
 
 import { AppState } from '../app-state.js';
-import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS, APP_VERSION, CHANGELOG } from '../config/constants.js';
+import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS, APP_VERSION, CHANGELOG, FORDOQUERA_URL } from '../config/constants.js';
 import { escapeHtml, roleLabel, roleLabelScoped, activityIcon } from '../utils/helpers.js';
 import { userBadgeInnerHtml, cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { saveNovedadesSeenAt } from '../utils/storage.js';
@@ -10,6 +10,8 @@ import { lectorModeActive, realIsAdmin, isComandoNonAdmin, canSeeEntry } from '.
 import { signOutUser, updateMyProfile } from '../services/auth.service.js';
 import { render } from '../main.js';
 import { icon } from '../utils/icons.js';
+import { isInstalledApp, promptInstall } from '../utils/install-prompt.js';
+import { showAlert } from './dialog.js';
 
   export function viewAsScopeOptionsHtml(role, current){
     var html = '';
@@ -277,6 +279,13 @@ import { icon } from '../utils/icons.js';
         html += '  </div>';
       }
       html += '  <button class="user-menu-item" id="userMenuProfileBtn" type="button">' + icon('user') + ' Perfil</button>';
+      // Accesos extra (23/10/2026, pedido del usuario): abrir la Fordoquera
+      // aparte, e instalar RDP en la pantalla de inicio (oculto si ya se
+      // está usando instalada).
+      html += '  <a class="user-menu-item" href="' + FORDOQUERA_URL + '" target="_blank" rel="noopener">' + icon('external-link') + ' Ir a la Fordoquera</a>';
+      if(!isInstalledApp()){
+        html += '  <button class="user-menu-item" id="userMenuInstallBtn" type="button">' + icon('smartphone') + ' Agregar a inicio</button>';
+      }
       html += '  <button class="user-menu-item user-menu-item-danger" id="userMenuSignOutBtn" type="button">' + icon('log-out') + ' Cerrar sesión</button>';
       // Versión + historial de cambios, discreto, solo admin (19/10/2026,
       // pedido del usuario) — nunca para el resto del comando.
@@ -318,6 +327,16 @@ import { icon } from '../utils/icons.js';
         AppState.userMenuEditingProfile = true;
         AppState.userProfileDraft = { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta', cupulaIcon: AppState.currentUser.cupulaIcon || '', consagradoIconChoice: AppState.currentUser.consagradoIconChoice || '' };
         renderAuthBar();
+      };
+    }
+    var installBtn = document.getElementById('userMenuInstallBtn');
+    if(installBtn){
+      installBtn.onclick = async function(){
+        var r = await promptInstall();
+        if(r === 'accepted'){ AppState.userMenuOpen = false; renderAuthBar(); return; }
+        if(r === 'unavailable'){
+          await showAlert('Para agregar la página a la pantalla de inicio:\n\n• Android (Chrome): menú ⋮ → "Agregar a pantalla de inicio" o "Instalar app".\n• iPhone (Safari): botón Compartir → "Agregar a inicio".\n• Computadora (Chrome/Edge): ícono de instalar en la barra de direcciones.');
+        }
       };
     }
     var menuSignOutBtn = document.getElementById('userMenuSignOutBtn');

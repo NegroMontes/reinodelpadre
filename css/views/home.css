@@ -248,6 +248,7 @@
     border-radius:var(--radius-sm);
   }
 
+a.user-menu-item{ text-decoration:none; display:block; }
 .user-menu-item:hover{ background:var(--bg-alt); color:var(--teal); }
 .user-menu-item .ui-icon{ margin-right:4px; }
 
