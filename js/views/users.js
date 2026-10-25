@@ -81,12 +81,16 @@ import { icon } from '../utils/icons.js';
     html += '<button class="btn ghost small" id="copyUsersBtn" type="button">Copiar actividades</button>';
     html += '</div>';
     // Importar un libro de la Fordoquera (ej. el Catecismo) — ver
-    // services/libros-import.service.js (25/10/2026).
+    // services/libros-import.service.js (25/10/2026). Oculto a pedido del
+    // usuario una vez importado el Catecismo: pasar a true para volver a usarlo.
+    var SHOW_IMPORT_LIBRO = false;
+    if(SHOW_IMPORT_LIBRO){
     html += '<div class="mandos-sub" style="margin-bottom:14px">';
     html += '  <button class="btn ghost small" id="importLibroBtn" type="button">📚 Importar libro de la Fordoquera (.json)</button>';
     html += '  <input type="file" id="importLibroFile" accept=".json,application/json" hidden>';
     html += '  <span id="importLibroStatus" style="margin-left:8px"></span>';
     html += '</div>';
+    }
     // La nota larga que vivía debajo del título pasó a un callout plegable
     // (19/10/2026, recomendación de diseño que pasó el usuario) — <details>
     // nativo, cerrado por default, sin JS propio.
