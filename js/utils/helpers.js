@@ -59,6 +59,8 @@
     { k: ['danza', 'baile', 'bailar'], icon: '💃' },
     { k: ['trekking', 'caminata', 'montanismo', 'senderismo', 'marcha'], icon: '🥾' },
     { k: ['acampar', 'campamento', 'carpa'], icon: '⛺' },
+    { k: ['forja', 'obstaculo'], icon: '🏃' },
+    { k: ['misa', 'eucaristia'], icon: '⛪' },
     { k: ['rezar', 'orar', 'oracion', 'capilla', 'adoracion'], icon: '🙏' },
     { k: ['dormir', 'siesta'], icon: '😴' },
     { k: ['foto', 'camara'], icon: '📷' },
