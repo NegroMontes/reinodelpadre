@@ -18,7 +18,7 @@ import { db, librosColRef } from '../config/firebase.js';
 import { idbGet, idbSet } from '../utils/idb-cache.js';
 import { decodeYoucatIndices } from '../utils/youcat-indices-codec.js';
 
-var LIBROS_CACHE_VERSION = 1;
+var LIBROS_CACHE_VERSION = 2; // 2: + libros extra (ej. el Catecismo, 25/10/2026)
 var CACHE_KEY = 'libros-fordoquera-v' + LIBROS_CACHE_VERSION;
 
 var memoCache = null; // en memoria, para no releer IndexedDB en cada apertura del editor/lector en la misma sesión de pestaña
@@ -63,6 +63,28 @@ async function fetchBibliaFromFirestore(){
   return out;
 }
 
+// Libros extra importados con el botón de "Usuarios" (ver
+// services/libros-import.service.js): `libros/extras` lista los ids.
+async function fetchLibrosExtraFromFirestore(){
+  var extrasSnap = await getDoc(doc(librosColRef, 'extras'));
+  var ids = extrasSnap.exists() ? (extrasSnap.data().ids || []) : [];
+  var out = await Promise.all(ids.map(async function(id){
+    var metaSnap = await getDoc(doc(librosColRef, id));
+    if(!metaSnap.exists()) return null;
+    var meta = metaSnap.data();
+    var capsSnap = await getDocs(collection(doc(librosColRef, id), 'caps'));
+    var byCap = {};
+    capsSnap.forEach(function(d){ var data = d.data(); byCap[data.cap] = JSON.parse(data.puntosJson || '[]'); });
+    var puntos = [];
+    for(var cap = 0; cap < (meta.capCount || 0); cap++) puntos = puntos.concat(byCap[cap] || []);
+    var libro = Object.assign({}, meta);
+    delete libro.capCount;
+    libro.puntos = puntos;
+    return libro;
+  }));
+  return out.filter(Boolean);
+}
+
 // Trae las 3 piezas de Firestore en paralelo y arma el shape que espera la
 // Fordoquera. Si falta alguna (todavía no se corrió la importación, ver
 // views/users.js → botón admin-only "Importar libros") esa pieza queda
@@ -73,21 +95,29 @@ async function loadFromFirestore(){
   var results = await Promise.allSettled([
     fetchYoucatFromFirestore(),
     fetchYoucatIndicesFromFirestore(),
-    fetchBibliaFromFirestore()
+    fetchBibliaFromFirestore(),
+    fetchLibrosExtraFromFirestore()
   ]);
   var youcat = results[0].status === 'fulfilled' ? results[0].value : [];
   var indicesYoucat = results[1].status === 'fulfilled' ? results[1].value : { index: [], defs: [] };
   var biblia = results[2].status === 'fulfilled' ? results[2].value : null;
+  var extras = results[3].status === 'fulfilled' ? results[3].value : [];
   return {
     youcat: youcat,
     indices: { youcat: indicesYoucat },
-    libros: biblia ? [biblia] : []
+    libros: (biblia ? [biblia] : []).concat(extras)
   };
 }
 
-// Devuelve `{youcat, indices:{youcat}, libros:[biblia]}`, listo para el
+// Devuelve `{youcat, indices:{youcat}, libros:[biblia, ...extras]}`, listo para el
 // campo `libros` del mensaje `{fq:'abrir', ...}` — ver
 // components/fordoquera-embed.js.
+// Después de importar un libro, para que la próxima apertura lo traiga.
+export async function clearLibrosCache(){
+  memoCache = null;
+  await idbSet(CACHE_KEY, null);
+}
+
 export async function loadLibrosForFordoquera(){
   if(memoCache) return memoCache;
   var cached = await idbGet(CACHE_KEY);
