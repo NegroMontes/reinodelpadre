@@ -130,6 +130,7 @@ import { showConfirm } from './dialog.js';
   // una sola función en vez de repetir la misma lista larga de asignaciones.
   function resetFormDraftState(){
     AppState.editingEntryId = null;
+    AppState.formNewEntryId = null;
     AppState.formSecciones = []; AppState.formDeptos = []; AppState.formComandoGeneral = false; AppState.formSeccionComandoOnly = false;
     AppState.formAnonimo = false; AppState.formOculta = false; AppState.formBienvenida = false;
     AppState.formAmbitoOpen = false;
@@ -469,6 +470,7 @@ import { showConfirm } from './dialog.js';
           // edición general, debería volver a la edición para poder
           // guardarlo apretando guardar").
           AppState.editingEntryId = id;
+          AppState.formNewEntryId = id;
           renderPanel();
           openFordoqueraEditor(id);
         }
@@ -493,6 +495,17 @@ import { showConfirm } from './dialog.js';
     var cancelBtn = document.getElementById('cancelFormBtn');
     if(cancelBtn){
       cancelBtn.onclick = function(){
+        // Entrada creada en este mismo formulario y cerrada sin cargarle
+        // ningún paso: "Cancelar" la descarta en vez de dejarla publicada
+        // vacía (bug reportado por el usuario 25/10/2026).
+        var newId = AppState.formNewEntryId;
+        if(newId && AppState.editingEntryId === newId){
+          var idx = AppState.state.entries.findIndex(function(e){ return e.id === newId; });
+          if(idx >= 0 && entryToEspacio(AppState.state.entries[idx]).steps.length === 0){
+            AppState.state.entries.splice(idx, 1);
+            save();
+          }
+        }
         AppState.formOpen = false;
         resetFormDraftState();
         render();
