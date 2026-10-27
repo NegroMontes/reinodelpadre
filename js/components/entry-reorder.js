@@ -80,7 +80,7 @@ function mover(x, y){
 function empezar(){
   var r = DR.el.getBoundingClientRect(), f = DR.el.cloneNode(true);
   f.classList.add('entry-drag-ghost');
-  f.style.cssText = 'position:fixed;left:0;top:0;width:' + r.width + 'px;margin:0;pointer-events:none;z-index:2000;opacity:.9;';
+  f.style.cssText = 'position:fixed;left:0;top:0;width:' + r.width + 'px;margin:0;pointer-events:none;z-index:2000;opacity:.85;';
   DR.dx = DR.x0 - r.left; DR.dy = DR.y0 - r.top; DR.f = f; DR.on = true;
   document.body.appendChild(f);
   DR.el.style.opacity = '.35';

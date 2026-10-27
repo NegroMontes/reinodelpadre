@@ -1302,6 +1302,21 @@ input.switch:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
    pedido del usuario), una copia sigue al puntero y una raya turquesa marca si cae
    antes o después de la tarjeta de abajo. */
 body.entry-arrastrando, body.entry-arrastrando *{ user-select:none; -webkit-user-select:none; }
-.entry.entry-drop-antes{ box-shadow:0 -3px 0 var(--teal); }
-.entry.entry-drop-despues{ box-shadow:0 3px 0 var(--teal); }
+/* Línea que avisa dónde cae la entrada al soltarla — en el hueco entre
+   tarjetas, arriba o abajo de la tarjeta de destino. */
+.entry.entry-drop-antes, .entry.entry-drop-despues{ position:relative; }
+.entry.entry-drop-antes::before, .entry.entry-drop-despues::after{
+    content:'';
+    position:absolute;
+    left:-6px; right:-6px;
+    height:4px;
+    margin-top:-2px; margin-bottom:-2px;
+    z-index:2001;
+    border-radius:999px;
+    background:var(--teal);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--teal) 25%, transparent);
+    pointer-events:none;
+  }
+.entry.entry-drop-antes::before{ top:calc(-1 * var(--entry-drop-offset, 19px)); }
+.entry.entry-drop-despues::after{ bottom:calc(-1 * var(--entry-drop-offset, 19px)); }
 .entry-drag-ghost{ box-shadow:var(--shadow-lift); }
