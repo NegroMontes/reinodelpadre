@@ -2,6 +2,12 @@
 // de texto, escapado/linkify de HTML, y las tablas de etiquetas legibles
 // (roleLabel, posGrupoLabel).
 
+  // Orden de una entrada en su lista (27/10/2026): `order` si se la movió
+  // arrastrando (o se insertó con el "+" entre dos), si no `createdAt`.
+  // Campo aparte para no tocar `createdAt`, que también usan las novedades.
+  export function entrySortKey(e){ return typeof e.order === 'number' ? e.order : (e.createdAt || 0); }
+  export function compareEntryOrder(a, b){ return entrySortKey(a) - entrySortKey(b); }
+
   export function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
 

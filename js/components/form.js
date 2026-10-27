@@ -9,7 +9,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
-import { escapeHtml, uid, isoToDayDate } from '../utils/helpers.js';
+import { escapeHtml, uid, isoToDayDate, entrySortKey } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
@@ -17,6 +17,7 @@ import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { openFordoqueraEditor, openFordoqueraViewer } from './fordoquera-embed.js';
 import { render, renderPanel, showStatus } from '../main.js';
 import { showConfirm } from './dialog.js';
+import { attachEntryReorder } from './entry-reorder.js';
 
   // Selector de Ámbito reusado en Mensaje (día real), Departamentos (day===null)
   // y Recursos (day==='RESOURCES') — nunca en Info general, que no lo usa.
@@ -289,14 +290,17 @@ import { showConfirm } from './dialog.js';
       // ahí, `insertOrderCreatedAt` ya trae el valor calculado a mitad de
       // camino entre las dos entradas vecinas — si no, se agrega al final
       // como siempre (`Date.now()`).
-      var newCreatedAt = AppState.insertOrderCreatedAt != null ? AppState.insertOrderCreatedAt : Date.now();
+      // Desde el 27/10/2026 esa posición va en `order` (ver `entrySortKey`),
+      // y `createdAt` queda siempre como la fecha real de creación.
+      var newOrder = AppState.insertOrderCreatedAt;
       var id = uid();
       AppState.state.entries.push({
         id: id, dayId: dayIdVal, title: title, author: author, anonimo: anonimo,
         authorReal: AppState.currentUser.displayName, authorGrupo: authorGrupo,
         secciones: secciones, deptos: deptos, comandoGeneral: comandoGeneral, seccionesComandoOnly: seccionComandoOnly,
-        oculta: AppState.formOculta, bienvenida: bienvenida, espacio: null, createdAt: newCreatedAt
+        oculta: AppState.formOculta, bienvenida: bienvenida, espacio: null, createdAt: Date.now()
       });
+      if(newOrder != null){ AppState.state.entries[AppState.state.entries.length - 1].order = newOrder; }
       save();
       return id;
     }
@@ -375,13 +379,13 @@ import { showConfirm } from './dialog.js';
         var nextEntry = nextId ? AppState.state.entries.find(function(e){ return e.id === nextId; }) : null;
         var insertAt, note;
         if(prevEntry && nextEntry){
-          insertAt = (prevEntry.createdAt + nextEntry.createdAt) / 2;
+          insertAt = (entrySortKey(prevEntry) + entrySortKey(nextEntry)) / 2;
           note = 'Se va a insertar entre "' + prevEntry.title + '" y "' + nextEntry.title + '".';
         } else if(nextEntry){
-          insertAt = nextEntry.createdAt - 1000;
+          insertAt = entrySortKey(nextEntry) - 1000;
           note = 'Se va a insertar antes de "' + nextEntry.title + '".';
         } else if(prevEntry){
-          insertAt = prevEntry.createdAt + 1000;
+          insertAt = entrySortKey(prevEntry) + 1000;
           note = 'Se va a insertar después de "' + prevEntry.title + '".';
         } else {
           insertAt = Date.now();
@@ -581,6 +585,8 @@ import { showConfirm } from './dialog.js';
 
     // "Publicar" de una entrada oculta/borrador, sin abrir el formulario de
     // edición (pedido del usuario, 23/09/2026).
+    attachEntryReorder();
+
     document.querySelectorAll('[data-action="publishEntry"]').forEach(function(btn){
       btn.onclick = function(){
         var id = btn.getAttribute('data-id');

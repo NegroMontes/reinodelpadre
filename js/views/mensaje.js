@@ -5,7 +5,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES } from '../config/constants.js';
-import { escapeHtml, linkify, dayDateToIso } from '../utils/helpers.js';
+import { escapeHtml, linkify, dayDateToIso, compareEntryOrder } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { entryScope, canSeeEntry, isAdmin, isJefeSeccionEditing, isJefeSeccion, effectiveDepto, effectiveSeccion, effectiveRole, lectorModeActive, isLectorLike, canEditStructure, canCreateRecurso } from '../services/permissions.js';
 import { addDay } from '../services/state.service.js';
@@ -28,7 +28,7 @@ import { renderPanel } from '../main.js';
       if(e.dayId) return false;
       var scope = entryScope(e);
       return (scope.deptos.length > 0 || scope.comandoGeneral) && canSeeEntry(e);
-    }).sort(function(a,b){ return a.createdAt - b.createdAt; });
+    }).sort(compareEntryOrder);
     var visibleDeptos = [];
     allDeptoEntries.forEach(function(e){
       entryScope(e).deptos.forEach(function(d){ if(visibleDeptos.indexOf(d) === -1){ visibleDeptos.push(d); } });
@@ -88,7 +88,7 @@ import { renderPanel } from '../main.js';
     // el botón "+ Agregar entrada" queda debajo de todo, así que una entrada
     // nueva (sin posición elegida) tiene que aparecer ahí, no saltar arriba.
     var items = AppState.state.entries.filter(function(e){ return e.dayId === 'RESOURCES' && canSeeEntry(e); })
-      .sort(function(a,b){ return a.createdAt - b.createdAt; });
+      .sort(compareEntryOrder);
     var canAddHere = canCreateRecurso();
 
     var html = '';
@@ -182,7 +182,7 @@ import { renderPanel } from '../main.js';
     // y cualquier entrada nueva que se vaya agregando aparece debajo, en el
     // orden en que se fue creando (pedido del usuario, 22/09/2026).
     var dayEntries = AppState.state.entries.filter(function(e){ return e.dayId === day.id && canSeeEntry(e); })
-      .sort(function(a,b){ return a.createdAt - b.createdAt; });
+      .sort(compareEntryOrder);
     var canAddHere = isAdmin() || (isJefeSeccionEditing() && (!!effectiveSeccion() || !!effectiveDepto()));
 
     var html = '';

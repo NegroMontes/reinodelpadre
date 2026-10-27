@@ -4,7 +4,7 @@
 
 import { AppState } from '../app-state.js';
 import { CAMP_DURATION_DAYS } from '../config/constants.js';
-import { escapeHtml, linkify } from '../utils/helpers.js';
+import { escapeHtml, linkify, compareEntryOrder } from '../utils/helpers.js';
 import { canEditStructure, canSeeEntry, canCreateInfoGeneral } from '../services/permissions.js';
 import { save } from '../services/state.service.js';
 import { renderEntry, renderEntriesListHtml } from '../components/entry.js';
@@ -188,7 +188,7 @@ import { icon } from '../utils/icons.js';
     // Orden ascendente, igual que el resto de los paneles con entradas
     // (08/10/2026) — el botón "+ Agregar entrada" queda debajo de todo.
     var items = AppState.state.entries.filter(function(e){ return e.dayId === 'INFO_GENERAL' && canSeeEntry(e); })
-      .sort(function(a,b){ return a.createdAt - b.createdAt; });
+      .sort(compareEntryOrder);
     var canAddHere = canCreateInfoGeneral();
 
     var html = '<h3 class="mandos-group-title">Info general</h3>';

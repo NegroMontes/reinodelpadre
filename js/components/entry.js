@@ -110,7 +110,7 @@ import { canSeeCompletions } from '../services/progress.service.js';
   }
 
 
-  export function renderEntry(entry){
+  export function renderEntry(entry, opts){
     var canEdit = canEditEntry(entry);
     var espacio = entryToEspacio(entry);
     var stepCount = (espacio.steps || []).length;
@@ -156,6 +156,9 @@ import { canSeeCompletions } from '../services/progress.service.js';
       // Publicar de un click, sin tener que abrir el editor (pedido del
       // usuario, 23/09/2026: "que se publique en un momento a elección").
       if(entry.oculta){ html += '      <button class="entry-publish-btn" data-action="publishEntry" data-id="' + entry.id + '">Publicar</button>'; }
+      // Manija para reordenar arrastrando (27/10/2026) — solo en listas
+      // donde quien mira puede agregar entradas (ver entry-reorder.js).
+      if(opts && opts.draggable){ html += '      <button type="button" class="entry-icon-btn entry-drag-handle" data-action="dragEntry" data-id="' + entry.id + '" title="Arrastrar para ordenar" aria-label="Arrastrar para ordenar">' + icon('grip-vertical') + '</button>'; }
       // Editar/Eliminar como íconos (19/10/2026, recomendación de diseño
       // que pasó el usuario) — antes eran links de texto subrayado.
       html += '      <button class="entry-icon-btn" data-action="edit" data-id="' + entry.id + '" title="Editar" aria-label="Editar">' + icon('pencil') + '</button>';
@@ -190,7 +193,7 @@ import { canSeeCompletions } from '../services/progress.service.js';
       return html;
     }
     items.forEach(function(entry, i){
-      html += renderEntry(entry);
+      html += renderEntry(entry, { draggable: true });
       if(i < items.length - 1){ html += renderEntryGap(entry.id, items[i+1].id); }
     });
     return html;

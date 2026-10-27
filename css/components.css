@@ -1295,3 +1295,17 @@ input.switch:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
 .toast-close:hover{ opacity:1; }
 @keyframes toastIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
 @media (prefers-reduced-motion: reduce){ .toast-item{ animation:none; } }
+
+/* Reordenar entradas arrastrando (27/10/2026) — manija con cursor de
+   "agarrar"; `touch-action:none` para que en el celular arrastrar mueva la
+   tarjeta en vez de scrollear la página. Mientras se arrastra se ocultan
+   los "+" entre entradas (quedarían fuera de lugar hasta soltar). */
+.entry-actions .entry-drag-handle{ cursor:grab; touch-action:none; }
+.entries-reordering, .entries-reordering *{ cursor:grabbing !important; user-select:none; }
+.entries-reordering .entry-gap{ visibility:hidden; }
+.entry.entry-dragging{
+    box-shadow:var(--shadow-lift);
+    outline:2px solid var(--teal);
+    position:relative;
+    z-index:2;
+  }
