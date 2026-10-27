@@ -104,7 +104,7 @@
     { id: 'formacion', label: 'Camino formativo', icon: 'compass' },
     { id: 'biblia', label: 'Citas bíblicas', icon: 'book-open' },
     { id: 'oraciones', label: 'Oraciones', icon: 'heart' },
-    { id: 'rosario', label: 'Santo Rosario', icon: 'sparkles' },
+    { id: 'rosario', label: 'Santo Rosario', icon: 'rosary' },
     { id: 'textos', label: 'Textos y lecturas', icon: 'library' },
     { id: 'instructivos', label: 'Instructivos y guías', icon: 'clipboard-list' },
     { id: 'otros', label: 'Otros', icon: 'folder' }
