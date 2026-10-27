@@ -279,8 +279,9 @@ import { attachEntryReorder } from './entry-reorder.js';
       : (effectiveSeccion() || effectiveDepto() || '');
     var bienvenida = (day === 'RESOURCES') ? AppState.formBienvenida : false;
     var categoria = (day === 'RESOURCES') ? (AppState.formCategoria || AppState.recursosCategoria || 'otros') : null;
-    // Queda abierta la categoría donde cayó la entrada, para que se vea.
-    if(categoria){ AppState.recursosCategoria = categoria; }
+    // Entrada nueva: queda abierta la categoría donde cayó, para que se vea.
+    // Editando, se queda en la categoría actual (mover varias seguidas).
+    if(categoria && !AppState.editingEntryId){ AppState.recursosCategoria = categoria; }
 
     if(AppState.editingEntryId){
       var entry = AppState.state.entries.find(function(e){ return e.id === AppState.editingEntryId; });
