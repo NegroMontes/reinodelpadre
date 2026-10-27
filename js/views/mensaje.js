@@ -109,11 +109,17 @@ import { renderPanel } from '../main.js';
       } else {
         html += '<div class="recursos-grid">';
         cats.forEach(function(c){
-          var n = (porCat[c.id] || []).length;
+          // Las ocultas no cuentan como contenido: una categoría con solo
+          // ocultas se ve transparente, igual que una vacía.
+          var lista = porCat[c.id] || [];
+          var ocultas = lista.filter(function(e){ return e.oculta; }).length;
+          var n = lista.length - ocultas;
+          var countTxt = n ? (n + ' entrada' + (n === 1 ? '' : 's')) : (ocultas ? '' : 'Vacía');
+          if(ocultas){ countTxt += (n ? ' · ' : '') + ocultas + ' oculta' + (ocultas === 1 ? '' : 's'); }
           html += '<button type="button" class="recurso-cat' + (n ? '' : ' recurso-cat-empty') + '" data-recurso-cat="' + c.id + '">' +
             '<span class="recurso-cat-icon">' + icon(c.icon) + '</span>' +
             '<span class="recurso-cat-label">' + escapeHtml(c.label) + '</span>' +
-            '<span class="recurso-cat-count">' + (n ? (n + ' entrada' + (n === 1 ? '' : 's')) : 'Vacía') + '</span>' +
+            '<span class="recurso-cat-count">' + countTxt + '</span>' +
             '</button>';
         });
         html += '</div>';
