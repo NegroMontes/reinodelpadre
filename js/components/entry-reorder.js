@@ -54,21 +54,32 @@ function clearMarks(){
   document.querySelectorAll('.entry-drop-antes,.entry-drop-despues').forEach(function(x){ x.classList.remove('entry-drop-antes', 'entry-drop-despues'); });
 }
 
+// Solo dentro de la misma lista. Si el puntero cae en el hueco entre dos
+// tarjetas (o sobre el "+"), no hay tarjeta debajo: se toma la más cercana
+// por altura, así soltar ahí también mueve la entrada.
 function destino(x, y){
   var el = document.elementFromPoint(x, y);
-  var c = el && el.closest('.entry');
-  // Solo dentro de la misma lista.
-  return (c && c.parentElement === DR.list) ? c : null;
+  if(!el || !DR.list.contains(el)) return null;
+  var c = el.closest('.entry');
+  if(c && c.parentElement === DR.list){
+    var r = c.getBoundingClientRect();
+    return { c: c, antes: y < r.top + r.height / 2 };
+  }
+  var cards = Array.prototype.filter.call(DR.list.children, function(n){ return n.classList.contains('entry'); });
+  for(var i = 0; i < cards.length; i++){
+    var rr = cards[i].getBoundingClientRect();
+    if(y < rr.top + rr.height / 2) return { c: cards[i], antes: true };
+  }
+  return cards.length ? { c: cards[cards.length - 1], antes: false } : null;
 }
 
 function marcar(){
   clearMarks();
   DR.t = null;
-  var c = destino(DR.x, DR.y);
-  if(!c || c === DR.el) return;
-  var r = c.getBoundingClientRect(), antes = DR.y < r.top + r.height / 2;
-  c.classList.add(antes ? 'entry-drop-antes' : 'entry-drop-despues');
-  DR.t = { c: c, antes: antes };
+  var t = destino(DR.x, DR.y);
+  if(!t || t.c === DR.el) return;
+  t.c.classList.add(t.antes ? 'entry-drop-antes' : 'entry-drop-despues');
+  DR.t = t;
 }
 
 function mover(x, y){
