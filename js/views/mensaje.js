@@ -100,7 +100,7 @@ import { renderPanel } from '../main.js';
     var html = '';
     if(!cat){
       html += '<div class="panel-head"><div><h2>Recursos</h2>';
-      html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes y oraciones para todo el campamento.</p></div></div>';
+      html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes, oraciones y misterios del Rosario para todo el campamento.</p></div></div>';
       // Quien puede agregar ve todas las categorías (para cargar en una
       // vacía); el resto, solo las que tienen algo.
       var cats = RECURSO_CATEGORIAS.filter(function(c){ return canAddHere || porCat[c.id]; });
