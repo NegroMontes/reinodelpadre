@@ -173,15 +173,25 @@ import { renderPanel } from '../main.js';
   // lectura las que estén cargadas; un lector (miliciano) solo ve la de su
   // propia sección, destacada, si está cargada — nada para un lector General o
   // sin sección (no hay ninguna consigna que le corresponda).
+  // Bloques editables de consignas y cita, plegables (27/10/2026): cerrados
+  // por default, y se recuerda si están abiertos entre re-renders.
+  function foldOpen(key, cls, summaryHtml){
+    var open = AppState.mensajeFold && AppState.mensajeFold[key];
+    return '<details class="' + cls + ' mensaje-fold" data-fold="' + key + '"' + (open ? ' open' : '') + '>' +
+      '<summary class="mensaje-fold-summary">' + summaryHtml + '<span class="mensaje-fold-chev" aria-hidden="true">' + icon('chevron-right') + '</span></summary>' +
+      '<div class="mensaje-fold-body">';
+  }
+
   export function renderConsignasBlock(day){
     var consignas = day.consignas || {};
     var html = '';
     if(isAdmin()){
-      html += '<div class="consignas-box"><p class="consignas-title">Consignas por sección</p>';
+      var nCargadas = SECCIONES.filter(function(s){ return consignas[s]; }).length;
+      html += foldOpen('consignas', 'consignas-box', '<span class="consignas-title">Consignas por sección</span><span class="mensaje-fold-hint">' + nCargadas + '/' + SECCIONES.length + ' cargadas</span>');
       SECCIONES.forEach(function(s){
         html += '<div class="consignas-row"><span class="consignas-seccion">' + escapeHtml(s) + '</span><input type="text" class="consignaInput" data-seccion="' + escapeHtml(s) + '" placeholder="Sin consigna" value="' + escapeHtml(consignas[s] || '') + '"></div>';
       });
-      html += '</div>';
+      html += '</div></details>';
     } else if(lectorModeActive()){
       // Modo "Lector" (25/09/2026): ve TODAS las consignas cargadas, de solo
       // lectura — mismo bloque que ya veía un jefe de departamento, ahora
@@ -195,9 +205,9 @@ import { renderPanel } from '../main.js';
       }
     } else if(isJefeSeccion() && !effectiveDepto() && effectiveSeccion()){
       var mySeccion = effectiveSeccion();
-      html += '<div class="consignas-box"><p class="consignas-title">Consigna de ' + escapeHtml(mySeccion) + ' para hoy</p>';
+      html += foldOpen('consignas', 'consignas-box', '<span class="consignas-title">Consigna de ' + escapeHtml(mySeccion) + ' para hoy</span><span class="mensaje-fold-hint">' + (consignas[mySeccion] ? 'Cargada' : 'Sin cargar') + '</span>');
       html += '<input type="text" class="consignaInput" data-seccion="' + escapeHtml(mySeccion) + '" placeholder="Escribí la consigna del día..." value="' + escapeHtml(consignas[mySeccion] || '') + '">';
-      html += '</div>';
+      html += '</div></details>';
     } else if(isJefeSeccion()){
       var cargadas = SECCIONES.filter(function(s){ return consignas[s]; });
       if(cargadas.length){
@@ -278,18 +288,18 @@ import { renderPanel } from '../main.js';
     // que el texto entero lea con el mismo peso. Editable solo por quien
     // puede tocar la estructura del día (mismo gate que label/fecha).
     if(canEditStructure()){
-      html += '<div class="cita-banner cita-banner-edit">';
+      html += foldOpen('cita', 'cita-banner cita-banner-edit', '<span class="cita-edit-label">Cita bíblica</span><span class="mensaje-fold-hint">' + escapeHtml(day.citaRef || (day.citaTexto ? 'Cargada' : 'Sin cargar')) + '</span>');
       // La ayuda de formato vive detrás de un ícono ℹ (19/10/2026) — un
       // <details> se abre con un toque, también en el celular (un `title`
       // no se ve sin mouse).
-      html += '  <div class="cita-edit-head"><label class="cita-edit-label" for="dayCitaTextoInput">Cita bíblica</label>';
+      html += '  <div class="cita-edit-head"><label class="cita-edit-label" for="dayCitaTextoInput">Texto</label>';
       html += '    <details class="md-hint"><summary title="Formato" aria-label="Ayuda de formato">' + icon('info') + '</summary><div class="md-hint-body">Escribí <code>**palabra**</code> para que salga en <strong>negrita</strong>, y <code>*palabra*</code> para <em>cursiva</em>.</div></details></div>';
       html += '  <textarea id="dayCitaTextoInput" class="cita-edit-textarea" rows="2" placeholder="Texto de la cita...">' + escapeHtml(day.citaTexto || '') + '</textarea>';
       html += '  <input type="text" id="dayCitaRefInput" class="cita-ref-input" placeholder="Referencia (ej: Gálatas 4, 4-7)" value="' + escapeHtml(day.citaRef || '') + '">';
       if(day.citaTexto){
         html += '  <div class="cita-banner-preview"><div class="cita-preview-label">Vista previa</div><p class="cita-text">«' + linkify(day.citaTexto) + '»</p><p class="cita-ref">' + escapeHtml(day.citaRef||'') + '</p></div>';
       }
-      html += '</div>';
+      html += '</div></details>';
     } else if(day.citaTexto){
       html += '<div class="cita-banner"><p class="cita-text">«' + linkify(day.citaTexto) + '»</p><p class="cita-ref">' + escapeHtml(day.citaRef||'') + '</p></div>';
     }

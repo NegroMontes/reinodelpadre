@@ -355,6 +355,8 @@ import { attachEntryReorder } from './entry-reorder.js';
       };
       dayCitaTextoInput.addEventListener('input', fitCita);
       fitCita();
+      var citaFold = dayCitaTextoInput.closest('details');
+      if(citaFold){ citaFold.addEventListener('toggle', function(){ if(citaFold.open){ fitCita(); } }); }
       dayCitaRefInput.addEventListener('blur', saveCita);
     }
     if(day && typeof day === 'object'){
@@ -362,6 +364,12 @@ import { attachEntryReorder } from './entry-reorder.js';
         inp.addEventListener('blur', function(){ setConsigna(day.id, inp.getAttribute('data-seccion'), inp.value.trim()); });
       });
     }
+    document.querySelectorAll('details.mensaje-fold').forEach(function(d){
+      d.addEventListener('toggle', function(){
+        AppState.mensajeFold = AppState.mensajeFold || {};
+        AppState.mensajeFold[d.getAttribute('data-fold')] = d.open;
+      });
+    });
     var deleteDayBtn = document.getElementById('deleteDayBtn');
     if(deleteDayBtn){ deleteDayBtn.onclick = function(){ deleteDay(day.id); }; }
 

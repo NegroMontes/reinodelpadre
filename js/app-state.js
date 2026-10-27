@@ -27,6 +27,7 @@ export const AppState = {
   formBienvenida: false,
   formCategoria: '', // categoría de Recursos elegida en el formulario (ver RECURSO_CATEGORIAS)
   recursosCategoria: '', // categoría abierta en Recursos — '' = grilla de categorías
+  mensajeFold: {}, // bloques plegables de "Mensaje" (consignas/cita) abiertos
   formAmbitoOpen: false, // desplegable "Visible para" del formulario (solo admin) abierto/cerrado
   collapsedEntryIds: {},
   formAligns: { body: 'left', bodyAfter: 'left' },
