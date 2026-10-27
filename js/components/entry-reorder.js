@@ -51,7 +51,28 @@ function applyNewOrder(ids, movedId){
 }
 
 function clearMarks(){
-  document.querySelectorAll('.entry-drop-antes,.entry-drop-despues').forEach(function(x){ x.classList.remove('entry-drop-antes', 'entry-drop-despues'); });
+  document.querySelectorAll('.entry-drop-antes,.entry-drop-despues').forEach(function(x){
+    x.classList.remove('entry-drop-antes', 'entry-drop-despues');
+    x.style.removeProperty('--entry-drop-y');
+  });
+}
+
+// La raya va en el medio exacto del hueco entre la tarjeta destino y su
+// vecina (arriba o abajo); sin vecina, a la mitad del espacio habitual.
+function posicionarRaya(c, antes){
+  var r = c.getBoundingClientRect(), sib = c, vec = null;
+  while((sib = antes ? sib.previousElementSibling : sib.nextElementSibling)){
+    if(sib.classList.contains('entry')){ vec = sib; break; }
+  }
+  var centro;
+  if(vec){
+    var rv = vec.getBoundingClientRect();
+    centro = antes ? (rv.bottom + r.top) / 2 : (r.bottom + rv.top) / 2;
+  } else {
+    centro = antes ? r.top - 7 : r.bottom + 7;
+  }
+  // `top` del pseudo-elemento se mide desde adentro del borde de la tarjeta.
+  c.style.setProperty('--entry-drop-y', (centro - 2 - r.top - c.clientTop) + 'px');
 }
 
 // Solo dentro de la misma lista. Si el puntero cae en el hueco entre dos
@@ -79,6 +100,7 @@ function marcar(){
   var t = destino(DR.x, DR.y);
   if(!t || t.c === DR.el) return;
   t.c.classList.add(t.antes ? 'entry-drop-antes' : 'entry-drop-despues');
+  posicionarRaya(t.c, t.antes);
   DR.t = t;
 }
 

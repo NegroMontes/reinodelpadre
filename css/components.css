@@ -1318,13 +1318,12 @@ body.entry-arrastrando, body.entry-arrastrando *{ user-select:none; -webkit-user
     position:absolute;
     left:-6px; right:-6px;
     height:4px;
-    margin-top:-2px; margin-bottom:-2px;
     z-index:2001;
     border-radius:999px;
     background:var(--teal);
     box-shadow:0 0 0 3px color-mix(in srgb, var(--teal) 25%, transparent);
     pointer-events:none;
   }
-.entry.entry-drop-antes::before{ top:calc(-1 * var(--entry-drop-offset, 19px)); }
-.entry.entry-drop-despues::after{ bottom:calc(-1 * var(--entry-drop-offset, 19px)); }
+/* --entry-drop-y lo calcula entry-reorder.js: el centro exacto del hueco. */
+.entry.entry-drop-antes::before, .entry.entry-drop-despues::after{ top:var(--entry-drop-y, -9px); }
 .entry-drag-ghost{ box-shadow:var(--shadow-lift); }
