@@ -106,7 +106,7 @@
     { id: 'oraciones', label: 'Oraciones', icon: 'heart' },
     { id: 'rosario', label: 'Santo Rosario', icon: 'sparkles' },
     { id: 'textos', label: 'Textos y lecturas', icon: 'library' },
-    { id: 'imagenes', label: 'Imágenes y videos', icon: 'image' },
+    { id: 'imagenes', label: 'Instructivos y guías', icon: 'clipboard-list' },
     { id: 'otros', label: 'Otros', icon: 'folder' }
   ];
 
