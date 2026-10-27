@@ -339,16 +339,27 @@ h1,h2,h3,.serif{
    cuando nadie la está usando. El botón queda a la izquierda (pedido
    explícito del usuario), no centrado. */
 .entry-gap{
-    height:20px;
+    /* Alto 0 + margen -7px: se come exactamente el `gap` extra de `.entries`,
+       así la separación entre tarjetas queda igual que sin el "+" (no ocupa
+       espacio). La zona de hover la da el ::before, superpuesto. */
+    height:0;
     margin:-7px 0;
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    padding-left:6px;
     position:relative;
   }
 
+.entry-gap::before{
+    content:'';
+    position:absolute;
+    left:0; right:0;
+    top:-10px;
+    height:20px;
+  }
+
 .entry-gap-btn{
+    position:absolute;
+    left:6px;
+    top:-13px;
+    z-index:1;
     width:26px;
     height:26px;
     border-radius:50%;
@@ -359,25 +370,22 @@ h1,h2,h3,.serif{
     line-height:1;
     cursor:pointer;
     /* Default para touch (sin :hover real): apenas visible, para que siga
-       siendo ubicable y tocable sin acercar ningún mouse primero. */
+       siendo ubicable y tocable. */
     opacity:.35;
     transform:scale(.85);
     transition:opacity .15s ease, transform .15s ease;
     box-shadow:var(--shadow-sm);
   }
 
-  /* En un dispositivo con mouse de verdad, invisible del todo hasta que se
-     acerca — pedido del usuario, 10/10/2026 ("el globo azul con el + aparece
-     siempre... debería desaparecer si el mouse no está cerca"). Se acota a
-     `(hover:hover)` para no perder el default de arriba en touch, donde
-     `:hover` nunca se dispara y el botón quedaría invisible para siempre. */
+  /* Con mouse: invisible y sin clicks hasta pasar por la zona intermedia. */
   @media (hover:hover){
-    .entry-gap-btn{ opacity:0; }
+    .entry-gap-btn{ opacity:0; pointer-events:none; }
   }
 
 .entry-gap:hover .entry-gap-btn,
 .entry-gap-btn:focus-visible{
     opacity:1;
+    pointer-events:auto;
     transform:scale(1);
   }
 
