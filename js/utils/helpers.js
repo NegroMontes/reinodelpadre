@@ -192,3 +192,11 @@
       capellan: 'Consagrado'
     }[posGrupo] || posGrupo;
   }
+
+
+  // Categoría de una entrada de Recursos (27/10/2026) — sin `categoria`
+  // guardada, la de bienvenida cae en "Para empezar" y el resto en "Otros".
+  export function recursoCategoriaDe(entry){
+    if(entry.categoria) return entry.categoria;
+    return entry.bienvenida ? 'inicio' : 'otros';
+  }

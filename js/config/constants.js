@@ -95,6 +95,21 @@
   // — pedido del usuario, 09/10/2026: "no todos los jefes tienen el link a
   // mano", así que se agregó un botón que abre esto directo desde el botón
   // de "Importar desde la fordoquera...".
+  // Categorías de Recursos (27/10/2026): grilla de categorías arriba y,
+  // al entrar a una, la lista de sus entradas — en vez de un scroll infinito.
+  // Una entrada sin `categoria` cae en "Otros" (o en "Para empezar" si es la
+  // de bienvenida), ver recursoCategoriaDe() en views/mensaje.js.
+  export var RECURSO_CATEGORIAS = [
+    { id: 'inicio', label: 'Para empezar', icon: 'house' },
+    { id: 'formacion', label: 'Camino formativo', icon: 'compass' },
+    { id: 'biblia', label: 'Citas bíblicas', icon: 'book-open' },
+    { id: 'oraciones', label: 'Oraciones', icon: 'heart' },
+    { id: 'rosario', label: 'Santo Rosario', icon: 'sparkles' },
+    { id: 'textos', label: 'Textos y lecturas', icon: 'library' },
+    { id: 'imagenes', label: 'Imágenes y videos', icon: 'image' },
+    { id: 'otros', label: 'Otros', icon: 'folder' }
+  ];
+
   export var FORDOQUERA_URL = 'https://negromontes.github.io/fordoquera/';
 
   // Versión de la app, solo para admins (19/10/2026, pedido del usuario) —
@@ -105,7 +120,7 @@
   // avisa con un toast (significa que alguien pusheó una versión nueva
   // mientras la página seguía abierta). Bump a mano en cada cambio grande
   // — fecha + un contador chico si hay más de un cambio el mismo día.
-  export var APP_VERSION = '2026.10.27.2';
+  export var APP_VERSION = '2026.10.27.3';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -114,6 +129,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.10.27.3', date: '27/10/2026', items: [
+      'Recursos ahora se ordena por categorías (Oraciones, Santo Rosario, Citas bíblicas…): tocá una para ver sus entradas.'
+    ]},
     { version: '2026.10.27.2', date: '27/10/2026', items: [
       'Quien puede editar entradas ahora puede ordenarlas arrastrándolas (manija ⋮⋮ en cada tarjeta).'
     ]},

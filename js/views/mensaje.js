@@ -4,8 +4,8 @@
 // bloque de consignas en la cabecera).
 
 import { AppState } from '../app-state.js';
-import { SECCIONES } from '../config/constants.js';
-import { escapeHtml, linkify, dayDateToIso, compareEntryOrder } from '../utils/helpers.js';
+import { SECCIONES, RECURSO_CATEGORIAS } from '../config/constants.js';
+import { escapeHtml, linkify, dayDateToIso, compareEntryOrder, recursoCategoriaDe } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { entryScope, canSeeEntry, isAdmin, isJefeSeccionEditing, isJefeSeccion, effectiveDepto, effectiveSeccion, effectiveRole, lectorModeActive, isLectorLike, canEditStructure, canCreateRecurso } from '../services/permissions.js';
 import { addDay } from '../services/state.service.js';
@@ -84,38 +84,78 @@ import { renderPanel } from '../main.js';
   // Se guarda como entradas con dayId sentinel 'RESOURCES' (sin seccion/depto).
   export function renderRecursosPanel(){
     var panel = document.getElementById('panel');
-    // Orden ascendente, igual que "Mensaje"/"Departamentos" (08/10/2026) —
-    // el botón "+ Agregar entrada" queda debajo de todo, así que una entrada
-    // nueva (sin posición elegida) tiene que aparecer ahí, no saltar arriba.
+    // Orden ascendente, igual que "Mensaje"/"Departamentos" (08/10/2026).
     var items = AppState.state.entries.filter(function(e){ return e.dayId === 'RESOURCES' && canSeeEntry(e); })
       .sort(compareEntryOrder);
     var canAddHere = canCreateRecurso();
 
+    // Categorías (27/10/2026): sin categoría abierta se ve la grilla; al
+    // tocar una, la lista de sus entradas como tarjetas anchas.
+    var porCat = {};
+    items.forEach(function(e){ var c = recursoCategoriaDe(e); (porCat[c] = porCat[c] || []).push(e); });
+    var cat = RECURSO_CATEGORIAS.find(function(c){ return c.id === AppState.recursosCategoria; });
+    if(cat && !canAddHere && !porCat[cat.id]){ cat = null; }
+    AppState.recursosCategoria = cat ? cat.id : '';
+
     var html = '';
-    html += '<div class="panel-head"><div><h2>Recursos</h2>';
-    html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes y oraciones para todo el campamento.</p></div>';
-    // "+ Agregar entrada" arriba a la derecha, al lado del título (19/10/2026,
-    // recomendación de diseño que pasó el usuario) — el formulario sigue
-    // abriéndose debajo de la lista (toggleFormBtn ya hace scroll hasta él).
-    if(canAddHere){
-      html += '<button class="btn small" id="toggleFormBtn" type="button">' + (AppState.formOpen ? 'Cerrar' : '+ Agregar entrada') + '</button>';
-    }
-    html += '</div>';
-
-    html += '<div class="entries">';
-    if(items.length === 0){
-      html += '<p class="empty">Todavía no hay recursos cargados.</p>';
+    if(!cat){
+      html += '<div class="panel-head"><div><h2>Recursos</h2>';
+      html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes y oraciones para todo el campamento.</p></div></div>';
+      // Quien puede agregar ve todas las categorías (para cargar en una
+      // vacía); el resto, solo las que tienen algo.
+      var cats = RECURSO_CATEGORIAS.filter(function(c){ return canAddHere || porCat[c.id]; });
+      if(cats.length === 0){
+        html += '<p class="empty">Todavía no hay recursos cargados.</p>';
+      } else {
+        html += '<div class="recursos-grid">';
+        cats.forEach(function(c){
+          var n = (porCat[c.id] || []).length;
+          html += '<button type="button" class="recurso-cat" data-recurso-cat="' + c.id + '">' +
+            '<span class="recurso-cat-icon">' + icon(c.icon) + '</span>' +
+            '<span class="recurso-cat-label">' + escapeHtml(c.label) + '</span>' +
+            '<span class="recurso-cat-count">' + (n ? (n + ' entrada' + (n === 1 ? '' : 's')) : 'Vacía') + '</span>' +
+            '</button>';
+        });
+        html += '</div>';
+      }
+      panel.innerHTML = html;
     } else {
-      html += renderEntriesListHtml(items, canAddHere);
+      var catItems = porCat[cat.id] || [];
+      html += '<button type="button" class="recursos-back" id="recursosBackBtn">' + icon('chevron-left') + ' Recursos</button>';
+      html += '<div class="panel-head"><div><h2>' + escapeHtml(cat.label) + '</h2></div>';
+      if(canAddHere){
+        html += '<button class="btn small" id="toggleFormBtn" type="button">' + (AppState.formOpen ? 'Cerrar' : '+ Agregar entrada') + '</button>';
+      }
+      html += '</div>';
+      html += '<div class="entries">';
+      if(catItems.length === 0){
+        html += '<p class="empty">Todavía no hay nada en esta categoría.</p>';
+      } else {
+        html += renderEntriesListHtml(catItems, canAddHere, cat.icon);
+      }
+      html += '</div>';
+      if(canAddHere){ html += renderForm('RESOURCES'); }
+      panel.innerHTML = html;
+      attachPanelEvents('RESOURCES');
     }
-    html += '</div>';
 
-    if(canAddHere){
-      html += renderForm('RESOURCES');
+    panel.querySelectorAll('[data-recurso-cat]').forEach(function(btn){
+      btn.onclick = function(){
+        AppState.recursosCategoria = btn.getAttribute('data-recurso-cat');
+        panel.scrollTop = 0; window.scrollTo(0, 0);
+        renderPanel();
+      };
+    });
+    var back = document.getElementById('recursosBackBtn');
+    if(back){
+      back.onclick = function(){
+        AppState.recursosCategoria = '';
+        AppState.formOpen = false;
+        AppState.editingEntryId = null;
+        AppState.formCategoria = '';
+        renderPanel();
+      };
     }
-
-    panel.innerHTML = html;
-    attachPanelEvents('RESOURCES');
   }
 
 

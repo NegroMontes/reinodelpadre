@@ -25,6 +25,8 @@ export const AppState = {
   formAnonimo: false, // "Publicar sin firmar" — si está tildado, la entrada se guarda sin autor
   formOculta: false,
   formBienvenida: false,
+  formCategoria: '', // categoría de Recursos elegida en el formulario (ver RECURSO_CATEGORIAS)
+  recursosCategoria: '', // categoría abierta en Recursos — '' = grilla de categorías
   formAmbitoOpen: false, // desplegable "Visible para" del formulario (solo admin) abierto/cerrado
   collapsedEntryIds: {},
   formAligns: { body: 'left', bodyAfter: 'left' },

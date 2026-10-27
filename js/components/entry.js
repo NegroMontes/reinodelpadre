@@ -115,13 +115,18 @@ import { canSeeCompletions } from '../services/progress.service.js';
     var espacio = entryToEspacio(entry);
     var stepCount = (espacio.steps || []).length;
     var draggable = !!(opts && opts.draggable && canEdit);
-    var html = '<div class="entry' + (draggable ? ' entry-draggable' : '') + '" data-id="' + entry.id + '">';
+    var leadIcon = opts && opts.leadIcon;
+    var html = '<div class="entry' + (draggable ? ' entry-draggable' : '') + (leadIcon ? ' entry-wide' : '') + '" data-id="' + entry.id + '">';
     html += '  <div class="entry-top">';
+    // Tarjeta ancha de Recursos (27/10/2026): círculo con el ícono de la
+    // categoría a la izquierda y el subtítulo de la Fordoquera debajo.
+    if(leadIcon){ html += '    <span class="entry-lead-icon">' + icon(leadIcon) + '</span>'; }
     html += '    <div class="entry-head-main">';
     html += '<div class="entry-title-row">';
     html += authorGrupoBadgeHtml(entry);
     html += '  <h3 class="entry-title">' + escapeHtml(entry.title || espacio.title || '(sin título)') + '</h3>';
     html += '</div>';
+    if(leadIcon && espacio.sub){ html += '<p class="entry-sub">' + escapeHtml(espacio.sub) + '</p>'; }
     // En Info general no hace falta ningún tag — la pestaña entera es general y
     // nunca se puede scopear. En Recursos, en cambio, desde que se puede scopear
     // sí hace falta mostrarlo (si no queda invisible que un recurso es "solo
@@ -184,14 +189,14 @@ import { canSeeCompletions } from '../services/progress.service.js';
   // controles, mismo criterio que el botón "+ Agregar entrada"). `items` ya
   // viene ordenado por quien llama (ascendente por `createdAt`, el mismo
   // orden visual que se ve).
-  export function renderEntriesListHtml(items, canAddHere){
+  export function renderEntriesListHtml(items, canAddHere, leadIcon){
     var html = '';
     if(!canAddHere || items.length === 0){
-      items.forEach(function(entry){ html += renderEntry(entry); });
+      items.forEach(function(entry){ html += renderEntry(entry, { leadIcon: leadIcon }); });
       return html;
     }
     items.forEach(function(entry, i){
-      html += renderEntry(entry, { draggable: true });
+      html += renderEntry(entry, { draggable: true, leadIcon: leadIcon });
       if(i < items.length - 1){ html += renderEntryGap(entry.id, items[i+1].id); }
     });
     return html;

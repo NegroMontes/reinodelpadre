@@ -8,8 +8,8 @@
 // y si es la entrada de bienvenida.
 
 import { AppState } from '../app-state.js';
-import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
-import { escapeHtml, uid, isoToDayDate, entrySortKey } from '../utils/helpers.js';
+import { SECCIONES, DEPARTAMENTOS, RECURSO_CATEGORIAS } from '../config/constants.js';
+import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
@@ -136,6 +136,7 @@ import { attachEntryReorder } from './entry-reorder.js';
     AppState.formSecciones = []; AppState.formDeptos = []; AppState.formComandoGeneral = false; AppState.formSeccionComandoOnly = false;
     AppState.formAnonimo = false; AppState.formOculta = false; AppState.formBienvenida = false;
     AppState.formAmbitoOpen = false;
+    AppState.formCategoria = '';
     AppState.formTitleDraft = null;
     AppState.insertOrderCreatedAt = null; AppState.insertOrderNote = '';
   }
@@ -150,6 +151,16 @@ import { attachEntryReorder } from './entry-reorder.js';
     var titleVal = AppState.formTitleDraft !== null ? AppState.formTitleDraft : (editing ? editing.title : '');
     var titlePlaceholder = day === 'INFO_GENERAL' ? 'Ej: Lugar de campamento' : 'Ej: La virtud de la fortaleza';
     html += '  <div class="form-row"><label>Título (opcional)</label><input type="text" id="fTitle" placeholder="' + escapeHtml(titlePlaceholder) + '" value="' + escapeHtml(titleVal) + '"></div>';
+
+    // Categoría de Recursos (27/10/2026) — por default, la que está abierta.
+    if(day === 'RESOURCES'){
+      var catVal = AppState.formCategoria || AppState.recursosCategoria || 'otros';
+      html += '  <div class="form-row"><label>Categoría</label><select id="fCategoria">';
+      RECURSO_CATEGORIAS.forEach(function(c){
+        html += '<option value="' + c.id + '"' + (c.id === catVal ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>';
+      });
+      html += '</select></div>';
+    }
 
     if(day === 'INFO_GENERAL'){
       // Info general es contenido general (sin sección/depto), visible para
@@ -267,6 +278,9 @@ import { attachEntryReorder } from './entry-reorder.js';
       ? 'FORDOC'
       : (effectiveSeccion() || effectiveDepto() || '');
     var bienvenida = (day === 'RESOURCES') ? AppState.formBienvenida : false;
+    var categoria = (day === 'RESOURCES') ? (AppState.formCategoria || AppState.recursosCategoria || 'otros') : null;
+    // Queda abierta la categoría donde cayó la entrada, para que se vea.
+    if(categoria){ AppState.recursosCategoria = categoria; }
 
     if(AppState.editingEntryId){
       var entry = AppState.state.entries.find(function(e){ return e.id === AppState.editingEntryId; });
@@ -279,6 +293,7 @@ import { attachEntryReorder } from './entry-reorder.js';
       entry.seccionesComandoOnly = seccionComandoOnly;
       entry.oculta = AppState.formOculta;
       entry.bienvenida = bienvenida;
+      if(categoria) entry.categoria = categoria;
       // Si el espacio ya tiene su propio título (puesto desde la Fordoquera),
       // lo sincronizamos también para que no queden desalineados.
       if(title && entry.espacio) entry.espacio.title = title;
@@ -300,6 +315,7 @@ import { attachEntryReorder } from './entry-reorder.js';
         secciones: secciones, deptos: deptos, comandoGeneral: comandoGeneral, seccionesComandoOnly: seccionComandoOnly,
         oculta: AppState.formOculta, bienvenida: bienvenida, espacio: null, createdAt: Date.now()
       });
+      if(categoria){ AppState.state.entries[AppState.state.entries.length - 1].categoria = categoria; }
       if(newOrder != null){ AppState.state.entries[AppState.state.entries.length - 1].order = newOrder; }
       save();
       return id;
@@ -427,6 +443,10 @@ import { attachEntryReorder } from './entry-reorder.js';
     var ocultaCheck = document.getElementById('fOculta');
     if(ocultaCheck){
       ocultaCheck.onchange = function(){ AppState.formOculta = ocultaCheck.checked; };
+    }
+    var categoriaSelect = document.getElementById('fCategoria');
+    if(categoriaSelect){
+      categoriaSelect.onchange = function(){ AppState.formCategoria = categoriaSelect.value; };
     }
     var bienvenidaCheck = document.getElementById('fBienvenida');
     if(bienvenidaCheck){
@@ -562,6 +582,7 @@ import { attachEntryReorder } from './entry-reorder.js';
         AppState.formAnonimo = !!entry.anonimo;
         AppState.formOculta = !!entry.oculta;
         AppState.formBienvenida = !!entry.bienvenida;
+        AppState.formCategoria = entry.dayId === 'RESOURCES' ? recursoCategoriaDe(entry) : '';
         AppState.formTitleDraft = null;
         AppState.formOpen = true;
         renderPanel();
