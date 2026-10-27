@@ -1298,12 +1298,10 @@ input.switch:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
 @media (prefers-reduced-motion: reduce){ .toast-item{ animation:none; } }
 
 /* Reordenar entradas arrastrando (27/10/2026) — mismo molde que la
-   Fordoquera: la tarjeta entera se arrastra (el ícono de puntitos es solo
-   una pista), una copia sigue al puntero y una raya turquesa marca si cae
+   Fordoquera: la tarjeta entera se arrastra (sin ícono ni cursor de "mano",
+   pedido del usuario), una copia sigue al puntero y una raya turquesa marca si cae
    antes o después de la tarjeta de abajo. */
-.entry.entry-draggable{ cursor:grab; }
-.entry-actions .entry-drag-handle{ cursor:grab; }
-body.entry-arrastrando, body.entry-arrastrando *{ cursor:grabbing !important; user-select:none; -webkit-user-select:none; }
+body.entry-arrastrando, body.entry-arrastrando *{ user-select:none; -webkit-user-select:none; }
 .entry.entry-drop-antes{ box-shadow:0 -3px 0 var(--teal); }
 .entry.entry-drop-despues{ box-shadow:0 3px 0 var(--teal); }
 .entry-drag-ghost{ box-shadow:var(--shadow-lift); }
