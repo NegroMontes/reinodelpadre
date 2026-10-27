@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getFirestore, doc, collection } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, disableNetwork, enableNetwork, doc, collection } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
 // Config pública del proyecto Firebase (fordoc-reino-del-padre).
@@ -13,7 +13,24 @@ export var firebaseConfig = {
   appId: "1:955338785447:web:2063e38db815594bdd9182"
 };
 export var firebaseApp = initializeApp(firebaseConfig);
-export var db = getFirestore(firebaseApp);
+// Caché en el dispositivo (27/10/2026: la app instalada tardaba ~30s en
+// mostrar algo) — así el contenido aparece al toque desde lo guardado, y
+// después Firestore lo actualiza solo.
+export var db = initializeFirestore(firebaseApp, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
+
+// Al volver a la app después de un rato en segundo plano (típico en el
+// celular), la conexión en vivo puede quedar muerta sin avisar — se reinicia
+// para que vuelvan a llegar los cambios.
+var hiddenAt = 0;
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); return; }
+  if(hiddenAt && Date.now() - hiddenAt > 20000){
+    disableNetwork(db).then(function(){ return enableNetwork(db); }).catch(function(e){ console.error('No se pudo reconectar:', e); });
+  }
+  hiddenAt = 0;
+});
 export var auth = getAuth(firebaseApp);
 // Scope de Drive que se pide SOLO a quien entra por el camino "comando"
 // (nunca a milicianos) — ver signIn() y "Subida de archivos al Drive

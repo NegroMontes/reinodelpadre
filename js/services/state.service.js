@@ -158,6 +158,11 @@ import { showConfirm } from '../components/dialog.js';
     AppState.unsubState = onSnapshot(stateDocRef, function(snap){
       if(snap.exists()){
         AppState.state = normalizeState(snap.data());
+      } else if(snap.metadata.fromCache){
+        // Con la caché del dispositivo, "no existe" puede solo querer decir
+        // "todavía no está guardado acá" — nunca sembrar los datos por
+        // defecto sin confirmarlo con el servidor (pisaría el contenido real).
+        return;
       } else if(AppState.firstSnapshot){
         AppState.state = defaultData();
         save(true);

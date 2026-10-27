@@ -36,46 +36,41 @@ import { render } from '../main.js';
   // `ensureProgressSubs()`, pero por entrada suma TODOS los que la
   // completaron (solo para el admin real — las reglas de Firestore de
   // `entryProgress` solo dejan leer cualquier doc ajeno a un admin).
-  // El mock de este sandbox no filtra por `where()` en un `onSnapshot` de
-  // colección (sí lo hace en `getDocs`) — por eso se filtra `entryId` acá
-  // mismo, en el cliente, además del `where` de la query (redundante contra
-  // Firestore real, pero necesario para que el mock ande igual).
+  // Una sola suscripción a TODA la colección (27/10/2026, la app tardaba en
+  // cargar y no se actualizaba sola) — antes era una por entrada, así que con
+  // muchas entradas se pasaba el límite recomendado de ~100 listeners por
+  // cliente de Firestore. Se agrupa por `entryId` acá, en el cliente.
+  function rebuildCompletions(){
+    var byEntry = {};
+    completionsDocs.forEach(function(data){
+      if(!data.completedAt || !data.entryId) return;
+      (byEntry[data.entryId] = byEntry[data.entryId] || []).push({ displayName: data.displayName || '(sin nombre)', completedAt: data.completedAt });
+    });
+    (AppState.state.entries || []).forEach(function(e){
+      var list = (byEntry[e.id] || []).sort(function(a,b){ return a.completedAt - b.completedAt; });
+      AppState.secuencialCompletionsCache[e.id] = list;
+      // La primera vez que se ve una entrada, lo que ya había queda como
+      // "visto" — la alerta es solo para completados NUEVOS.
+      if(AppState.secuencialCompletionsSeenCount[e.id] === undefined){
+        AppState.secuencialCompletionsSeenCount[e.id] = list.length;
+      }
+    });
+  }
+  var completionsDocs = null; // null hasta el primer snapshot
+
   export function ensureCompletionsSubs(){
     if(!realIsAdmin()) return;
-    (AppState.state.entries || []).forEach(function(e){
-      // Antes filtraba por `e.type === 'secuencial'` (el tipo del viejo
-      // reproductor propio de RDP) — desde que se incrustó la Fordoquera
-      // real (09/10/2026) una entrada nueva nunca llega a tener `type`
-      // seteado (su contenido vive en `entry.espacio`), así que ese filtro
-      // había quedado muerto para cualquier entrada creada después de esa
-      // fecha. Se saca del todo: cualquier entrada puede abrirse en la
-      // Fordoquera y generar progreso, así que cualquiera puede tener
-      // completados que mostrar acá.
-      if(!AppState.secuencialCompletionsSubs[e.id]){
-        var q = query(collection(db, 'entryProgress'), where('entryId', '==', e.id));
-        AppState.secuencialCompletionsSubs[e.id] = onSnapshot(q, function(snap){
-          var list = [];
-          snap.forEach(function(d){
-            var data = d.data();
-            if(data.entryId === e.id && data.completedAt){
-              list.push({ displayName: data.displayName || '(sin nombre)', completedAt: data.completedAt });
-            }
-          });
-          list.sort(function(a,b){ return a.completedAt - b.completedAt; });
-          AppState.secuencialCompletionsCache[e.id] = list;
-          // La primera vez que llega data para esta entrada, lo que ya había
-          // queda como "visto" — la alerta es solo para completados NUEVOS
-          // desde que empezó a mirarse, no retroactiva a lo que ya existía.
-          if(AppState.secuencialCompletionsSeenCount[e.id] === undefined){
-            AppState.secuencialCompletionsSeenCount[e.id] = list.length;
-          }
-          if(!AppState.formOpen) render();
-        }, function(err){
-          console.error('No se pudo suscribir a quién completó la entrada:', err);
-          AppState.secuencialCompletionsCache[e.id] = 'error';
-          if(!AppState.formOpen) render();
-        });
-      }
+    if(completionsDocs) rebuildCompletions(); // entradas nuevas en fordoc/shared
+    if(AppState.secuencialCompletionsSubs._all) return;
+    AppState.secuencialCompletionsSubs._all = onSnapshot(collection(db, 'entryProgress'), function(snap){
+      completionsDocs = [];
+      snap.forEach(function(d){ completionsDocs.push(d.data()); });
+      rebuildCompletions();
+      scheduleRender();
+    }, function(err){
+      console.error('No se pudo suscribir a quién completó la entrada:', err);
+      (AppState.state.entries || []).forEach(function(e){ AppState.secuencialCompletionsCache[e.id] = 'error'; });
+      scheduleRender();
     });
   }
 
@@ -85,6 +80,7 @@ import { render } from '../main.js';
     AppState.secuencialCompletionsSubs = {};
     AppState.secuencialCompletionsCache = {};
     AppState.secuencialCompletionsSeenCount = {};
+    completionsDocs = null;
   }
 
 
@@ -100,17 +96,21 @@ import { render } from '../main.js';
   }
 
 
+  // Una sola suscripción a los documentos propios (`where uid == yo`, lo que
+  // las reglas de `entryProgress` dejan leer), en vez de una por entrada.
   export function ensureProgressSubs(){
-    if(!AppState.currentUser) return;
-    (AppState.state.entries || []).forEach(function(e){
-      // Mismo motivo que en `ensureCompletionsSubs()` — ya no filtra por
-      // `e.type === 'secuencial'`, ese campo no existe en una entrada nueva.
-      if(!AppState.progressSubs[e.id]){
-        AppState.progressSubs[e.id] = onSnapshot(progressDocRef(e.id), function(snap){
-          AppState.myProgress[e.id] = snap.exists() ? snap.data() : null;
-          if(!AppState.formOpen) render();
-        });
-      }
+    if(!AppState.currentUser || AppState.progressSubs._all) return;
+    var q = query(collection(db, 'entryProgress'), where('uid', '==', AppState.currentUser.uid));
+    AppState.progressSubs._all = onSnapshot(q, function(snap){
+      var mine = {};
+      snap.forEach(function(d){
+        var data = d.data();
+        if(data.entryId && data.uid === AppState.currentUser.uid) mine[data.entryId] = data;
+      });
+      AppState.myProgress = mine;
+      scheduleRender();
+    }, function(err){
+      console.error('No se pudo suscribir a tu avance:', err);
     });
   }
 
@@ -119,6 +119,18 @@ import { render } from '../main.js';
     Object.keys(AppState.progressSubs).forEach(function(id){ AppState.progressSubs[id](); });
     AppState.progressSubs = {};
     AppState.myProgress = {};
+  }
+
+
+  // Junta varios avisos seguidos en un solo redibujado.
+  var renderPending = false;
+  function scheduleRender(){
+    if(renderPending) return;
+    renderPending = true;
+    setTimeout(function(){
+      renderPending = false;
+      if(!AppState.formOpen) render();
+    }, 50);
   }
 
 

@@ -95,6 +95,23 @@ function persistEspacio(entryId, espacio){
   save();
 }
 
+// Pasos que muestran el texto de un libro, del lado de la Fordoquera.
+var BOOKISH_TYPES = ['youcat', 'yconf', 'enciclica', 'estilo', 'libro'];
+
+// Al recorrer una entrada no hace falta bajar los libros (27/10/2026: abrir
+// una entrada tardaba ~1,5 min): la Fordoquera guarda el texto de cada cita
+// adentro del paso (`snap`) y lo usa cuando no tiene el libro. Solo se bajan
+// si alguna cita no lo trae (entradas viejas) o para armar.
+function librosParaAbrir(modo, espacio){
+  if(modo === 'presentar'){
+    var faltaTexto = ((espacio && espacio.steps) || []).some(function(s){
+      return BOOKISH_TYPES.indexOf(s.type) !== -1 && s.book && s.book.n != null && s.book.n !== '' && !s.snap;
+    });
+    if(!faltaTexto) return Promise.resolve(null);
+  }
+  return loadLibrosForFordoquera();
+}
+
 function open(opts){
   closeOverlay(); // por si quedó algo abierto de una llamada anterior
   // Único punto de cierre real — lo usan el botón "✕" Y los mensajes
@@ -121,7 +138,7 @@ function open(opts){
       // así que el "✕" nuestro se oculta para no taparle su barra. Solo
       // queda visible si la Fordoquera nunca llega a cargar.
       built.closeBtn.hidden = true;
-      loadLibrosForFordoquera().then(function(libros){
+      librosParaAbrir(opts.modo, espacio).then(function(libros){
         postToIframe({
           fq: 'abrir',
           espacio: espacio,

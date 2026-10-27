@@ -105,7 +105,7 @@
   // avisa con un toast (significa que alguien pusheó una versión nueva
   // mientras la página seguía abierta). Bump a mano en cada cambio grande
   // — fecha + un contador chico si hay más de un cambio el mismo día.
-  export var APP_VERSION = '2026.10.19.1';
+  export var APP_VERSION = '2026.10.27.1';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -114,6 +114,11 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.10.27.1', date: '27/10/2026', items: [
+      'La página carga más rápido: guarda una copia del contenido en el dispositivo.',
+      'Quién completó cada entrada se actualiza solo, también al volver a la app.',
+      'Recorrer una entrada ya no descarga los libros enteros (abre mucho más rápido).'
+    ]},
     { version: '2026.10.19.1', date: '19/10/2026', items: [
       'Pulido visual de Recursos, Usuarios, el formulario de agregar entrada y el menú de usuario.',
       'Editor del día: selector de fecha, botón para eliminar, cita con altura automática, vista previa.',
