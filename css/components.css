@@ -1270,8 +1270,9 @@ input.switch:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
     display:flex;
     align-items:center;
     gap:10px;
-    background:var(--ink);
-    color:var(--white);
+    background:var(--card-bg);
+    color:var(--ink);
+    border:1px solid var(--line);
     border-radius:var(--radius);
     box-shadow:var(--shadow-md);
     padding:10px 10px 10px 16px;
@@ -1284,7 +1285,7 @@ input.switch:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
 .toast-close{
     background:none;
     border:none;
-    color:var(--white);
+    color:var(--ink);
     opacity:.7;
     cursor:pointer;
     font-size:14px;
