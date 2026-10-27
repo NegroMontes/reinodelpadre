@@ -148,7 +148,7 @@ import { showConfirm } from './dialog.js';
     }
     var titleVal = AppState.formTitleDraft !== null ? AppState.formTitleDraft : (editing ? editing.title : '');
     var titlePlaceholder = day === 'INFO_GENERAL' ? 'Ej: Lugar de campamento' : 'Ej: La virtud de la fortaleza';
-    html += '  <div class="form-row"><label>Título</label><input type="text" id="fTitle" placeholder="' + escapeHtml(titlePlaceholder) + '" value="' + escapeHtml(titleVal) + '"></div>';
+    html += '  <div class="form-row"><label>Título (opcional)</label><input type="text" id="fTitle" placeholder="' + escapeHtml(titlePlaceholder) + '" value="' + escapeHtml(titleVal) + '"></div>';
 
     if(day === 'INFO_GENERAL'){
       // Info general es contenido general (sin sección/depto), visible para
@@ -199,7 +199,8 @@ import { showConfirm } from './dialog.js';
   // (y ya mostró el mensaje de error correspondiente).
   function saveEntryMetadata(day){
     var title = document.getElementById('fTitle').value.trim();
-    if(!title){ showStatus('Poné un título antes de continuar.'); return null; }
+    // Título opcional (27/10/2026): se puede poner después, desde la
+    // Fordoquera. Vacío al editar = se conserva el que ya tenía.
 
     var comandoGeneral = (day === 'INFO_GENERAL') ? false : AppState.formComandoGeneral;
     var editingEntryNow = AppState.editingEntryId ? AppState.state.entries.find(function(e){ return e.id === AppState.editingEntryId; }) : null;
@@ -269,7 +270,7 @@ import { showConfirm } from './dialog.js';
     if(AppState.editingEntryId){
       var entry = AppState.state.entries.find(function(e){ return e.id === AppState.editingEntryId; });
       if(!entry || !canEditEntry(entry)){ showStatus('No tenés permiso para editar esta entrada.'); return null; }
-      entry.title = title;
+      if(title) entry.title = title;
       entry.author = author; entry.anonimo = anonimo;
       entry.authorReal = entry.authorReal || AppState.currentUser.displayName;
       entry.authorGrupo = entry.authorGrupo || authorGrupo;
@@ -279,7 +280,7 @@ import { showConfirm } from './dialog.js';
       entry.bienvenida = bienvenida;
       // Si el espacio ya tiene su propio título (puesto desde la Fordoquera),
       // lo sincronizamos también para que no queden desalineados.
-      if(entry.espacio) entry.espacio.title = title;
+      if(title && entry.espacio) entry.espacio.title = title;
       save();
       return entry.id;
     } else {
