@@ -110,7 +110,7 @@ import { renderPanel } from '../main.js';
         html += '<div class="recursos-grid">';
         cats.forEach(function(c){
           var n = (porCat[c.id] || []).length;
-          html += '<button type="button" class="recurso-cat" data-recurso-cat="' + c.id + '">' +
+          html += '<button type="button" class="recurso-cat' + (n ? '' : ' recurso-cat-empty') + '" data-recurso-cat="' + c.id + '">' +
             '<span class="recurso-cat-icon">' + icon(c.icon) + '</span>' +
             '<span class="recurso-cat-label">' + escapeHtml(c.label) + '</span>' +
             '<span class="recurso-cat-count">' + (n ? (n + ' entrada' + (n === 1 ? '' : 's')) : 'Vacía') + '</span>' +
