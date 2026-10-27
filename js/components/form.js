@@ -131,6 +131,7 @@ import { showConfirm } from './dialog.js';
   function resetFormDraftState(){
     AppState.editingEntryId = null;
     AppState.formNewEntryId = null;
+    AppState.formEntrySnapshot = null;
     AppState.formSecciones = []; AppState.formDeptos = []; AppState.formComandoGeneral = false; AppState.formSeccionComandoOnly = false;
     AppState.formAnonimo = false; AppState.formOculta = false; AppState.formBienvenida = false;
     AppState.formAmbitoOpen = false;
@@ -495,16 +496,18 @@ import { showConfirm } from './dialog.js';
     var cancelBtn = document.getElementById('cancelFormBtn');
     if(cancelBtn){
       cancelBtn.onclick = function(){
-        // Entrada creada en este mismo formulario y cerrada sin cargarle
-        // ningún paso: "Cancelar" la descarta en vez de dejarla publicada
-        // vacía (bug reportado por el usuario 25/10/2026).
+        // "Cancelar" descarta todo lo hecho desde que se abrió el formulario,
+        // incluido lo que la Fordoquera ya guardó sola (bug reportado por el
+        // usuario 27/10/2026): una entrada nueva se borra; una existente
+        // vuelve a como estaba al tocar "Editar".
         var newId = AppState.formNewEntryId;
-        if(newId && AppState.editingEntryId === newId){
-          var idx = AppState.state.entries.findIndex(function(e){ return e.id === newId; });
-          if(idx >= 0 && entryToEspacio(AppState.state.entries[idx]).steps.length === 0){
-            AppState.state.entries.splice(idx, 1);
-            save();
-          }
+        var snap = AppState.formEntrySnapshot;
+        var targetId = (newId && AppState.editingEntryId === newId) ? newId : (snap && snap.id);
+        var idx = targetId ? AppState.state.entries.findIndex(function(e){ return e.id === targetId; }) : -1;
+        if(idx >= 0){
+          if(targetId === newId) AppState.state.entries.splice(idx, 1);
+          else AppState.state.entries[idx] = snap;
+          save();
         }
         AppState.formOpen = false;
         resetFormDraftState();
@@ -539,6 +542,8 @@ import { showConfirm } from './dialog.js';
         var entry = AppState.state.entries.find(function(e){ return e.id === id; });
         if(!entry) return;
         AppState.editingEntryId = id;
+        AppState.formNewEntryId = null;
+        AppState.formEntrySnapshot = JSON.parse(JSON.stringify(entry));
         // Editar una entrada existente nunca toca su posición en el orden —
         // si quedó un "insertar acá" armado de un click anterior sin guardar
         // (abrió el hueco "+" y después, sin cerrar, tocó "Editar" en otra

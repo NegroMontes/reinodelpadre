@@ -16,6 +16,7 @@ export const AppState = {
   // pasos todavía la usan) pero ya nunca cambia de valor desde la interfaz.
   formType: 'secuencial',
   editingEntryId: null,
+  formEntrySnapshot: null, // copia de la entrada al tocar "Editar" (Cancelar la restaura)
   formNewEntryId: null, // entrada creada en el formulario abierto (para descartarla al Cancelar si quedó vacía)
   formSecciones: [],
   formDeptos: [],
