@@ -80,7 +80,7 @@ function buildOverlay(onCloseClick){
   overlay.appendChild(closeBtn);
   overlay.appendChild(iframe);
   document.body.appendChild(overlay);
-  return { overlay: overlay, iframe: iframe };
+  return { overlay: overlay, iframe: iframe, closeBtn: closeBtn };
 }
 
 // Guarda el espacio nuevo adentro de la entrada de RDP (título incluido,
@@ -117,6 +117,10 @@ function open(opts){
     if(!built.iframe.contentWindow || ev.source !== built.iframe.contentWindow) return;
     var d = ev.data || {};
     if(d.fq === 'lista'){
+      // Ya cargó: la Fordoquera trae su propia salida ("✕" / "← Volver"),
+      // así que el "✕" nuestro se oculta para no taparle su barra. Solo
+      // queda visible si la Fordoquera nunca llega a cargar.
+      built.closeBtn.hidden = true;
       loadLibrosForFordoquera().then(function(libros){
         postToIframe({
           fq: 'abrir',
