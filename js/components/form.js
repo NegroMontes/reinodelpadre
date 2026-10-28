@@ -14,9 +14,11 @@ import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
-import { openFordoqueraEditor, openFordoqueraViewer } from './fordoquera-embed.js';
+import { openFordoqueraEditor, openFordoqueraViewer, embeddableUrlForUpload } from './fordoquera-embed.js';
+import { parseEncuentrosHtml } from '../utils/encuentros-interop.js';
+import { uploadEntryFile } from '../services/drive.service.js';
 import { render, renderPanel, showStatus } from '../main.js';
-import { showConfirm } from './dialog.js';
+import { showConfirm, showAlert } from './dialog.js';
 import { attachEntryReorder } from './entry-reorder.js';
 
   // Selector de Ámbito reusado en Mensaje (día real), Departamentos (day===null)
@@ -195,6 +197,10 @@ import { attachEntryReorder } from './entry-reorder.js';
       html += '    <button class="btn" id="saveEntryBtn" type="button">Guardar cambios</button>';
       html += '    <button class="btn" id="openFordoqueraBtn" type="button">' + icon('pencil') + ' Editar contenido (' + stepCount + ' paso' + (stepCount === 1 ? '' : 's') + ')</button>';
     } else {
+      // Importar varias entradas de una (28/10/2026): cada .html exportado
+      // de la Fordoquera se vuelve una entrada, con este mismo ámbito/categoría.
+      html += '    <button class="btn ghost" id="importFordoqueraBtn" type="button">📥 Importar de la Fordoquera (varios .html)</button>';
+      html += '    <input type="file" id="importFordoqueraInput" accept=".html,.htm,text/html" multiple hidden>';
       html += '    <button class="btn" id="saveEntryBtn" type="button">Crear entrada y abrir editor</button>';
     }
     html += '  </div>';
@@ -209,8 +215,10 @@ import { attachEntryReorder } from './entry-reorder.js';
   // real, que entra y sale exclusivamente por la Fordoquera incrustada).
   // Devuelve el id de la entrada (creada o editada), o `null` si algo falló
   // (y ya mostró el mensaje de error correspondiente).
-  function saveEntryMetadata(day){
-    var title = document.getElementById('fTitle').value.trim();
+  // `imp` (importación en lote): {title, espacio, index} — crea una entrada
+  // nueva con ese contenido, sin guardar (el que llama hace un solo save()).
+  function saveEntryMetadata(day, imp){
+    var title = imp ? (imp.title || '') : document.getElementById('fTitle').value.trim();
     // Título opcional (27/10/2026): se puede poner después, desde la
     // Fordoquera. Vacío al editar = se conserva el que ya tenía.
 
@@ -283,7 +291,7 @@ import { attachEntryReorder } from './entry-reorder.js';
     // Editando, se queda en la categoría actual (mover varias seguidas).
     if(categoria && !AppState.editingEntryId){ AppState.recursosCategoria = categoria; }
 
-    if(AppState.editingEntryId){
+    if(AppState.editingEntryId && !imp){
       var entry = AppState.state.entries.find(function(e){ return e.id === AppState.editingEntryId; });
       if(!entry || !canEditEntry(entry)){ showStatus('No tenés permiso para editar esta entrada.'); return null; }
       if(title) entry.title = title;
@@ -314,13 +322,71 @@ import { attachEntryReorder } from './entry-reorder.js';
         id: id, dayId: dayIdVal, title: title, author: author, anonimo: anonimo,
         authorReal: AppState.currentUser.displayName, authorGrupo: authorGrupo,
         secciones: secciones, deptos: deptos, comandoGeneral: comandoGeneral, seccionesComandoOnly: seccionComandoOnly,
-        oculta: AppState.formOculta, bienvenida: bienvenida, espacio: null, createdAt: Date.now()
+        oculta: AppState.formOculta, bienvenida: bienvenida, espacio: imp ? imp.espacio : null,
+        createdAt: Date.now() + (imp ? imp.index : 0)
       });
       if(categoria){ AppState.state.entries[AppState.state.entries.length - 1].categoria = categoria; }
-      if(newOrder != null){ AppState.state.entries[AppState.state.entries.length - 1].order = newOrder; }
-      save();
+      if(newOrder != null){ AppState.state.entries[AppState.state.entries.length - 1].order = newOrder + (imp ? imp.index * 1e-6 : 0); }
+      if(!imp) save();
       return id;
     }
+  }
+
+
+  // Archivos subidos directo en la Fordoquera viajan embebidos (data: URI)
+  // en el .html — se suben al Drive de quien importa (no entran en Firestore).
+  // Sin permiso de Drive, el archivo se saca y se avisa.
+  async function resolveEmbeddedFiles(enc, fileMap){
+    var targets = enc.steps.slice();
+    if(enc.music) targets.push(enc.music);
+    var lost = 0;
+    for(var i = 0; i < targets.length; i++){
+      var f = targets[i].file;
+      if(!f || !f.fid) continue;
+      var dataUrl = fileMap[f.fid];
+      try{
+        if(!dataUrl) throw new Error('sin datos');
+        var blob = await (await fetch(dataUrl)).blob();
+        var file = new File([blob], f.name || 'archivo', { type: blob.type });
+        f.path = embeddableUrlForUpload(await uploadEntryFile(file), blob.type);
+        delete f.fid;
+      } catch(e){
+        delete targets[i].file; lost++;
+      }
+    }
+    return lost;
+  }
+
+  async function importFordoqueraFiles(day, files, btn){
+    btn.disabled = true;
+    var ok = 0, errores = [], sinArchivo = 0;
+    for(var i = 0; i < files.length; i++){
+      showStatus('Importando ' + (i + 1) + ' de ' + files.length + '…');
+      try{
+        var parsed = parseEncuentrosHtml(await files[i].text());
+        var enc = parsed.enc;
+        enc.id = 'e' + uid();
+        sinArchivo += await resolveEmbeddedFiles(enc, parsed.fileMap);
+        var title = enc.title || files[i].name.replace(/\.html?$/i, '');
+        enc.title = title;
+        if(!saveEntryMetadata(day, { title: title, espacio: enc, index: i })){ btn.disabled = false; return; }
+        ok++;
+      } catch(e){
+        errores.push(files[i].name);
+      }
+    }
+    if(ok) save();
+    btn.disabled = false;
+    var msg = ok + ' entrada' + (ok === 1 ? '' : 's') + ' importada' + (ok === 1 ? '' : 's') + '.';
+    if(errores.length) msg += ' No se pudieron leer: ' + errores.join(', ') + '.';
+    if(sinArchivo) msg += ' ' + sinArchivo + ' archivo' + (sinArchivo === 1 ? '' : 's') + ' embebido' + (sinArchivo === 1 ? '' : 's') + ' no se pudo subir a Drive (entrá por "Soy del comando").';
+    showStatus('');
+    if(ok){
+      AppState.formOpen = false;
+      resetFormDraftState();
+      render();
+    }
+    showAlert(msg);
   }
 
 
@@ -509,6 +575,18 @@ import { attachEntryReorder } from './entry-reorder.js';
           renderPanel();
           openFordoqueraEditor(id);
         }
+      };
+    }
+
+    // "📥 Importar de la Fordoquera" (28/10/2026): varios .html a la vez.
+    var importBtn = document.getElementById('importFordoqueraBtn');
+    var importInput = document.getElementById('importFordoqueraInput');
+    if(importBtn && importInput){
+      importBtn.onclick = function(){ importInput.click(); };
+      importInput.onchange = function(){
+        var files = Array.prototype.slice.call(importInput.files || []);
+        importInput.value = '';
+        if(files.length) importFordoqueraFiles(day, files, importBtn);
       };
     }
 

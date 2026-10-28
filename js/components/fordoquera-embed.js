@@ -49,7 +49,7 @@ function driveIdFromShareUrl(url){
 // diferencia de un link pegado a mano en el campo URL, que sí reconoce y
 // adapta sola) — así que acá hay que entregarle la forma ya embebible,
 // según el tipo de archivo subido.
-function embeddableUrlForUpload(shareUrl, mimeType){
+export function embeddableUrlForUpload(shareUrl, mimeType){
   var id = driveIdFromShareUrl(shareUrl);
   if(!id) return shareUrl;
   if(mimeType && mimeType.indexOf('image/') === 0) return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w2000';

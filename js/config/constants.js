@@ -120,7 +120,7 @@
   // avisa con un toast (significa que alguien pusheó una versión nueva
   // mientras la página seguía abierta). Bump a mano en cada cambio grande
   // — fecha + un contador chico si hay más de un cambio el mismo día.
-  export var APP_VERSION = '2026.10.27.3';
+  export var APP_VERSION = '2026.10.28.1';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -129,6 +129,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.10.28.1', date: '28/10/2026', items: [
+      'Al agregar una entrada, «📥 Importar de la Fordoquera» permite subir varios archivos .html de una vez: cada uno se vuelve una entrada.'
+    ]},
     { version: '2026.10.27.3', date: '27/10/2026', items: [
       'Recursos ahora se ordena por categorías (Oraciones, Santo Rosario, Citas bíblicas…): tocá una para ver sus entradas.'
     ]},
