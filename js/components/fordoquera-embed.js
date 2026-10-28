@@ -24,6 +24,9 @@
 //                                       `saveFordoqueraProgreso()`, progress.service.js). Reemplaza la
 //                                       limitación aceptada el 09/10/2026 ("el progreso vive solo en el
 //                                       localStorage de la Fordoquera, nunca vuelve a RDP").
+//   {fq:'traidos', espacios:[...]}      (protocolo 3, 28/10/2026) SOLO en modo 'traer': la persona eligió
+//                                       varios espacios de su Fordoquera; cada uno se vuelve una entrada.
+//                                       Cancelar → {fq:'cerrado'}.
 
 import { AppState } from '../app-state.js';
 import { FORDOQUERA_URL } from '../config/constants.js';
@@ -123,8 +126,8 @@ function open(opts){
     if(opts.onClose) opts.onClose();
   };
   var built = buildOverlay(doClose);
-  var espacio = entryToEspacio(opts.entry);
-  var subirPermitido = opts.modo === 'editar' && !!AppState.driveAccessToken;
+  var espacio = opts.entry ? entryToEspacio(opts.entry) : null;
+  var subirPermitido = (opts.modo === 'editar' || opts.modo === 'traer') && !!AppState.driveAccessToken;
 
   function postToIframe(msg){
     try{ built.iframe.contentWindow.postMessage(msg, '*'); }catch(e){}
@@ -138,6 +141,11 @@ function open(opts){
       // así que el "✕" nuestro se oculta para no taparle su barra. Solo
       // queda visible si la Fordoquera nunca llega a cargar.
       built.closeBtn.hidden = true;
+      if(opts.modo === 'traer' && !(d.version >= 3)){
+        closeOverlay();
+        if(opts.onSinSoporte) opts.onSinSoporte();
+        return;
+      }
       librosParaAbrir(opts.modo, espacio).then(function(libros){
         postToIframe({
           fq: 'abrir',
@@ -155,6 +163,13 @@ function open(opts){
       espacio = d.espacio;
       if(opts.entryId) persistEspacio(opts.entryId, espacio);
       if(opts.onSaved) opts.onSaved(espacio);
+      return;
+    }
+    if(d.fq === 'traidos'){
+      if(opts.modo === 'traer'){
+        closeOverlay();
+        if(opts.onTraidos) opts.onTraidos(Array.isArray(d.espacios) ? d.espacios : []);
+      }
       return;
     }
     if(d.fq === 'volver'){ doClose(); return; }
@@ -195,6 +210,19 @@ export function openFordoqueraEditor(entryId){
     modo: 'editar',
     volver: 'Volver a la entrada',
     onClose: function(){ renderPanel(); }
+  });
+}
+
+// Traer varios espacios de la Fordoquera de la persona (protocolo 3):
+// `onTraidos(espacios)` al confirmar; `onSinSoporte()` si la Fordoquera
+// todavía no conoce el modo 'traer'.
+export function openFordoqueraTraer(onTraidos, onSinSoporte){
+  open({
+    modo: 'traer',
+    volver: 'Volver',
+    onTraidos: onTraidos,
+    onSinSoporte: onSinSoporte,
+    onClose: function(){}
   });
 }
 

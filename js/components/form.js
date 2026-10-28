@@ -14,7 +14,7 @@ import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
-import { openFordoqueraEditor, openFordoqueraViewer, embeddableUrlForUpload } from './fordoquera-embed.js';
+import { openFordoqueraEditor, openFordoqueraViewer, openFordoqueraTraer, embeddableUrlForUpload } from './fordoquera-embed.js';
 import { parseEncuentrosHtml } from '../utils/encuentros-interop.js';
 import { uploadEntryFile } from '../services/drive.service.js';
 import { render, renderPanel, showStatus } from '../main.js';
@@ -197,9 +197,11 @@ import { attachEntryReorder } from './entry-reorder.js';
       html += '    <button class="btn" id="saveEntryBtn" type="button">Guardar cambios</button>';
       html += '    <button class="btn" id="openFordoqueraBtn" type="button">' + icon('pencil') + ' Editar contenido (' + stepCount + ' paso' + (stepCount === 1 ? '' : 's') + ')</button>';
     } else {
-      // Importar varias entradas de una (28/10/2026): cada .html exportado
-      // de la Fordoquera se vuelve una entrada, con este mismo ámbito/categoría.
-      html += '    <button class="btn ghost" id="importFordoqueraBtn" type="button">📥 Importar de la Fordoquera (varios .html)</button>';
+      // Importar varias entradas de una (28/10/2026): abre la Fordoquera para
+      // elegir espacios (o, aparte, varios .html exportados); cada uno se
+      // vuelve una entrada, con este mismo ámbito/categoría.
+      html += '    <button class="btn ghost" id="importFordoqueraBtn" type="button">📥 Importar de la Fordoquera</button>';
+      html += '    <button class="btn ghost" id="importHtmlBtn" type="button">📦 Importar archivos .html</button>';
       html += '    <input type="file" id="importFordoqueraInput" accept=".html,.htm,text/html" multiple hidden>';
       html += '    <button class="btn" id="saveEntryBtn" type="button">Crear entrada y abrir editor</button>';
     }
@@ -365,18 +367,37 @@ import { attachEntryReorder } from './entry-reorder.js';
       try{
         var parsed = parseEncuentrosHtml(await files[i].text());
         var enc = parsed.enc;
-        enc.id = 'e' + uid();
         sinArchivo += await resolveEmbeddedFiles(enc, parsed.fileMap);
-        var title = enc.title || files[i].name.replace(/\.html?$/i, '');
-        enc.title = title;
-        if(!saveEntryMetadata(day, { title: title, espacio: enc, index: i })){ btn.disabled = false; return; }
+        if(!enc.title) enc.title = files[i].name.replace(/\.html?$/i, '');
+        if(!addImportedEntry(day, enc, i)){ btn.disabled = false; return; }
         ok++;
       } catch(e){
         errores.push(files[i].name);
       }
     }
-    if(ok) save();
     btn.disabled = false;
+    finishImport(ok, errores, sinArchivo);
+  }
+
+  function addImportedEntry(day, enc, i){
+    enc.id = 'e' + uid();
+    return saveEntryMetadata(day, { title: enc.title || '', espacio: enc, index: i });
+  }
+
+  // Espacios elegidos dentro de la Fordoquera (sus archivos ya vienen subidos).
+  function importEspacios(day, espacios){
+    var ok = 0;
+    for(var i = 0; i < espacios.length; i++){
+      var enc = espacios[i];
+      if(!enc || !Array.isArray(enc.steps)) continue;
+      if(!addImportedEntry(day, enc, i)) return;
+      ok++;
+    }
+    finishImport(ok, [], 0);
+  }
+
+  function finishImport(ok, errores, sinArchivo){
+    if(ok) save();
     var msg = ok + ' entrada' + (ok === 1 ? '' : 's') + ' importada' + (ok === 1 ? '' : 's') + '.';
     if(errores.length) msg += ' No se pudieron leer: ' + errores.join(', ') + '.';
     if(sinArchivo) msg += ' ' + sinArchivo + ' archivo' + (sinArchivo === 1 ? '' : 's') + ' embebido' + (sinArchivo === 1 ? '' : 's') + ' no se pudo subir a Drive (entrá por "Soy del comando").';
@@ -582,7 +603,14 @@ import { attachEntryReorder } from './entry-reorder.js';
     var importBtn = document.getElementById('importFordoqueraBtn');
     var importInput = document.getElementById('importFordoqueraInput');
     if(importBtn && importInput){
-      importBtn.onclick = function(){ importInput.click(); };
+      importBtn.onclick = function(){
+        openFordoqueraTraer(
+          function(espacios){ if(espacios.length) importEspacios(day, espacios); },
+          function(){ showAlert('Tu Fordoquera todavía no permite elegir varios espacios desde acá. Mientras tanto, usá «📦 Importar archivos .html».'); }
+        );
+      };
+      var importHtmlBtn = document.getElementById('importHtmlBtn');
+      if(importHtmlBtn) importHtmlBtn.onclick = function(){ importInput.click(); };
       importInput.onchange = function(){
         var files = Array.prototype.slice.call(importInput.files || []);
         importInput.value = '';
