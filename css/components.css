@@ -1335,6 +1335,7 @@ body.entry-arrastrando, body.entry-arrastrando *{ user-select:none; -webkit-user
     grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
     gap:14px;
 }
+.recursos-subcats{ margin-bottom:18px; }
 .recurso-cat{
     display:flex;
     flex-direction:column;

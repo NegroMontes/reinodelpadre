@@ -164,8 +164,29 @@ import { renderPanel } from '../main.js';
     // tocar una, la lista de sus entradas como tarjetas anchas.
     var porCat = {};
     items.forEach(function(e){ var c = recursoCategoriaDe(e); (porCat[c] = porCat[c] || []).push(e); });
+    // Subcategorías (29/10/2026): una categoría con `parent` se abre desde
+    // adentro de su madre, y sus entradas cuentan también para la madre.
+    function hijas(id){ return RECURSO_CATEGORIAS.filter(function(c){ return c.parent === id; }); }
+    function entradasDe(id){
+      return hijas(id).reduce(function(acc, c){ return acc.concat(porCat[c.id] || []); }, (porCat[id] || []).slice());
+    }
+    // Tarjeta de categoría (grilla de Recursos y subcategorías).
+    function catTileHtml(c){
+      // Las ocultas no cuentan como contenido: una categoría con solo
+      // ocultas se ve transparente, igual que una vacía.
+      var lista = entradasDe(c.id);
+      var ocultas = lista.filter(function(e){ return e.oculta; }).length;
+      var n = lista.length - ocultas;
+      var countTxt = n ? (n + ' entrada' + (n === 1 ? '' : 's')) : (ocultas ? '' : 'Vacía');
+      if(ocultas){ countTxt += (n ? ' · ' : '') + ocultas + ' oculta' + (ocultas === 1 ? '' : 's'); }
+      return '<button type="button" class="recurso-cat' + (n ? '' : ' recurso-cat-empty') + '" data-recurso-cat="' + c.id + '">' +
+        '<span class="recurso-cat-icon">' + icon(c.icon) + '</span>' +
+        '<span class="recurso-cat-label">' + escapeHtml(c.label) + '</span>' +
+        '<span class="recurso-cat-count">' + countTxt + '</span>' +
+        '</button>';
+    }
     var cat = RECURSO_CATEGORIAS.find(function(c){ return c.id === AppState.recursosCategoria; });
-    if(cat && !canAddHere && !porCat[cat.id]){ cat = null; }
+    if(cat && !canAddHere && !entradasDe(cat.id).length){ cat = null; }
     AppState.recursosCategoria = cat ? cat.id : '';
 
     var html = '';
@@ -174,25 +195,12 @@ import { renderPanel } from '../main.js';
       html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes, oraciones y misterios del Rosario para todo el campamento.</p></div></div>';
       // Quien puede agregar ve todas las categorías (para cargar en una
       // vacía); el resto, solo las que tienen algo.
-      var cats = RECURSO_CATEGORIAS.filter(function(c){ return canAddHere || porCat[c.id]; });
+      var cats = RECURSO_CATEGORIAS.filter(function(c){ return !c.parent && (canAddHere || entradasDe(c.id).length); });
       if(cats.length === 0){
         html += '<p class="empty">Todavía no hay recursos cargados.</p>';
       } else {
         html += '<div class="recursos-grid">';
-        cats.forEach(function(c){
-          // Las ocultas no cuentan como contenido: una categoría con solo
-          // ocultas se ve transparente, igual que una vacía.
-          var lista = porCat[c.id] || [];
-          var ocultas = lista.filter(function(e){ return e.oculta; }).length;
-          var n = lista.length - ocultas;
-          var countTxt = n ? (n + ' entrada' + (n === 1 ? '' : 's')) : (ocultas ? '' : 'Vacía');
-          if(ocultas){ countTxt += (n ? ' · ' : '') + ocultas + ' oculta' + (ocultas === 1 ? '' : 's'); }
-          html += '<button type="button" class="recurso-cat' + (n ? '' : ' recurso-cat-empty') + '" data-recurso-cat="' + c.id + '">' +
-            '<span class="recurso-cat-icon">' + icon(c.icon) + '</span>' +
-            '<span class="recurso-cat-label">' + escapeHtml(c.label) + '</span>' +
-            '<span class="recurso-cat-count">' + countTxt + '</span>' +
-            '</button>';
-        });
+        cats.forEach(function(c){ html += catTileHtml(c); });
         html += '</div>';
       }
       panel.innerHTML = html;
@@ -213,7 +221,8 @@ import { renderPanel } from '../main.js';
       if(grupo){
         html += '<button type="button" class="recursos-back" id="recursosBackBtn"' + (canAddHere ? ' data-grupo-drop=""' : '') + '>' + icon('chevron-left') + ' ' + escapeHtml(cat.label) + '</button>';
       } else {
-        html += '<button type="button" class="recursos-back" id="recursosBackBtn">' + icon('chevron-left') + ' Recursos</button>';
+        var madre = cat.parent ? RECURSO_CATEGORIAS.find(function(c){ return c.id === cat.parent; }) : null;
+        html += '<button type="button" class="recursos-back" id="recursosBackBtn">' + icon('chevron-left') + ' ' + escapeHtml(madre ? madre.label : 'Recursos') + '</button>';
       }
       html += '<div class="panel-head"><div><h2>' + escapeHtml(grupo ? grupo.title : cat.label) + '</h2>';
       if(grupo && grupo.desc){ html += '<p class="mandos-sub">' + escapeHtml(grupo.desc) + '</p>'; }
@@ -226,6 +235,12 @@ import { renderPanel } from '../main.js';
       }
       html += '</div>';
 
+      var subs = grupo ? [] : hijas(cat.id).filter(function(c){ return canAddHere || entradasDe(c.id).length; });
+      if(subs.length){
+        html += '<div class="recursos-grid recursos-subcats">';
+        subs.forEach(function(c){ html += catTileHtml(c); });
+        html += '</div>';
+      }
       if(!grupo){
         var gruposVis = grupos.filter(function(g){ return canAddHere || porGrupo[g.id]; });
         if(gruposVis.length){
@@ -237,7 +252,7 @@ import { renderPanel } from '../main.js';
       }
       html += '<div class="entries">';
       if(lista.length === 0){
-        if(grupo || !(grupos.length && catItems.length)){
+        if(grupo || !(grupos.length && catItems.length) && !subs.length){
           html += '<p class="empty">' + (grupo ? 'Todavía no hay nada en este grupo.' : 'Todavía no hay nada en esta categoría.') + '</p>';
         }
       } else {
@@ -290,7 +305,8 @@ import { renderPanel } from '../main.js';
         AppState.formCategoria = '';
         AppState.formGrupo = null;
         if(AppState.recursosGrupo){ AppState.recursosGrupo = ''; renderPanel(); return; }
-        AppState.recursosCategoria = '';
+        var actual = RECURSO_CATEGORIAS.find(function(c){ return c.id === AppState.recursosCategoria; });
+        AppState.recursosCategoria = (actual && actual.parent) || '';
         renderPanel();
       };
     }

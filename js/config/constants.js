@@ -102,9 +102,12 @@
   export var RECURSO_CATEGORIAS = [
     { id: 'inicio', label: 'Para empezar', icon: 'house' },
     { id: 'formacion', label: 'Camino formativo', icon: 'compass' },
-    { id: 'biblia', label: 'Citas bíblicas', icon: 'book-open' },
-    { id: 'oraciones', label: 'Oraciones', icon: 'heart' },
-    { id: 'rosario', label: 'Santo Rosario', icon: 'rosary' },
+    // "Vida espiritual" (29/10/2026, antes "Citas bíblicas": mismo id).
+    // `parent`: subcategoría — no sale en la grilla, se abre desde adentro
+    // de su categoría madre.
+    { id: 'biblia', label: 'Vida espiritual', icon: 'book-open' },
+    { id: 'oraciones', label: 'Oraciones', icon: 'praying-hands', parent: 'biblia' },
+    { id: 'rosario', label: 'Santo Rosario', icon: 'rosary', parent: 'biblia' },
     { id: 'textos', label: 'Textos y lecturas', icon: 'library' },
     { id: 'instructivos', label: 'Instructivos y guías', icon: 'clipboard-list' },
     { id: 'otros', label: 'Otros', icon: 'folder' }
@@ -120,7 +123,7 @@
   // avisa con un toast (significa que alguien pusheó una versión nueva
   // mientras la página seguía abierta). Bump a mano en cada cambio grande
   // — fecha + un contador chico si hay más de un cambio el mismo día.
-  export var APP_VERSION = '2026.10.29.5';
+  export var APP_VERSION = '2026.10.29.6';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -134,6 +137,9 @@
     ]},
     { version: '2026.10.29.5', date: '29/10/2026', items: [
       'Recursos: dentro de cada categoría se pueden crear grupos («+ Agregar grupo»). Para meter una entrada en un grupo, arrastrala encima (o elegí el grupo al editarla).'
+    ]},
+    { version: '2026.10.29.6', date: '29/10/2026', items: [
+      'Recursos: «Citas bíblicas» pasó a llamarse «Vida espiritual», y adentro están Oraciones y Santo Rosario.'
     ]},
     { version: '2026.10.29.4', date: '29/10/2026', items: [
       'Info general ya no tiene entradas: queda solo el recuadro editable de Inicio.'

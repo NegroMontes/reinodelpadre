@@ -174,7 +174,9 @@ import { attachEntryReorder } from './entry-reorder.js';
       var catVal = AppState.formCategoria || AppState.recursosCategoria || 'otros';
       html += '  <div class="form-row"><label>Categoría</label><select id="fCategoria">';
       RECURSO_CATEGORIAS.forEach(function(c){
-        html += '<option value="' + c.id + '"' + (c.id === catVal ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>';
+        // Subcategoría: "Vida espiritual › Oraciones" (29/10/2026).
+        var madre = c.parent ? RECURSO_CATEGORIAS.find(function(m){ return m.id === c.parent; }) : null;
+        html += '<option value="' + c.id + '"' + (c.id === catVal ? ' selected' : '') + '>' + escapeHtml(madre ? madre.label + ' › ' + c.label : c.label) + '</option>';
       });
       html += '</select></div>';
       // Grupo dentro de la categoría (29/10/2026) — solo si la categoría tiene.
