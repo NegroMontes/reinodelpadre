@@ -503,6 +503,6 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
   export function getNovedades(){
     var cutoff = Date.now() - NOVEDADES_WINDOW_DAYS * 24 * 60 * 60 * 1000;
     return (AppState.state.entries || [])
-      .filter(function(e){ return e.createdAt && e.createdAt >= cutoff && canSeeEntry(e); })
+      .filter(function(e){ return e.createdAt && e.createdAt >= cutoff && e.dayId !== 'INFO_GENERAL' && canSeeEntry(e); })
       .sort(function(a,b){ return b.createdAt - a.createdAt; });
   }

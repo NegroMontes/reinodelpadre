@@ -4,11 +4,10 @@
 
 import { AppState } from '../app-state.js';
 import { CAMP_DURATION_DAYS } from '../config/constants.js';
-import { escapeHtml, linkify, compareEntryOrder } from '../utils/helpers.js';
+import { escapeHtml, linkify } from '../utils/helpers.js';
 import { canEditStructure, canSeeEntry, canCreateInfoGeneral } from '../services/permissions.js';
 import { save } from '../services/state.service.js';
-import { renderEntry, renderEntriesListHtml } from '../components/entry.js';
-import { renderForm } from '../components/form.js';
+import { renderEntry } from '../components/entry.js';
 import { showStatus, renderPanel } from '../main.js';
 import { icon } from '../utils/icons.js';
 
@@ -183,7 +182,8 @@ import { icon } from '../utils/icons.js';
   // directo acá (sin abrir la Fordoquera) por quien puede cargar Info general
   // (`canCreateInfoGeneral()`: admin/Secretaría + Logística). Vive en
   // `state.infoGeneral` (mismo doc `fordoc/shared`, sin reglas nuevas). Las
-  // entradas viejas con dayId 'INFO_GENERAL' siguen debajo, como "Más info".
+  // entradas con dayId 'INFO_GENERAL' ya no se muestran (pedido del usuario,
+  // 29/10/2026); quedan guardadas en Firestore, sin borrar.
   var INFO_FIELDS = ['lugar', 'direccion', 'mapaUrl', 'fecha', 'fotos', 'queLlevar', 'notas'];
 
   function infoGeneralData(){
@@ -264,33 +264,7 @@ import { icon } from '../utils/icons.js';
   }
 
   export function renderInfoGeneralSection(){
-    // Orden ascendente, igual que el resto de los paneles con entradas
-    // (08/10/2026) — el botón "+ Agregar entrada" queda debajo de todo.
-    var items = AppState.state.entries.filter(function(e){ return e.dayId === 'INFO_GENERAL' && canSeeEntry(e); })
-      .sort(compareEntryOrder);
-    var canAddHere = canCreateInfoGeneral();
-
-    var html = renderInfoGeneralBlock(canAddHere);
-
-    // Entradas de Info general (las de antes de T15, o para lo que no entre
-    // en el bloque): solo se muestra la sección si hay alguna o si se puede agregar.
-    if(items.length || canAddHere){
-      html += '<h3 class="mandos-group-title">Más info</h3>';
-      html += '<div class="entries">';
-      if(items.length === 0){
-        html += '<p class="empty">Sin entradas extra.</p>';
-      } else {
-        html += renderEntriesListHtml(items, canAddHere);
-      }
-      html += '</div>';
-    }
-
-    if(canAddHere){
-      html += '<div class="panel-head add-entry-row"><div></div><button class="btn small" id="toggleFormBtn" type="button">' + (AppState.formOpen ? 'Cerrar' : '+ Agregar entrada') + '</button></div>';
-      html += renderForm('INFO_GENERAL');
-    }
-
-    return html;
+    return renderInfoGeneralBlock(canCreateInfoGeneral());
   }
 
 
