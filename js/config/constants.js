@@ -120,7 +120,7 @@
   // avisa con un toast (significa que alguien pusheó una versión nueva
   // mientras la página seguía abierta). Bump a mano en cada cambio grande
   // — fecha + un contador chico si hay más de un cambio el mismo día.
-  export var APP_VERSION = '2026.10.29.2';
+  export var APP_VERSION = '2026.10.29.3';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -129,6 +129,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.10.29.3', date: '29/10/2026', items: [
+      'Info general ahora se ve directo en Inicio: lugar, mapa, fecha, fotos y qué llevar. Logística y Secretaría lo editan con «Editar».'
+    ]},
     { version: '2026.10.29.2', date: '29/10/2026', items: [
       '«Importar libros de la Fordoquera» (menú del usuario, solo admin) abre la Fordoquera para elegir libros de tu biblioteca (cuando la Fordoquera lo permita); si no, se puede elegir el archivo .json.'
     ]},

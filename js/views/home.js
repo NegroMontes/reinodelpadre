@@ -9,7 +9,7 @@ import { canEditStructure, canSeeEntry, canCreateInfoGeneral } from '../services
 import { save } from '../services/state.service.js';
 import { renderEntry, renderEntriesListHtml } from '../components/entry.js';
 import { renderForm } from '../components/form.js';
-import { showStatus } from '../main.js';
+import { showStatus, renderPanel } from '../main.js';
 import { icon } from '../utils/icons.js';
 
   export function stopCountdownTicker(){
@@ -178,12 +178,91 @@ import { icon } from '../utils/icons.js';
   }
 
 
-  // "Info general": mapa, fotos y videos del lugar, info general (fecha, etc.)
-  // — mismo patrón que "Recursos" (entradas con dayId sentinel 'INFO_GENERAL'),
-  // pero solo Logística (+ admin) puede cargar/editar, según pidió el doc de
-  // specs. Integrada adentro de "Inicio" (22/09/2026, antes era pestaña
-  // propia) — así lo que se vaya agregando ahí aparece en la página de
-  // entrada en vez de quedar escondido en una pestaña aparte.
+  // "Info general" (T15, 29/10/2026): bloque fijo a la vista en Inicio —
+  // lugar, dirección + mapa, fecha, fotos, qué llevar y notas — editable
+  // directo acá (sin abrir la Fordoquera) por quien puede cargar Info general
+  // (`canCreateInfoGeneral()`: admin/Secretaría + Logística). Vive en
+  // `state.infoGeneral` (mismo doc `fordoc/shared`, sin reglas nuevas). Las
+  // entradas viejas con dayId 'INFO_GENERAL' siguen debajo, como "Más info".
+  var INFO_FIELDS = ['lugar', 'direccion', 'mapaUrl', 'fecha', 'fotos', 'queLlevar', 'notas'];
+
+  function infoGeneralData(){
+    var d = AppState.state.infoGeneral;
+    return (d && typeof d === 'object') ? d : {};
+  }
+
+  function infoGeneralIsEmpty(d){
+    return !INFO_FIELDS.some(function(k){ return (d[k] || '').trim(); });
+  }
+
+  // Link de "compartir" de Drive → miniatura embebible (mismo formato que usa
+  // la Fordoquera para imágenes subidas). Cualquier otro link queda igual.
+  function fotoSrc(url){
+    var m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/);
+    return m ? 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w1200' : url;
+  }
+
+  function fechaDesdeCampStart(){
+    var t = new Date(AppState.state.campStart || '');
+    if(isNaN(t.getTime())) return '';
+    return t.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  }
+
+  function renderInfoGeneralBlock(canEdit){
+    var d = infoGeneralData();
+    var html = '<div class="home-card info-general-card">';
+    html += '<div class="info-general-head"><h3>' + icon('map-pin') + ' Info general</h3>';
+    if(canEdit){
+      html += '<button class="btn ghost small" id="infoGeneralEditBtn" type="button">' + icon('pencil') + ' Editar</button>';
+    }
+    html += '</div>';
+
+    if(infoGeneralIsEmpty(d)){
+      html += '<p class="empty">Todavía no se cargó la info del lugar.' + (canEdit ? ' Tocá «Editar» para cargarla.' : '') + '</p>';
+      return html + '</div>';
+    }
+
+    var fecha = (d.fecha || '').trim() || fechaDesdeCampStart();
+    var rows = '';
+    if((d.lugar || '').trim() || (d.direccion || '').trim()){
+      rows += '<div class="info-general-row"><span class="info-general-label">Lugar</span><div>';
+      if((d.lugar || '').trim()) rows += '<strong>' + escapeHtml(d.lugar) + '</strong>';
+      if((d.direccion || '').trim()) rows += '<div class="mandos-sub">' + escapeHtml(d.direccion) + '</div>';
+      rows += '</div></div>';
+    }
+    if(fecha){
+      rows += '<div class="info-general-row"><span class="info-general-label">Fecha</span><div class="info-general-text">' + linkify(fecha) + '</div></div>';
+    }
+    html += rows ? '<div class="info-general-rows">' + rows + '</div>' : '';
+
+    // Mapa: embebido a partir de la dirección (o el lugar), sin clave de API.
+    var q = (d.direccion || '').trim() || (d.lugar || '').trim();
+    var mapaLink = (d.mapaUrl || '').trim() || (q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : '');
+    if(q){
+      html += '<div class="info-general-map"><iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa del lugar" src="https://maps.google.com/maps?q=' + encodeURIComponent(q) + '&output=embed"></iframe></div>';
+    }
+    if(mapaLink){
+      html += '<p class="info-general-maplink"><a href="' + escapeHtml(mapaLink) + '" target="_blank" rel="noopener">' + icon('external-link') + ' Abrir en Google Maps</a></p>';
+    }
+
+    var fotos = (d.fotos || '').split(/\s+/).filter(function(u){ return /^https?:\/\//.test(u); });
+    if(fotos.length){
+      html += '<div class="info-general-fotos">';
+      fotos.forEach(function(u){
+        html += '<a href="' + escapeHtml(u) + '" target="_blank" rel="noopener"><img loading="lazy" alt="Foto del lugar" src="' + escapeHtml(fotoSrc(u)) + '"></a>';
+      });
+      html += '</div>';
+    }
+
+    if((d.queLlevar || '').trim()){
+      html += '<h4 class="info-general-sub">Qué llevar</h4><div class="info-general-text">' + linkify(d.queLlevar) + '</div>';
+    }
+    if((d.notas || '').trim()){
+      html += '<h4 class="info-general-sub">Más datos</h4><div class="info-general-text">' + linkify(d.notas) + '</div>';
+    }
+    return html + '</div>';
+  }
+
   export function renderInfoGeneralSection(){
     // Orden ascendente, igual que el resto de los paneles con entradas
     // (08/10/2026) — el botón "+ Agregar entrada" queda debajo de todo.
@@ -191,20 +270,21 @@ import { icon } from '../utils/icons.js';
       .sort(compareEntryOrder);
     var canAddHere = canCreateInfoGeneral();
 
-    var html = '<h3 class="mandos-group-title">Info general</h3>';
-    html += '<p class="mandos-sub">Mapa, fotos y videos del lugar, y demás info general del campamento.</p>';
+    var html = renderInfoGeneralBlock(canAddHere);
 
-    html += '<div class="entries">';
-    if(items.length === 0){
-      html += '<p class="empty">Todavía no hay info general cargada.</p>';
-    } else {
-      html += renderEntriesListHtml(items, canAddHere);
+    // Entradas de Info general (las de antes de T15, o para lo que no entre
+    // en el bloque): solo se muestra la sección si hay alguna o si se puede agregar.
+    if(items.length || canAddHere){
+      html += '<h3 class="mandos-group-title">Más info</h3>';
+      html += '<div class="entries">';
+      if(items.length === 0){
+        html += '<p class="empty">Sin entradas extra.</p>';
+      } else {
+        html += renderEntriesListHtml(items, canAddHere);
+      }
+      html += '</div>';
     }
-    html += '</div>';
 
-    // Botón "+ Agregar entrada" (renombrado y movido debajo de la lista,
-    // 08/10/2026, pedido del usuario) — "Importar desde Encuentros" se movió
-    // adentro del formulario (ver renderForm()).
     if(canAddHere){
       html += '<div class="panel-head add-entry-row"><div></div><button class="btn small" id="toggleFormBtn" type="button">' + (AppState.formOpen ? 'Cerrar' : '+ Agregar entrada') + '</button></div>';
       html += renderForm('INFO_GENERAL');
@@ -214,12 +294,66 @@ import { icon } from '../utils/icons.js';
   }
 
 
+  // Diálogo para editar el bloque de Info general — mismo estilo que el de
+  // la fecha de inicio (.app-dialog-*).
+  function openInfoGeneralDialog(){
+    if(!canCreateInfoGeneral()) return;
+    var d = infoGeneralData();
+    function field(id, label, ph, multi, help){
+      var val = escapeHtml(d[id] || '');
+      return '<div class="form-row"><label for="ig_' + id + '">' + label + '</label>' +
+        (multi ? '<textarea id="ig_' + id + '" rows="3" placeholder="' + ph + '">' + val + '</textarea>'
+               : '<input type="text" id="ig_' + id + '" placeholder="' + ph + '" value="' + val + '">') +
+        (help ? '<p class="mandos-sub" style="margin:4px 0 0">' + help + '</p>' : '') + '</div>';
+    }
+    var overlay = document.createElement('div');
+    overlay.className = 'app-dialog-overlay';
+    overlay.innerHTML =
+      '<div class="app-dialog-box info-general-dialog" role="dialog" aria-modal="true">' +
+      '  <h3 style="margin:0 0 12px">Info general</h3>' +
+      field('lugar', 'Lugar', 'Ej: Predio …', false) +
+      field('direccion', 'Dirección', 'Ej: Ruta 7 km …, Mendoza', false, 'Con la dirección se muestra el mapa solo.') +
+      field('mapaUrl', 'Link de Google Maps (opcional)', 'https://maps.app.goo.gl/…', false) +
+      field('fecha', 'Fecha (opcional)', 'Ej: del 6 al 13 de enero de 2027', false, 'Si queda vacío, se usa la fecha de inicio de la cuenta regresiva.') +
+      field('fotos', 'Fotos (links, uno por línea)', 'https://drive.google.com/file/d/…', true, 'Links de Drive (compartidos) o de imágenes.') +
+      field('queLlevar', 'Qué llevar', 'Bolsa de dormir, linterna, …', true) +
+      field('notas', 'Más datos', 'Horarios de llegada, contacto, …', true) +
+      '  <div class="app-dialog-actions" style="margin-top:16px">' +
+      '    <button type="button" class="btn ghost small" id="igCancelBtn">Cancelar</button>' +
+      '    <button type="button" class="btn small" id="igSaveBtn">Guardar</button>' +
+      '  </div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    function close(){
+      document.removeEventListener('keydown', onKey);
+      overlay.remove();
+    }
+    function onKey(e){ if(e.key === 'Escape') close(); }
+    overlay.querySelector('#igCancelBtn').onclick = close;
+    overlay.onclick = function(e){ if(e.target === overlay) close(); };
+    overlay.querySelector('#igSaveBtn').onclick = function(){
+      if(!canCreateInfoGeneral()) return;
+      var next = {};
+      INFO_FIELDS.forEach(function(k){ next[k] = overlay.querySelector('#ig_' + k).value.trim(); });
+      AppState.state.infoGeneral = next;
+      save();
+      close();
+      renderPanel();
+      showStatus('Info general guardada.');
+    };
+    document.addEventListener('keydown', onKey);
+    overlay.querySelector('#ig_lugar').focus();
+  }
+
+
   export function attachHomeEvents(){
     // Los botones de "Ir directo a..." se sacaron de Inicio (pedido del
     // usuario, 22/09/2026) — ya no hace falta escuchar `[data-goto]`/
     // `[data-goto-day]` acá.
     var gearBtn = document.getElementById('campStartGearBtn');
     if(gearBtn){ gearBtn.onclick = openCampStartDialog; }
+    var igBtn = document.getElementById('infoGeneralEditBtn');
+    if(igBtn){ igBtn.onclick = openInfoGeneralDialog; }
   }
 
 

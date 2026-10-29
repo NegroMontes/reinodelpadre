@@ -847,3 +847,25 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .mensaje-fold-chev svg{ width:16px; height:16px; }
 .mensaje-fold[open] .mensaje-fold-chev{ transform:rotate(90deg); }
 .mensaje-fold[open] .mensaje-fold-summary{ margin-bottom:10px; }
+
+/* Info general (T15, 29/10/2026): bloque fijo editable en Inicio. */
+.info-general-card{ margin-bottom:26px; }
+.info-general-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.info-general-head h3{ display:flex; align-items:center; gap:6px; margin:0; }
+.info-general-head .btn{ display:inline-flex; align-items:center; gap:6px; }
+.info-general-rows{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+.info-general-row{ display:grid; grid-template-columns:80px 1fr; gap:10px; align-items:baseline; }
+.info-general-label{ font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); }
+.info-general-text{ white-space:pre-line; }
+.info-general-map{ border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--line); aspect-ratio:16/9; max-height:320px; width:100%; }
+.info-general-map iframe{ width:100%; height:100%; border:0; display:block; }
+.info-general-maplink{ margin:8px 0 0; font-size:14px; }
+.info-general-maplink a{ display:inline-flex; align-items:center; gap:5px; }
+.info-general-fotos{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px; margin-top:14px; }
+.info-general-fotos img{ width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:var(--radius-sm); display:block; background:var(--bg-alt); }
+.info-general-sub{ margin:16px 0 4px; font-size:14px; color:var(--indigo); }
+.info-general-dialog{ max-height:85vh; overflow-y:auto; width:min(520px, calc(100vw - 32px)); }
+.info-general-dialog textarea, .info-general-dialog input{ width:100%; box-sizing:border-box; }
+@media (max-width:600px){
+  .info-general-row{ grid-template-columns:1fr; gap:2px; }
+}
