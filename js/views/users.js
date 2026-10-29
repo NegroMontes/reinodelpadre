@@ -80,17 +80,6 @@ import { icon } from '../utils/icons.js';
     html += '<div class="panel-head"><div><h2>Usuarios</h2></div>';
     html += '<button class="btn ghost small" id="copyUsersBtn" type="button">Copiar actividades</button>';
     html += '</div>';
-    // Importar un libro de la Fordoquera (ej. el Catecismo) — ver
-    // services/libros-import.service.js (25/10/2026). Oculto a pedido del
-    // usuario una vez importado el Catecismo: pasar a true para volver a usarlo.
-    var SHOW_IMPORT_LIBRO = false;
-    if(SHOW_IMPORT_LIBRO){
-    html += '<div class="mandos-sub" style="margin-bottom:14px">';
-    html += '  <button class="btn ghost small" id="importLibroBtn" type="button">📚 Importar libro de la Fordoquera (.json)</button>';
-    html += '  <input type="file" id="importLibroFile" accept=".json,application/json" hidden>';
-    html += '  <span id="importLibroStatus" style="margin-left:8px"></span>';
-    html += '</div>';
-    }
     // La nota larga que vivía debajo del título pasó a un callout plegable
     // (19/10/2026, recomendación de diseño que pasó el usuario) — <details>
     // nativo, cerrado por default, sin JS propio.
@@ -270,32 +259,6 @@ import { icon } from '../utils/icons.js';
 
 
   export function attachUsersEvents(){
-    var importLibroBtn = document.getElementById('importLibroBtn');
-    var importLibroFile = document.getElementById('importLibroFile');
-    if(importLibroBtn && importLibroFile){
-      importLibroBtn.onclick = function(){ importLibroFile.click(); };
-      importLibroFile.onchange = async function(){
-        var file = importLibroFile.files[0];
-        importLibroFile.value = '';
-        if(!file) return;
-        var statusEl = document.getElementById('importLibroStatus');
-        importLibroBtn.disabled = true;
-        try{
-          var libro = JSON.parse(await file.text());
-          if(!(await showConfirm('¿Importar «' + (libro.titulo || libro.id || file.name) + '» a Firestore? Va a quedar disponible en la Fordoquera para todo el comando.'))){ importLibroBtn.disabled = false; return; }
-          var mod = await import('../services/libros-import.service.js');
-          var resumen = await mod.importLibroFordoquera(libro, function(msg){ if(statusEl) statusEl.textContent = msg; });
-          await (await import('../services/libros.service.js')).clearLibrosCache();
-          if(statusEl) statusEl.textContent = resumen;
-          showStatus(resumen);
-        }catch(e){
-          console.error(e);
-          if(statusEl) statusEl.textContent = '❌ ' + (e.message || 'No se pudo importar.');
-        }
-        importLibroBtn.disabled = false;
-      };
-    }
-
     var copyUsersBtn = document.getElementById('copyUsersBtn');
     if(copyUsersBtn){
       copyUsersBtn.onclick = function(){

@@ -11,7 +11,7 @@ import { signOutUser, updateMyProfile } from '../services/auth.service.js';
 import { render } from '../main.js';
 import { icon } from '../utils/icons.js';
 import { isInstalledApp, promptInstall } from '../utils/install-prompt.js';
-import { showAlert } from './dialog.js';
+import { showAlert, showConfirm } from './dialog.js';
 
   export function viewAsScopeOptionsHtml(role, current){
     var html = '';
@@ -286,6 +286,13 @@ import { showAlert } from './dialog.js';
       if(!isInstalledApp()){
         html += '  <button class="user-menu-item" id="userMenuInstallBtn" type="button">' + icon('smartphone') + ' Agregar a inicio</button>';
       }
+      // Importar un libro de la Fordoquera (ej. el Catecismo, ver
+      // services/libros-import.service.js) — solo admin. Movido acá desde
+      // Usuarios (29/10/2026, pedido del usuario).
+      if(realIsAdmin()){
+        html += '  <button class="user-menu-item" id="userMenuImportLibroBtn" type="button">' + icon('book-open') + ' Importar libro (.json)</button>';
+        html += '  <input type="file" id="userMenuImportLibroFile" accept=".json,application/json" hidden>';
+      }
       html += '  <button class="user-menu-item user-menu-item-danger" id="userMenuSignOutBtn" type="button">' + icon('log-out') + ' Cerrar sesión</button>';
       // Versión + historial de cambios, discreto, solo admin (19/10/2026,
       // pedido del usuario) — nunca para el resto del comando.
@@ -337,6 +344,31 @@ import { showAlert } from './dialog.js';
         if(r === 'unavailable'){
           await showAlert('Para agregar la página a la pantalla de inicio:\n\n• Android (Chrome): menú ⋮ → "Agregar a pantalla de inicio" o "Instalar app".\n• iPhone (Safari): botón Compartir → "Agregar a inicio".\n• Computadora (Chrome/Edge): ícono de instalar en la barra de direcciones.');
         }
+      };
+    }
+    var importLibroBtn = document.getElementById('userMenuImportLibroBtn');
+    var importLibroFile = document.getElementById('userMenuImportLibroFile');
+    if(importLibroBtn && importLibroFile){
+      importLibroBtn.onclick = function(){ importLibroFile.click(); };
+      importLibroFile.onchange = async function(){
+        var file = importLibroFile.files[0];
+        importLibroFile.value = '';
+        if(!file) return;
+        importLibroBtn.disabled = true;
+        try{
+          var libro = JSON.parse(await file.text());
+          if(await showConfirm('¿Importar «' + (libro.titulo || libro.id || file.name) + '» a Firestore? Va a quedar disponible en la Fordoquera para todo el comando.')){
+            importLibroBtn.textContent = 'Importando…';
+            var mod = await import('../services/libros-import.service.js');
+            var resumen = await mod.importLibroFordoquera(libro, function(msg){ importLibroBtn.textContent = msg; });
+            await (await import('../services/libros.service.js')).clearLibrosCache();
+            await showAlert(resumen);
+          }
+        }catch(e){
+          console.error(e);
+          await showAlert('❌ ' + (e.message || 'No se pudo importar.'));
+        }
+        renderAuthBar();
       };
     }
     var menuSignOutBtn = document.getElementById('userMenuSignOutBtn');
