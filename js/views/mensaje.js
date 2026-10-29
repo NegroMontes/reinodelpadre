@@ -82,6 +82,34 @@ import { renderPanel } from '../main.js';
   // Tarjeta ancha de un grupo de Recursos: ícono a la izquierda, título,
   // descripción y conteo; flecha a la derecha. Es también zona para soltar
   // una entrada arrastrada (data-grupo-drop, ver entry-reorder.js).
+  // Íconos para elegir en un grupo (29/10/2026). Los `img:` son los escudos
+  // de sección (imágenes reales, ver `sectionShieldHtml`).
+  var GRUPO_ICONOS = [
+    { id: 'folder', label: 'Carpeta' },
+    { id: 'img:escuderos', label: 'Escudo de Escuderos', src: 'assets/escudo-escuderos.png' },
+    { id: 'img:templarios', label: 'Escudo de Templarios', src: 'assets/escudo-templarios.png' },
+    { id: 'cross', label: 'Cruz' },
+    { id: 'book-open', label: 'Biblia' },
+    { id: 'praying-hands', label: 'Manos rezando' },
+    { id: 'rosary', label: 'Rosario' },
+    { id: 'library-boina', label: 'Milicia y lectura' },
+    { id: 'library', label: 'Libros' },
+    { id: 'heart', label: 'Corazón' },
+    { id: 'compass', label: 'Brújula' },
+    { id: 'sparkles', label: 'Destellos' },
+    { id: 'tent', label: 'Carpa' },
+    { id: 'shield', label: 'Escudo' },
+    { id: 'target', label: 'Blanco' },
+    { id: 'wheat', label: 'Trigo' },
+    { id: 'megaphone', label: 'Megáfono' },
+    { id: 'image', label: 'Imagen' },
+    { id: 'clipboard-list', label: 'Lista' }
+  ];
+  function grupoIconHtml(id){
+    var op = GRUPO_ICONOS.find(function(o){ return o.id === id; }) || GRUPO_ICONOS[0];
+    return op.src ? '<img src="' + op.src + '" alt="" class="recurso-grupo-img">' : icon(op.id);
+  }
+
   function recursoGrupoCardHtml(g, items, canEdit){
     var ocultas = items.filter(function(e){ return e.oculta; }).length;
     var n = items.length - ocultas;
@@ -89,7 +117,7 @@ import { renderPanel } from '../main.js';
     if(ocultas){ countTxt += (n ? ' · ' : '') + ocultas + ' oculta' + (ocultas === 1 ? '' : 's'); }
     var html = '<div class="recurso-grupo' + (n ? '' : ' recurso-grupo-empty') + '"' + (canEdit ? ' data-grupo-drop="' + g.id + '"' : '') + '>';
     html += '<button type="button" class="recurso-grupo-main" data-grupo-open="' + g.id + '">';
-    html += '<span class="entry-lead-icon recurso-grupo-icon">' + icon('folder') + '</span>';
+    html += '<span class="entry-lead-icon recurso-grupo-icon">' + grupoIconHtml(g.icon) + '</span>';
     html += '<span class="recurso-grupo-text"><span class="recurso-grupo-title">' + escapeHtml(g.title) + '</span>';
     if(g.desc){ html += '<span class="recurso-grupo-desc">' + escapeHtml(g.desc) + '</span>'; }
     html += '<span class="recurso-grupo-count">' + countTxt + '</span></span>';
@@ -117,6 +145,12 @@ import { renderPanel } from '../main.js';
       '  <h3 style="margin:0 0 12px">' + (g ? 'Editar grupo' : 'Nuevo grupo') + '</h3>' +
       '  <div class="form-row"><label for="rgTitle">Título</label><input type="text" id="rgTitle" placeholder="Ej: Oraciones de la mañana" value="' + escapeHtml(g ? g.title : '') + '"></div>' +
       '  <div class="form-row"><label for="rgDesc">Descripción (opcional)</label><textarea id="rgDesc" rows="2" placeholder="Una línea que cuente qué hay adentro">' + escapeHtml(g ? (g.desc || '') : '') + '</textarea></div>' +
+      '  <div class="form-row"><label>Ícono</label><div class="grupo-icon-picker" id="rgIcons">' +
+      GRUPO_ICONOS.map(function(o){
+        var sel = o.id === ((g && g.icon) || 'folder');
+        return '<button type="button" class="grupo-icon-opt' + (sel ? ' is-selected' : '') + '" data-icon="' + o.id + '" title="' + escapeHtml(o.label) + '" aria-label="' + escapeHtml(o.label) + '" aria-pressed="' + sel + '">' + grupoIconHtml(o.id) + '</button>';
+      }).join('') +
+      '  </div></div>' +
       '  <p class="mandos-sub recurso-dialog-error" id="rgError" hidden>Poné un título.</p>' +
       '  <div class="app-dialog-actions" style="margin-top:16px">' +
       '    <button type="button" class="btn ghost small" id="rgCancelBtn">Cancelar</button>' +
@@ -131,14 +165,21 @@ import { renderPanel } from '../main.js';
     function onKey(e){ if(e.key === 'Escape') close(); }
     overlay.querySelector('#rgCancelBtn').onclick = close;
     overlay.onclick = function(e){ if(e.target === overlay) close(); };
+    overlay.querySelectorAll('.grupo-icon-opt').forEach(function(btn){
+      btn.onclick = function(){
+        overlay.querySelectorAll('.grupo-icon-opt').forEach(function(b){ b.classList.remove('is-selected'); b.setAttribute('aria-pressed', 'false'); });
+        btn.classList.add('is-selected'); btn.setAttribute('aria-pressed', 'true');
+      };
+    });
     overlay.querySelector('#rgSaveBtn').onclick = function(){
       var title = overlay.querySelector('#rgTitle').value.trim();
       var desc = overlay.querySelector('#rgDesc').value.trim();
+      var iconSel = overlay.querySelector('.grupo-icon-opt.is-selected').getAttribute('data-icon');
       if(!title){ overlay.querySelector('#rgError').hidden = false; return; }
-      if(g){ g.title = title; g.desc = desc; }
+      if(g){ g.title = title; g.desc = desc; g.icon = iconSel; }
       else {
         if(!Array.isArray(AppState.state.recursoGrupos)) AppState.state.recursoGrupos = [];
-        AppState.state.recursoGrupos.push({ id: uid(), categoria: AppState.recursosCategoria, title: title, desc: desc, createdAt: Date.now() });
+        AppState.state.recursoGrupos.push({ id: uid(), categoria: AppState.recursosCategoria, title: title, desc: desc, icon: iconSel, createdAt: Date.now() });
       }
       save();
       close();

@@ -1440,6 +1440,12 @@ body.entry-arrastrando, body.entry-arrastrando *{ user-select:none; -webkit-user
 }
 .recursos-back.grupo-drop-target{ border-radius:var(--radius-sm); }
 .recurso-dialog-error{ color:var(--bordeaux); margin:0; }
+/* Selector de ícono de un grupo (29/10/2026). */
+.grupo-icon-picker{ display:grid; grid-template-columns:repeat(auto-fill, minmax(42px, 1fr)); gap:6px; }
+.grupo-icon-opt{ display:inline-flex; align-items:center; justify-content:center; height:42px; padding:0; border:2px solid var(--line); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--teal); font-size:20px; cursor:pointer; }
+.grupo-icon-opt:hover{ border-color:var(--teal); }
+.grupo-icon-opt.is-selected{ border-color:var(--teal); background:color-mix(in srgb, var(--teal) 16%, transparent); }
+.grupo-icon-opt img, .recurso-grupo-img{ width:26px; height:26px; object-fit:contain; }
 
 @media (max-width:600px){
     .recurso-grupo-main{ gap:12px; padding:12px 6px 12px 12px; }

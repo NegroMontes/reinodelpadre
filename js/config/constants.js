@@ -123,7 +123,7 @@
   // avisa con un toast (significa que alguien pusheó una versión nueva
   // mientras la página seguía abierta). Bump a mano en cada cambio grande
   // — fecha + un contador chico si hay más de un cambio el mismo día.
-  export var APP_VERSION = '2026.10.29.7';
+  export var APP_VERSION = '2026.10.29.8';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -143,6 +143,9 @@
     ]},
     { version: '2026.10.29.7', date: '29/10/2026', items: [
       'Recursos: «Textos y lecturas» pasó a llamarse «Milicia y lectura».'
+    ]},
+    { version: '2026.10.29.8', date: '29/10/2026', items: [
+      'Recursos: al crear o editar un grupo se le puede elegir un ícono (incluidos los escudos de Escuderos y Templarios).'
     ]},
     { version: '2026.10.29.4', date: '29/10/2026', items: [
       'Info general ya no tiene entradas: queda solo el recuadro editable de Inicio.'
