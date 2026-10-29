@@ -129,6 +129,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.10.29.3', date: '29/10/2026', items: [
+      'Si se vuelve a importar un libro, todo el comando ve la versión nueva la próxima vez que abre una entrada.'
+    ]},
     { version: '2026.10.29.5', date: '29/10/2026', items: [
       'Recursos: dentro de cada categoría se pueden crear grupos («+ Agregar grupo»). Para meter una entrada en un grupo, arrastrala encima (o elegí el grupo al editarla).'
     ]},

@@ -65,9 +65,14 @@ async function fetchBibliaFromFirestore(){
 
 // Libros extra importados con el botón de "Usuarios" (ver
 // services/libros-import.service.js): `libros/extras` lista los ids.
-async function fetchLibrosExtraFromFirestore(){
+async function fetchExtrasMeta(){
   var extrasSnap = await getDoc(doc(librosColRef, 'extras'));
-  var ids = extrasSnap.exists() ? (extrasSnap.data().ids || []) : [];
+  var data = extrasSnap.exists() ? extrasSnap.data() : {};
+  return { ids: data.ids || [], actualizado: data.actualizado || 0 };
+}
+
+async function fetchLibrosExtraFromFirestore(meta){
+  var ids = (meta || await fetchExtrasMeta()).ids;
   var out = await Promise.all(ids.map(async function(id){
     var metaSnap = await getDoc(doc(librosColRef, id));
     if(!metaSnap.exists()) return null;
@@ -92,11 +97,12 @@ async function fetchLibrosExtraFromFirestore(){
 // faltantes (rebuildOrder() oculta la pestaña correspondiente si no hay
 // datos, ver index.html de encuentros-pagina).
 async function loadFromFirestore(){
+  var extrasMeta = await fetchExtrasMeta().catch(function(){ return { ids: [], actualizado: 0 }; });
   var results = await Promise.allSettled([
     fetchYoucatFromFirestore(),
     fetchYoucatIndicesFromFirestore(),
     fetchBibliaFromFirestore(),
-    fetchLibrosExtraFromFirestore()
+    fetchLibrosExtraFromFirestore(extrasMeta)
   ]);
   var youcat = results[0].status === 'fulfilled' ? results[0].value : [];
   var indicesYoucat = results[1].status === 'fulfilled' ? results[1].value : { index: [], defs: [] };
@@ -105,8 +111,36 @@ async function loadFromFirestore(){
   return {
     youcat: youcat,
     indices: { youcat: indicesYoucat },
-    libros: (biblia ? [biblia] : []).concat(extras)
+    libros: (biblia ? [biblia] : []).concat(extras),
+    biblia: biblia,
+    extrasActualizado: extrasMeta.actualizado
   };
+}
+
+// Lo que se le manda a la Fordoquera (sin los campos internos del caché).
+function paraFordoquera(c){
+  return { youcat: c.youcat, indices: c.indices, libros: c.libros };
+}
+
+// Un libro extra se reimportó en otro dispositivo (`libros/extras.actualizado`
+// cambió): se vuelven a bajar solo los extras, YouCat y la Biblia no cambian.
+// Una lectura chica por apertura; sin conexión, se usa lo que haya.
+async function refrescarExtrasSiCambiaron(c){
+  var meta;
+  try{ meta = await fetchExtrasMeta(); }catch(e){ return c; }
+  if((meta.actualizado || 0) === (c.extrasActualizado || 0)) return c;
+  var extras = await fetchLibrosExtraFromFirestore(meta).catch(function(){ return null; });
+  if(!extras) return c;
+  // Cachés viejos no guardaban `biblia` aparte: es el libro que no es extra.
+  var biblia = c.biblia !== undefined ? c.biblia : (c.libros || []).find(function(l){ return l && meta.ids.indexOf(l.id) === -1; }) || null;
+  var nuevo = Object.assign({}, c, {
+    libros: (biblia ? [biblia] : []).concat(extras),
+    biblia: biblia,
+    extrasActualizado: meta.actualizado
+  });
+  memoCache = nuevo;
+  idbSet(CACHE_KEY, nuevo);
+  return nuevo;
 }
 
 // Devuelve `{youcat, indices:{youcat}, libros:[biblia, ...extras]}`, listo para el
@@ -119,11 +153,11 @@ export async function clearLibrosCache(){
 }
 
 export async function loadLibrosForFordoquera(){
-  if(memoCache) return memoCache;
+  if(memoCache) return paraFordoquera(await refrescarExtrasSiCambiaron(memoCache));
   var cached = await idbGet(CACHE_KEY);
   if(cached && cached.youcat && cached.youcat.length){
     memoCache = cached;
-    return cached;
+    return paraFordoquera(await refrescarExtrasSiCambiaron(cached));
   }
   var fresh = await loadFromFirestore();
   // Solo se cachea en memoria (y en IndexedDB) si de verdad trajo contenido
@@ -138,5 +172,5 @@ export async function loadLibrosForFordoquera(){
     memoCache = fresh;
     idbSet(CACHE_KEY, fresh); // no se espera — si falla, simplemente no quedó cacheado, sin romper nada
   }
-  return fresh;
+  return paraFordoquera(fresh);
 }

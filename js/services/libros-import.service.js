@@ -48,7 +48,9 @@ export async function importLibroFordoquera(libro, onProgress){
     await batch.commit();
   }
   var last = writeBatch(db);
-  last.set(doc(librosColRef, 'extras'), { ids: arrayUnion(id) }, { merge: true });
+  // `actualizado` avisa a los demás dispositivos que tienen que volver a
+  // bajar los libros extra (ver loadLibrosForFordoquera(), libros.service.js).
+  last.set(doc(librosColRef, 'extras'), { ids: arrayUnion(id), actualizado: Date.now() }, { merge: true });
   await last.commit();
 
   return 'Listo — «' + (libro.titulo || id) + '» (' + libro.puntos.length + ' puntos) ya está en Firestore.';
