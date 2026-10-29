@@ -108,7 +108,7 @@
     { id: 'biblia', label: 'Vida espiritual', icon: 'book-open' },
     { id: 'oraciones', label: 'Oraciones', icon: 'praying-hands', parent: 'biblia' },
     { id: 'rosario', label: 'Santo Rosario', icon: 'rosary', parent: 'biblia' },
-    { id: 'textos', label: 'Milicia y lectura', icon: 'library' },
+    { id: 'textos', label: 'Milicia y lectura', icon: 'library-boina' },
     { id: 'instructivos', label: 'Instructivos y guías', icon: 'clipboard-list' },
     { id: 'otros', label: 'Otros', icon: 'folder' }
   ];
