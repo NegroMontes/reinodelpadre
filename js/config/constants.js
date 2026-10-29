@@ -108,7 +108,7 @@
     { id: 'biblia', label: 'Vida espiritual', icon: 'book-open' },
     { id: 'oraciones', label: 'Oraciones', icon: 'praying-hands', parent: 'biblia' },
     { id: 'rosario', label: 'Santo Rosario', icon: 'rosary', parent: 'biblia' },
-    { id: 'textos', label: 'Textos y lecturas', icon: 'library' },
+    { id: 'textos', label: 'Milicia y lectura', icon: 'library' },
     { id: 'instructivos', label: 'Instructivos y guías', icon: 'clipboard-list' },
     { id: 'otros', label: 'Otros', icon: 'folder' }
   ];
@@ -123,7 +123,7 @@
   // avisa con un toast (significa que alguien pusheó una versión nueva
   // mientras la página seguía abierta). Bump a mano en cada cambio grande
   // — fecha + un contador chico si hay más de un cambio el mismo día.
-  export var APP_VERSION = '2026.10.29.6';
+  export var APP_VERSION = '2026.10.29.7';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -140,6 +140,9 @@
     ]},
     { version: '2026.10.29.6', date: '29/10/2026', items: [
       'Recursos: «Citas bíblicas» pasó a llamarse «Vida espiritual», y adentro están Oraciones y Santo Rosario.'
+    ]},
+    { version: '2026.10.29.7', date: '29/10/2026', items: [
+      'Recursos: «Textos y lecturas» pasó a llamarse «Milicia y lectura».'
     ]},
     { version: '2026.10.29.4', date: '29/10/2026', items: [
       'Info general ya no tiene entradas: queda solo el recuadro editable de Inicio.'
