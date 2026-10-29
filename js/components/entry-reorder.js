@@ -51,6 +51,7 @@ function applyNewOrder(ids, movedId){
 }
 
 function clearMarks(){
+  document.querySelectorAll('.grupo-drop-target').forEach(function(x){ x.classList.remove('grupo-drop-target'); });
   document.querySelectorAll('.entry-drop-antes,.entry-drop-despues').forEach(function(x){
     x.classList.remove('entry-drop-antes', 'entry-drop-despues');
     x.style.removeProperty('--entry-drop-y');
@@ -94,9 +95,23 @@ function destino(x, y){
   return cards.length ? { c: cards[cards.length - 1], antes: false } : null;
 }
 
+// Grupos de Recursos (29/10/2026): soltar una entrada sobre la tarjeta de
+// un grupo la mete adentro; sobre el "‹ volver" de un grupo, la saca.
+function grupoDestino(x, y){
+  var el = document.elementFromPoint(x, y);
+  var g = el && el.closest && el.closest('[data-grupo-drop]');
+  return g || null;
+}
+
 function marcar(){
   clearMarks();
-  DR.t = null;
+  DR.t = null; DR.g = null;
+  var g = grupoDestino(DR.x, DR.y);
+  if(g){
+    g.classList.add('grupo-drop-target');
+    DR.g = g.getAttribute('data-grupo-drop');
+    return;
+  }
   var t = destino(DR.x, DR.y);
   if(!t || t.c === DR.el) return;
   t.c.classList.add(t.antes ? 'entry-drop-antes' : 'entry-drop-despues');
@@ -134,7 +149,15 @@ function terminar(ok){
   document.body.classList.remove('entry-arrastrando');
   finArr = Date.now();
   clearMarks();
-  if(!ok || !d.t) return;
+  if(!ok) return;
+  if(d.g !== null && d.g !== undefined){
+    var e = findEntry(d.el.getAttribute('data-id'));
+    if(!e || (e.grupo || '') === d.g) return;
+    if(d.g) e.grupo = d.g; else delete e.grupo;
+    save(); render();
+    return;
+  }
+  if(!d.t) return;
   var movedId = d.el.getAttribute('data-id');
   var ids = listIds(d.list).filter(function(id){ return id !== movedId; });
   var at = ids.indexOf(d.t.c.getAttribute('data-id')) + (d.t.antes ? 0 : 1);

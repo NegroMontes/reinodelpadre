@@ -200,3 +200,20 @@
     if(entry.categoria) return entry.categoria;
     return entry.bienvenida ? 'inicio' : 'otros';
   }
+
+  // Grupos dentro de una categoría de Recursos (29/10/2026): tarjetas anchas
+  // donde se pueden meter entradas. Viven en `state.recursoGrupos`
+  // ({id, categoria, title, desc, createdAt}); la entrada guarda `grupo`.
+  export function recursoGruposDe(state, categoria){
+    return (state.recursoGrupos || []).filter(function(g){ return g.categoria === categoria; })
+      .sort(function(a, b){ return (a.createdAt || 0) - (b.createdAt || 0); });
+  }
+
+  // Grupo de una entrada — '' si no tiene, si el grupo se borró o si es de
+  // otra categoría (la entrada se cambió de categoría).
+  export function recursoGrupoDe(state, entry){
+    if(!entry.grupo) return '';
+    var cat = recursoCategoriaDe(entry);
+    var ok = (state.recursoGrupos || []).some(function(g){ return g.id === entry.grupo && g.categoria === cat; });
+    return ok ? entry.grupo : '';
+  }

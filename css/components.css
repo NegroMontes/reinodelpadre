@@ -1391,7 +1391,59 @@ body.entry-arrastrando, body.entry-arrastrando *{ user-select:none; -webkit-user
 .entry-wide .entry-lead-icon{ align-self:flex-start; }
 .entry-sub{ margin:2px 0 6px; color:var(--ink-soft); font-size:14px; }
 
+/* Grupos dentro de una categoría de Recursos (29/10/2026): tarjetas anchas
+   horizontales — ícono a la izquierda, título + descripción, flecha. */
+.recursos-head-actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.recurso-grupos{ display:flex; flex-direction:column; gap:10px; margin-bottom:6px; }
+.recurso-grupos-tip{ margin:0 0 14px; font-size:12px; }
+.recurso-grupo{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding-right:10px;
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-left:4px solid var(--teal);
+    border-radius:var(--radius);
+    transition:box-shadow .15s, border-color .15s, background .15s;
+}
+.recurso-grupo:hover{ box-shadow:var(--shadow-md); }
+.recurso-grupo-main{
+    flex:1 1 auto;
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:14px 8px 14px 16px;
+    background:none;
+    border:0;
+    color:var(--ink);
+    font:inherit;
+    text-align:left;
+    cursor:pointer;
+}
+.recurso-grupo-icon{ background:color-mix(in srgb, var(--teal) 16%, transparent); color:var(--teal); }
+.recurso-grupo-text{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.recurso-grupo-title{ font-weight:700; font-size:16px; }
+.recurso-grupo-desc{ color:var(--ink-soft); font-size:14px; }
+.recurso-grupo-count{ color:var(--ink-soft); font-size:12px; }
+.recurso-grupo-chevron{ display:inline-flex; color:var(--ink-soft); font-size:20px; }
+.recurso-grupo-empty{ opacity:.55; }
+.recurso-grupo-empty:hover{ opacity:.9; }
+/* Destino al arrastrar una entrada encima (ver entry-reorder.js). */
+.recurso-grupo.grupo-drop-target, .recursos-back.grupo-drop-target{
+    opacity:1;
+    border-color:var(--teal);
+    background:color-mix(in srgb, var(--teal) 14%, var(--card-bg));
+    box-shadow:0 0 0 2px var(--teal);
+}
+.recursos-back.grupo-drop-target{ border-radius:var(--radius-sm); }
+.recurso-dialog-error{ color:var(--bordeaux); margin:0; }
+
 @media (max-width:600px){
+    .recurso-grupo-main{ gap:12px; padding:12px 6px 12px 12px; }
+    .recurso-grupo-icon{ width:38px; height:38px; font-size:18px; }
+    .recurso-grupo-title{ font-size:15px; }
     .recursos-grid{ grid-template-columns:repeat(2, 1fr); gap:10px; }
     .recurso-cat{ padding:16px 8px 14px; }
     .entry-wide .entry-top{ gap:12px; }

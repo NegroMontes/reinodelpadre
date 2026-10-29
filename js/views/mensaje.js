@@ -5,10 +5,11 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, RECURSO_CATEGORIAS } from '../config/constants.js';
-import { escapeHtml, linkify, dayDateToIso, compareEntryOrder, recursoCategoriaDe } from '../utils/helpers.js';
+import { escapeHtml, linkify, dayDateToIso, compareEntryOrder, recursoCategoriaDe, recursoGruposDe, recursoGrupoDe, uid } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { entryScope, canSeeEntry, isAdmin, isJefeSeccionEditing, isJefeSeccion, effectiveDepto, effectiveSeccion, effectiveRole, lectorModeActive, isLectorLike, canEditStructure, canCreateRecurso } from '../services/permissions.js';
-import { addDay } from '../services/state.service.js';
+import { addDay, save } from '../services/state.service.js';
+import { showConfirm } from '../components/dialog.js';
 import { renderEntriesListHtml } from '../components/entry.js';
 import { renderForm, attachPanelEvents } from '../components/form.js';
 import { renderPanel } from '../main.js';
@@ -78,6 +79,76 @@ import { renderPanel } from '../main.js';
   }
 
 
+  // Tarjeta ancha de un grupo de Recursos: ícono a la izquierda, título,
+  // descripción y conteo; flecha a la derecha. Es también zona para soltar
+  // una entrada arrastrada (data-grupo-drop, ver entry-reorder.js).
+  function recursoGrupoCardHtml(g, items, canEdit){
+    var ocultas = items.filter(function(e){ return e.oculta; }).length;
+    var n = items.length - ocultas;
+    var countTxt = n ? (n + ' entrada' + (n === 1 ? '' : 's')) : (ocultas ? '' : 'Vacío');
+    if(ocultas){ countTxt += (n ? ' · ' : '') + ocultas + ' oculta' + (ocultas === 1 ? '' : 's'); }
+    var html = '<div class="recurso-grupo' + (n ? '' : ' recurso-grupo-empty') + '"' + (canEdit ? ' data-grupo-drop="' + g.id + '"' : '') + '>';
+    html += '<button type="button" class="recurso-grupo-main" data-grupo-open="' + g.id + '">';
+    html += '<span class="entry-lead-icon recurso-grupo-icon">' + icon('folder') + '</span>';
+    html += '<span class="recurso-grupo-text"><span class="recurso-grupo-title">' + escapeHtml(g.title) + '</span>';
+    if(g.desc){ html += '<span class="recurso-grupo-desc">' + escapeHtml(g.desc) + '</span>'; }
+    html += '<span class="recurso-grupo-count">' + countTxt + '</span></span>';
+    html += '<span class="recurso-grupo-chevron">' + icon('chevron-right') + '</span>';
+    html += '</button>';
+    if(canEdit){
+      html += '<div class="entry-actions">' +
+        '<button type="button" class="entry-icon-btn" data-grupo-edit="' + g.id + '" title="Editar grupo" aria-label="Editar grupo">' + icon('pencil') + '</button>' +
+        '<button type="button" class="entry-icon-btn entry-icon-btn-danger" data-grupo-delete="' + g.id + '" title="Eliminar grupo" aria-label="Eliminar grupo">' + icon('trash') + '</button>' +
+        '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  // Crear (id null) o editar un grupo — mismo estilo que los diálogos
+  // propios (.app-dialog-*).
+  function openRecursoGrupoDialog(id){
+    if(!canCreateRecurso()) return;
+    var g = id ? (AppState.state.recursoGrupos || []).find(function(x){ return x.id === id; }) : null;
+    var overlay = document.createElement('div');
+    overlay.className = 'app-dialog-overlay';
+    overlay.innerHTML =
+      '<div class="app-dialog-box info-general-dialog" role="dialog" aria-modal="true">' +
+      '  <h3 style="margin:0 0 12px">' + (g ? 'Editar grupo' : 'Nuevo grupo') + '</h3>' +
+      '  <div class="form-row"><label for="rgTitle">Título</label><input type="text" id="rgTitle" placeholder="Ej: Oraciones de la mañana" value="' + escapeHtml(g ? g.title : '') + '"></div>' +
+      '  <div class="form-row"><label for="rgDesc">Descripción (opcional)</label><textarea id="rgDesc" rows="2" placeholder="Una línea que cuente qué hay adentro">' + escapeHtml(g ? (g.desc || '') : '') + '</textarea></div>' +
+      '  <p class="mandos-sub recurso-dialog-error" id="rgError" hidden>Poné un título.</p>' +
+      '  <div class="app-dialog-actions" style="margin-top:16px">' +
+      '    <button type="button" class="btn ghost small" id="rgCancelBtn">Cancelar</button>' +
+      '    <button type="button" class="btn small" id="rgSaveBtn">Guardar</button>' +
+      '  </div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    function close(){
+      document.removeEventListener('keydown', onKey);
+      overlay.remove();
+    }
+    function onKey(e){ if(e.key === 'Escape') close(); }
+    overlay.querySelector('#rgCancelBtn').onclick = close;
+    overlay.onclick = function(e){ if(e.target === overlay) close(); };
+    overlay.querySelector('#rgSaveBtn').onclick = function(){
+      var title = overlay.querySelector('#rgTitle').value.trim();
+      var desc = overlay.querySelector('#rgDesc').value.trim();
+      if(!title){ overlay.querySelector('#rgError').hidden = false; return; }
+      if(g){ g.title = title; g.desc = desc; }
+      else {
+        if(!Array.isArray(AppState.state.recursoGrupos)) AppState.state.recursoGrupos = [];
+        AppState.state.recursoGrupos.push({ id: uid(), categoria: AppState.recursosCategoria, title: title, desc: desc, createdAt: Date.now() });
+      }
+      save();
+      close();
+      renderPanel();
+    };
+    document.addEventListener('keydown', onKey);
+    overlay.querySelector('#rgTitle').focus();
+  }
+
+
   // "Recursos": citas bíblicas, textos, imágenes, oraciones, etc. — a diferencia
   // de "Departamentos", es contenido para todo el mundo (comando y, a futuro,
   // milicianos), así que no hay filtro de visibilidad más allá de estar logueado.
@@ -127,17 +198,50 @@ import { renderPanel } from '../main.js';
       panel.innerHTML = html;
     } else {
       var catItems = porCat[cat.id] || [];
-      html += '<button type="button" class="recursos-back" id="recursosBackBtn">' + icon('chevron-left') + ' Recursos</button>';
-      html += '<div class="panel-head"><div><h2>' + escapeHtml(cat.label) + '</h2></div>';
+      // Grupos de la categoría (29/10/2026): tarjetas anchas arriba; las
+      // entradas sin grupo van debajo. Al abrir un grupo, solo sus entradas.
+      var grupos = recursoGruposDe(AppState.state, cat.id);
+      var porGrupo = {};
+      catItems.forEach(function(e){ var g = recursoGrupoDe(AppState.state, e); (porGrupo[g] = porGrupo[g] || []).push(e); });
+      var grupo = grupos.find(function(g){ return g.id === AppState.recursosGrupo; });
+      if(grupo && !canAddHere && !porGrupo[grupo.id]){ grupo = null; }
+      AppState.recursosGrupo = grupo ? grupo.id : '';
+      var lista = porGrupo[grupo ? grupo.id : ''] || [];
+
+      // El "‹ volver" de un grupo también sirve para sacar una entrada del
+      // grupo arrastrándola encima (data-grupo-drop="").
+      if(grupo){
+        html += '<button type="button" class="recursos-back" id="recursosBackBtn"' + (canAddHere ? ' data-grupo-drop=""' : '') + '>' + icon('chevron-left') + ' ' + escapeHtml(cat.label) + '</button>';
+      } else {
+        html += '<button type="button" class="recursos-back" id="recursosBackBtn">' + icon('chevron-left') + ' Recursos</button>';
+      }
+      html += '<div class="panel-head"><div><h2>' + escapeHtml(grupo ? grupo.title : cat.label) + '</h2>';
+      if(grupo && grupo.desc){ html += '<p class="mandos-sub">' + escapeHtml(grupo.desc) + '</p>'; }
+      html += '</div>';
       if(canAddHere){
+        html += '<div class="recursos-head-actions">';
+        if(!grupo){ html += '<button class="btn ghost small" id="addGrupoBtn" type="button">+ Agregar grupo</button>'; }
         html += '<button class="btn small" id="toggleFormBtn" type="button">' + (AppState.formOpen ? 'Cerrar' : '+ Agregar entrada') + '</button>';
+        html += '</div>';
       }
       html += '</div>';
+
+      if(!grupo){
+        var gruposVis = grupos.filter(function(g){ return canAddHere || porGrupo[g.id]; });
+        if(gruposVis.length){
+          html += '<div class="recurso-grupos">';
+          gruposVis.forEach(function(g){ html += recursoGrupoCardHtml(g, porGrupo[g.id] || [], canAddHere); });
+          html += '</div>';
+          if(canAddHere){ html += '<p class="mandos-sub recurso-grupos-tip">Arrastrá una entrada sobre un grupo para meterla adentro.</p>'; }
+        }
+      }
       html += '<div class="entries">';
-      if(catItems.length === 0){
-        html += '<p class="empty">Todavía no hay nada en esta categoría.</p>';
+      if(lista.length === 0){
+        if(grupo || !(grupos.length && catItems.length)){
+          html += '<p class="empty">' + (grupo ? 'Todavía no hay nada en este grupo.' : 'Todavía no hay nada en esta categoría.') + '</p>';
+        }
       } else {
-        html += renderEntriesListHtml(catItems, canAddHere, cat.icon);
+        html += renderEntriesListHtml(lista, canAddHere, cat.icon);
       }
       html += '</div>';
       if(canAddHere){ html += renderForm('RESOURCES'); }
@@ -145,9 +249,35 @@ import { renderPanel } from '../main.js';
       attachPanelEvents('RESOURCES');
     }
 
+    panel.querySelectorAll('[data-grupo-open]').forEach(function(btn){
+      btn.onclick = function(){
+        AppState.recursosGrupo = btn.getAttribute('data-grupo-open');
+        AppState.formOpen = false;
+        AppState.editingEntryId = null;
+        panel.scrollTop = 0; window.scrollTo(0, 0);
+        renderPanel();
+      };
+    });
+    panel.querySelectorAll('[data-grupo-edit]').forEach(function(btn){
+      btn.onclick = function(){ openRecursoGrupoDialog(btn.getAttribute('data-grupo-edit')); };
+    });
+    panel.querySelectorAll('[data-grupo-delete]').forEach(function(btn){
+      btn.onclick = async function(){
+        var id = btn.getAttribute('data-grupo-delete');
+        if(!await showConfirm('¿Eliminar este grupo? Sus entradas no se borran: vuelven a la categoría.')) return;
+        AppState.state.recursoGrupos = (AppState.state.recursoGrupos || []).filter(function(g){ return g.id !== id; });
+        AppState.state.entries.forEach(function(e){ if(e.grupo === id) delete e.grupo; });
+        save();
+        renderPanel();
+      };
+    });
+    var addGrupo = document.getElementById('addGrupoBtn');
+    if(addGrupo){ addGrupo.onclick = function(){ openRecursoGrupoDialog(null); }; }
+
     panel.querySelectorAll('[data-recurso-cat]').forEach(function(btn){
       btn.onclick = function(){
         AppState.recursosCategoria = btn.getAttribute('data-recurso-cat');
+        AppState.recursosGrupo = '';
         panel.scrollTop = 0; window.scrollTo(0, 0);
         renderPanel();
       };
@@ -155,10 +285,12 @@ import { renderPanel } from '../main.js';
     var back = document.getElementById('recursosBackBtn');
     if(back){
       back.onclick = function(){
-        AppState.recursosCategoria = '';
         AppState.formOpen = false;
         AppState.editingEntryId = null;
         AppState.formCategoria = '';
+        AppState.formGrupo = null;
+        if(AppState.recursosGrupo){ AppState.recursosGrupo = ''; renderPanel(); return; }
+        AppState.recursosCategoria = '';
         renderPanel();
       };
     }

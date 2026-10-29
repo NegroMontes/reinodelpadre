@@ -9,7 +9,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, RECURSO_CATEGORIAS } from '../config/constants.js';
-import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe } from '../utils/helpers.js';
+import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recursoGruposDe, recursoGrupoDe } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
@@ -139,10 +139,25 @@ import { attachEntryReorder } from './entry-reorder.js';
     AppState.formAnonimo = false; AppState.formOculta = false; AppState.formBienvenida = false;
     AppState.formAmbitoOpen = false;
     AppState.formCategoria = '';
+    AppState.formGrupo = null;
     AppState.formTitleDraft = null;
     AppState.insertOrderCreatedAt = null; AppState.insertOrderNote = '';
   }
 
+
+  // Grupo elegido en el formulario: null = todavía sin tocar (por default,
+  // el grupo abierto en Recursos).
+  function formGrupoVal(){
+    return AppState.formGrupo !== null && AppState.formGrupo !== undefined ? AppState.formGrupo : (AppState.recursosGrupo || '');
+  }
+
+  function grupoOptionsHtml(categoria, val){
+    var html = '<option value="">(Sin grupo)</option>';
+    recursoGruposDe(AppState.state, categoria).forEach(function(g){
+      html += '<option value="' + g.id + '"' + (g.id === val ? ' selected' : '') + '>' + escapeHtml(g.title) + '</option>';
+    });
+    return html;
+  }
 
   export function renderForm(day){
     var editing = AppState.editingEntryId ? AppState.state.entries.find(function(e){ return e.id === AppState.editingEntryId; }) : null;
@@ -162,6 +177,8 @@ import { attachEntryReorder } from './entry-reorder.js';
         html += '<option value="' + c.id + '"' + (c.id === catVal ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>';
       });
       html += '</select></div>';
+      // Grupo dentro de la categoría (29/10/2026) — solo si la categoría tiene.
+      html += '  <div class="form-row" id="fGrupoRow"' + (recursoGruposDe(AppState.state, catVal).length ? '' : ' hidden') + '><label>Grupo</label><select id="fGrupo">' + grupoOptionsHtml(catVal, formGrupoVal()) + '</select></div>';
     }
 
     if(day === 'INFO_GENERAL'){
@@ -292,6 +309,12 @@ import { attachEntryReorder } from './entry-reorder.js';
     // Entrada nueva: queda abierta la categoría donde cayó, para que se vea.
     // Editando, se queda en la categoría actual (mover varias seguidas).
     if(categoria && !AppState.editingEntryId){ AppState.recursosCategoria = categoria; }
+    var grupo = '';
+    if(categoria){
+      grupo = formGrupoVal();
+      if(!recursoGruposDe(AppState.state, categoria).some(function(g){ return g.id === grupo; })) grupo = '';
+      if(!AppState.editingEntryId){ AppState.recursosGrupo = grupo; }
+    }
 
     if(AppState.editingEntryId && !imp){
       var entry = AppState.state.entries.find(function(e){ return e.id === AppState.editingEntryId; });
@@ -305,6 +328,7 @@ import { attachEntryReorder } from './entry-reorder.js';
       entry.oculta = AppState.formOculta;
       entry.bienvenida = bienvenida;
       if(categoria) entry.categoria = categoria;
+      if(categoria){ if(grupo) entry.grupo = grupo; else delete entry.grupo; }
       // Si el espacio ya tiene su propio título (puesto desde la Fordoquera),
       // lo sincronizamos también para que no queden desalineados.
       if(title && entry.espacio) entry.espacio.title = title;
@@ -328,6 +352,7 @@ import { attachEntryReorder } from './entry-reorder.js';
         createdAt: Date.now() + (imp ? imp.index : 0)
       });
       if(categoria){ AppState.state.entries[AppState.state.entries.length - 1].categoria = categoria; }
+      if(grupo){ AppState.state.entries[AppState.state.entries.length - 1].grupo = grupo; }
       if(newOrder != null){ AppState.state.entries[AppState.state.entries.length - 1].order = newOrder + (imp ? imp.index * 1e-6 : 0); }
       if(!imp) save();
       return id;
@@ -542,7 +567,19 @@ import { attachEntryReorder } from './entry-reorder.js';
     }
     var categoriaSelect = document.getElementById('fCategoria');
     if(categoriaSelect){
-      categoriaSelect.onchange = function(){ AppState.formCategoria = categoriaSelect.value; };
+      categoriaSelect.onchange = function(){
+        AppState.formCategoria = categoriaSelect.value;
+        // Los grupos son de una categoría: al cambiarla, se vuelve a "sin grupo".
+        AppState.formGrupo = '';
+        var row = document.getElementById('fGrupoRow');
+        var sel = document.getElementById('fGrupo');
+        if(sel){ sel.innerHTML = grupoOptionsHtml(categoriaSelect.value, ''); }
+        if(row){ row.hidden = !recursoGruposDe(AppState.state, categoriaSelect.value).length; }
+      };
+    }
+    var grupoSelect = document.getElementById('fGrupo');
+    if(grupoSelect){
+      grupoSelect.onchange = function(){ AppState.formGrupo = grupoSelect.value; };
     }
     var bienvenidaCheck = document.getElementById('fBienvenida');
     if(bienvenidaCheck){
@@ -698,6 +735,7 @@ import { attachEntryReorder } from './entry-reorder.js';
         AppState.formOculta = !!entry.oculta;
         AppState.formBienvenida = !!entry.bienvenida;
         AppState.formCategoria = entry.dayId === 'RESOURCES' ? recursoCategoriaDe(entry) : '';
+        AppState.formGrupo = entry.dayId === 'RESOURCES' ? recursoGrupoDe(AppState.state, entry) : null;
         AppState.formTitleDraft = null;
         AppState.formOpen = true;
         renderPanel();
