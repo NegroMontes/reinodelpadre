@@ -27,6 +27,10 @@
 //   {fq:'traidos', espacios:[...]}      (protocolo 3, 28/10/2026) SOLO en modo 'traer': la persona eligió
 //                                       varios espacios de su Fordoquera; cada uno se vuelve una entrada.
 //                                       Cancelar → {fq:'cerrado'}.
+//   {fq:'librosTraidos', libros:[...]}  (protocolo 4, 29/10/2026) SOLO en modo 'traerLibros': la persona
+//                                       eligió uno o varios libros de su biblioteca de la Fordoquera
+//                                       (mismo formato que libros/<id>.json); se importan a Firestore.
+//                                       Cancelar → {fq:'cerrado'}.
 
 import { AppState } from '../app-state.js';
 import { FORDOQUERA_URL } from '../config/constants.js';
@@ -141,12 +145,14 @@ function open(opts){
       // así que el "✕" nuestro se oculta para no taparle su barra. Solo
       // queda visible si la Fordoquera nunca llega a cargar.
       built.closeBtn.hidden = true;
-      if(opts.modo === 'traer' && !(d.version >= 3)){
+      var versionMinima = opts.modo === 'traer' ? 3 : (opts.modo === 'traerLibros' ? 4 : 0);
+      if(versionMinima && !(d.version >= versionMinima)){
         closeOverlay();
         if(opts.onSinSoporte) opts.onSinSoporte();
         return;
       }
-      librosParaAbrir(opts.modo, espacio).then(function(libros){
+      // Para elegir libros no hace falta mandarle los nuestros.
+      (opts.modo === 'traerLibros' ? Promise.resolve(null) : librosParaAbrir(opts.modo, espacio)).then(function(libros){
         postToIframe({
           fq: 'abrir',
           espacio: espacio,
@@ -169,6 +175,13 @@ function open(opts){
       if(opts.modo === 'traer'){
         closeOverlay();
         if(opts.onTraidos) opts.onTraidos(Array.isArray(d.espacios) ? d.espacios : []);
+      }
+      return;
+    }
+    if(d.fq === 'librosTraidos'){
+      if(opts.modo === 'traerLibros'){
+        closeOverlay();
+        if(opts.onTraidos) opts.onTraidos(Array.isArray(d.libros) ? d.libros : []);
       }
       return;
     }
@@ -219,6 +232,19 @@ export function openFordoqueraEditor(entryId){
 export function openFordoqueraTraer(onTraidos, onSinSoporte){
   open({
     modo: 'traer',
+    volver: 'Volver',
+    onTraidos: onTraidos,
+    onSinSoporte: onSinSoporte,
+    onClose: function(){}
+  });
+}
+
+// Traer libros de la biblioteca de la Fordoquera de la persona (protocolo
+// 4): `onTraidos(libros)` al confirmar; `onSinSoporte()` si la Fordoquera
+// todavía no conoce el modo 'traerLibros'.
+export function openFordoqueraTraerLibros(onTraidos, onSinSoporte){
+  open({
+    modo: 'traerLibros',
     volver: 'Volver',
     onTraidos: onTraidos,
     onSinSoporte: onSinSoporte,

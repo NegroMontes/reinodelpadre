@@ -12,6 +12,7 @@ import { render } from '../main.js';
 import { icon } from '../utils/icons.js';
 import { isInstalledApp, promptInstall } from '../utils/install-prompt.js';
 import { showAlert, showConfirm } from './dialog.js';
+import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
 
   export function viewAsScopeOptionsHtml(role, current){
     var html = '';
@@ -290,7 +291,7 @@ import { showAlert, showConfirm } from './dialog.js';
       // services/libros-import.service.js) — solo admin. Movido acá desde
       // Usuarios (29/10/2026, pedido del usuario).
       if(realIsAdmin()){
-        html += '  <button class="user-menu-item" id="userMenuImportLibroBtn" type="button">' + icon('book-open') + ' Importar libro (.json)</button>';
+        html += '  <button class="user-menu-item" id="userMenuImportLibroBtn" type="button">' + icon('book-open') + ' Importar libros de la Fordoquera</button>';
         html += '  <input type="file" id="userMenuImportLibroFile" accept=".json,application/json" hidden>';
       }
       html += '  <button class="user-menu-item user-menu-item-danger" id="userMenuSignOutBtn" type="button">' + icon('log-out') + ' Cerrar sesión</button>';
@@ -349,26 +350,50 @@ import { showAlert, showConfirm } from './dialog.js';
     var importLibroBtn = document.getElementById('userMenuImportLibroBtn');
     var importLibroFile = document.getElementById('userMenuImportLibroFile');
     if(importLibroBtn && importLibroFile){
-      importLibroBtn.onclick = function(){ importLibroFile.click(); };
+      // Importa una lista de libros (formato libros/<id>.json de la
+      // Fordoquera) a Firestore, uno por uno, y muestra un resumen.
+      var importarLibros = async function(libros){
+        if(!libros.length) return;
+        var nombres = libros.map(function(l){ return '«' + (l.titulo || l.id || '?') + '»'; }).join(', ');
+        if(!(await showConfirm('¿Importar ' + nombres + '? Va a quedar disponible en la Fordoquera incrustada para todo el comando.'))) return;
+        importLibroBtn.disabled = true;
+        var mod = await import('../services/libros-import.service.js');
+        var resumenes = [];
+        for(var i = 0; i < libros.length; i++){
+          try{
+            resumenes.push(await mod.importLibroFordoquera(libros[i], function(msg){ importLibroBtn.textContent = msg; }));
+          }catch(e){
+            console.error(e);
+            resumenes.push('❌ «' + (libros[i].titulo || libros[i].id || '?') + '»: ' + (e.message || 'No se pudo importar.'));
+          }
+        }
+        await (await import('../services/libros.service.js')).clearLibrosCache();
+        renderAuthBar();
+        await showAlert(resumenes.join('\n'));
+      };
+      // Principal: elegir los libros adentro de la Fordoquera (protocolo 4).
+      // Si la Fordoquera todavía no lo permite, se ofrece el archivo .json.
+      importLibroBtn.onclick = function(){
+        AppState.userMenuOpen = false;
+        renderAuthBar();
+        openFordoqueraTraerLibros(importarLibros, async function(){
+          if(await showConfirm('Tu Fordoquera todavía no permite elegir libros desde acá. ¿Elegir un archivo .json del libro?')){
+            var input = document.getElementById('userMenuImportLibroFile');
+            if(!input){ AppState.userMenuOpen = true; renderAuthBar(); input = document.getElementById('userMenuImportLibroFile'); }
+            if(input) input.click();
+          }
+        });
+      };
       importLibroFile.onchange = async function(){
         var file = importLibroFile.files[0];
         importLibroFile.value = '';
         if(!file) return;
-        importLibroBtn.disabled = true;
         try{
-          var libro = JSON.parse(await file.text());
-          if(await showConfirm('¿Importar «' + (libro.titulo || libro.id || file.name) + '» a Firestore? Va a quedar disponible en la Fordoquera para todo el comando.')){
-            importLibroBtn.textContent = 'Importando…';
-            var mod = await import('../services/libros-import.service.js');
-            var resumen = await mod.importLibroFordoquera(libro, function(msg){ importLibroBtn.textContent = msg; });
-            await (await import('../services/libros.service.js')).clearLibrosCache();
-            await showAlert(resumen);
-          }
+          await importarLibros([JSON.parse(await file.text())]);
         }catch(e){
           console.error(e);
-          await showAlert('❌ ' + (e.message || 'No se pudo importar.'));
+          await showAlert('❌ ' + (e.message || 'No se pudo leer el archivo.'));
         }
-        renderAuthBar();
       };
     }
     var menuSignOutBtn = document.getElementById('userMenuSignOutBtn');
