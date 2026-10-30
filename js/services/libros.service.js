@@ -118,8 +118,19 @@ async function loadFromFirestore(){
 }
 
 // Lo que se le manda a la Fordoquera (sin los campos internos del caché).
+// Un mismo libro importado dos veces con ids distintos (pasó con el
+// Catecismo) se manda una sola vez: queda el último importado.
+function sinRepetidos(libros){
+  var porTitulo = {};
+  (libros || []).forEach(function(l){
+    if(!l) return;
+    var k = String(l.titulo || l.id || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+    porTitulo[k] = l;
+  });
+  return (libros || []).filter(function(l){ return l && Object.values(porTitulo).indexOf(l) !== -1; });
+}
 function paraFordoquera(c){
-  return { youcat: c.youcat, indices: c.indices, libros: c.libros };
+  return { youcat: c.youcat, indices: c.indices, libros: sinRepetidos(c.libros) };
 }
 
 // Un libro extra se reimportó en otro dispositivo (`libros/extras.actualizado`

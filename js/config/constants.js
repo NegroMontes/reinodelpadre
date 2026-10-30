@@ -138,7 +138,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.10.30.5';
+  export var APP_VERSION = '2026.10.30.6';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -147,6 +147,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.10.30.6', date: '30/10/2026', items: [
+      'Biblioteca: estantes «Iglesia» (YouCat, Catecismo, Biblia) y «Milicia» (el resto); el Catecismo ya no aparece dos veces.'
+    ] },
     { version: '2026.10.30.5', date: '30/10/2026', items: [
       'Crear misa: notas entre los cantos que indican qué pasa en el medio (lecturas, Credo, ofertorio, etc.).'
     ]},

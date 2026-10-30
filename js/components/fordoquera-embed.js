@@ -34,6 +34,9 @@
 //   (protocolo 5, 30/10/2026) modo 'biblioteca': solo lectura de los libros
 //   que le mandamos en `libros` (los del comando, en Firestore); espacio:null.
 //   Cerrar → {fq:'cerrado'}.
+//   (30/10/2026) En ese modo también mandamos `estantes:[{id,nombre}]` y
+//   `libEst:{<clave de libro>: <id de estante>}` (claves: 'youcat', 'yconf',
+//   'L-<id>'): «Iglesia» (YouCat, Biblia, Catecismo) y «Milicia» (el resto).
 
 import { AppState } from '../app-state.js';
 import { FORDOQUERA_URL } from '../config/constants.js';
@@ -105,6 +108,19 @@ function persistEspacio(entryId, espacio){
   save();
 }
 
+// Estantes de la Biblioteca (modo 'biblioteca'): Iglesia y Milicia.
+var IGLESIA_RE = /biblia|catecismo/i;
+function estantesBiblioteca(libros){
+  var libEst = { youcat: 'iglesia', yconf: 'iglesia' };
+  ((libros && libros.libros) || []).forEach(function(l){
+    if(l && l.id) libEst['L-' + l.id] = (IGLESIA_RE.test(l.id) || IGLESIA_RE.test(l.titulo || '')) ? 'iglesia' : 'milicia';
+  });
+  return {
+    estantes: [{ id: 'iglesia', nombre: 'Iglesia' }, { id: 'milicia', nombre: 'Milicia' }],
+    libEst: libEst
+  };
+}
+
 // Pasos que muestran el texto de un libro, del lado de la Fordoquera.
 var BOOKISH_TYPES = ['youcat', 'yconf', 'enciclica', 'estilo', 'libro'];
 
@@ -156,7 +172,7 @@ function open(opts){
       }
       // Para elegir libros no hace falta mandarle los nuestros.
       (opts.modo === 'traerLibros' ? Promise.resolve(null) : librosParaAbrir(opts.modo, espacio)).then(function(libros){
-        postToIframe({
+        var msg = {
           fq: 'abrir',
           espacio: espacio,
           modo: opts.modo,
@@ -164,7 +180,9 @@ function open(opts){
           subir: subirPermitido,
           volver: opts.volver || 'Volver a la entrada',
           notas: !!opts.notas
-        });
+        };
+        if(opts.modo === 'biblioteca'){ Object.assign(msg, estantesBiblioteca(libros)); }
+        postToIframe(msg);
       });
       return;
     }
