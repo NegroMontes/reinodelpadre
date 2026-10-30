@@ -12,7 +12,7 @@ import { isAdmin } from '../services/permissions.js';
 import { ensureMisasSub, saveMisa, deleteMisa } from '../services/cancionero.service.js';
 import { showAlert, showConfirm } from '../components/dialog.js';
 import { renderPanel, showStatus } from '../main.js';
-import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.js';
+import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordesToggleHtml, bindAcordesToggle } from './cancionero.js';
 
   // Según la Instrucción General del Misal Romano: el Gloria va los
   // domingos, solemnidades y fiestas (IGMR 53); el Credo, solo domingos y
@@ -43,7 +43,7 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
     { id: 'cordero', label: 'Cordero de Dios', cats: ['ordinario'], ordinario: /cordero/ },
     { id: 'comunion', label: 'Comunión', cats: ['comunion', 'adoracion'] },
     { id: 'poscomunion', label: 'Acción de gracias', cats: ['poscomunion', 'adoracion'] },
-    { id: 'salida', label: 'Salida', cats: ['maria', 'marchas', 'espiritu'] }
+    { id: 'salida', label: 'Salida', cats: ['maria', 'marchas', 'espiritu', 'otros'] }
   ];
 
   function momentosDe(tipo){
@@ -176,7 +176,8 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
     html += '<div class="panel-head"><div><h2>' + escapeHtml(m.nombre) + '</h2>';
     if(m.subtitulo) html += '<p class="misa-subtitulo">' + escapeHtml(m.subtitulo) + '</p>';
     html += '<p class="mandos-sub">Creada por ' + escapeHtml(m.autor || '—') + ' · ' + fecha(m.createdAt) + '<br>' + escapeHtml(tipoLabel(m.tipo)) + '</p></div>';
-    html += '<div class="recursos-head-actions"><button type="button" class="btn ghost small" id="misaPdfBtn">' + icon('download') + ' PDF</button>';
+    var hayAcordes = filasDe(m).some(function(f){ return f.canto && f.canto.conAcordes; });
+    html += '<div class="recursos-head-actions">' + acordesToggleHtml(hayAcordes) + '<button type="button" class="btn ghost small" id="misaPdfBtn">' + icon('download') + ' PDF</button>';
     if(canEditMisa(m)){
       html += '<button type="button" class="btn ghost small" id="misaEditBtn">' + icon('pencil') + ' Editar</button>' +
         '<button type="button" class="btn ghost small" id="misaDeleteBtn" aria-label="Eliminar misa" title="Eliminar">' + icon('trash') + '</button>';
@@ -196,14 +197,15 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
       // Si llega un cambio de Firestore mientras se canta, el que estaba abierto sigue abierto.
       html += '<details class="misa-momento" data-idx="' + idx + '"' + (AppState.misaOpenIdx === idx ? ' open' : '') + '><summary>' +
         '<span class="misa-momento-label">' + escapeHtml(f.momento.label) + '</span>' +
-        '<span class="misa-momento-titulo">' + escapeHtml(f.canto.titulo) + '</span>' + icon('chevron-right') +
-        '</summary><div class="canto-letra">' + letraHtml(f.canto) + '</div></details>';
+        '<span class="misa-momento-titulo">' + escapeHtml(f.canto.titulo) + acordesBadge(f.canto) + '</span>' + icon('chevron-right') +
+        '</summary><div class="canto-letra' + (AppState.cancioneroAcordes && f.canto.conAcordes ? ' con-acordes' : '') + '">' + letraHtml(f.canto) + '</div></details>';
     });
     html += '</div>';
     panel.innerHTML = html;
 
     document.getElementById('misasBackBtn').onclick = function(){ AppState.cancioneroVista = 'misas'; renderPanel(); };
     document.getElementById('misaPdfBtn').onclick = function(){ exportarPdf(m); };
+    bindAcordesToggle(panel);
     var edit = document.getElementById('misaEditBtn');
     if(edit) edit.onclick = function(){
       AppState.misaDraft = JSON.parse(JSON.stringify(m));
@@ -281,10 +283,17 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
 
   // ---- Editor ----
   // Completa los momentos del ordinario que todavía no tienen nada.
+  // Parte del ordinario de un canto: campo `parte` (los importados del
+  // cancionero con acordes lo traen) o, si no, por el título.
+  function esParte(c, mom){
+    if(c.categoria !== 'ordinario') return false;
+    return c.parte ? c.parte === mom.id : mom.ordinario.test(norm(c.titulo));
+  }
+
   function completarOrdinario(d){
     momentosDe(d.tipo).forEach(function(mom){
       if(!mom.ordinario || d.momentos[mom.id]) return;
-      var c = sortedCantos().find(function(c){ return c.categoria === 'ordinario' && mom.ordinario.test(norm(c.titulo)); });
+      var c = sortedCantos().find(function(c){ return esParte(c, mom); });
       d.momentos[mom.id] = c ? [c.id] : [];
     });
   }
@@ -414,7 +423,9 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
       var q = norm(search.value).trim();
       var cantos = sortedCantos().filter(function(c){
         if(q) return norm(c.titulo).indexOf(q) !== -1 || norm(textoDe(c)).indexOf(q) !== -1;
-        return todos || mom.cats.indexOf(c.categoria) !== -1;
+        if(todos) return true;
+        // En los momentos del ordinario, solo los de esa parte (todos los Santos, etc.).
+        return mom.ordinario ? esParte(c, mom) : mom.cats.indexOf(c.categoria) !== -1;
       });
       if(!cantos.length){ lista.innerHTML = '<p class="empty">No hay cantos que coincidan.</p>'; return; }
       var html = '', last = null;
@@ -424,7 +435,7 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
           last = c.categoria;
           html += '<h4 class="canto-cat-title">' + escapeHtml(catLabel(c.categoria)) + '</h4><div class="canto-list">';
         }
-        html += '<button type="button" class="canto-item" data-pick="' + escapeHtml(c.id) + '"><span class="canto-item-text"><span class="canto-item-title">' + escapeHtml(c.titulo) + '</span></span>' + icon('chevron-right') + '</button>';
+        html += '<button type="button" class="canto-item" data-pick="' + escapeHtml(c.id) + '"><span class="canto-item-text"><span class="canto-item-title">' + escapeHtml(c.titulo) + acordesBadge(c) + '</span></span>' + icon('chevron-right') + '</button>';
       });
       lista.innerHTML = html + '</div>';
       lista.querySelectorAll('[data-pick]').forEach(function(b){

@@ -35,6 +35,7 @@ export const AppState = {
   cancioneroCategoria: '', // filtro de categoría del Cancionero — '' = todas
   cancioneroBusqueda: '',
   cancioneroCantoId: null, // canto abierto — null = lista
+  cancioneroAcordes: false, // mostrar acordes (cantos que los tienen)
   cancioneroVista: '', // '' tarjetas | 'ver' | 'misas' | 'misa' | 'misaEdit'
   misas: [], // misas armadas (colección `misas`)
   misasLoaded: false,

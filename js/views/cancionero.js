@@ -77,7 +77,7 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
         });
       }
       html += '<button type="button" class="canto-item" data-canto="' + escapeHtml(c.id) + '">' +
-        '<span class="canto-item-text"><span class="canto-item-title">' + escapeHtml(c.titulo) + '</span>' +
+        '<span class="canto-item-text"><span class="canto-item-title">' + escapeHtml(c.titulo) + acordesBadge(c) + '</span>' +
         (sub ? '<span class="canto-item-sub">' + escapeHtml(sub) + '</span>' : '') + '</span>' +
         icon('chevron-right') + '</button>';
     });
@@ -88,23 +88,54 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
     var html = '<button type="button" class="recursos-back" id="cancioneroBackBtn">' + icon('chevron-left') + ' Cancionero</button>';
     html += '<div class="panel-head"><div><h2>' + escapeHtml(c.titulo) + '</h2>';
     html += '<p class="mandos-sub">' + escapeHtml(catLabel(c.categoria)) + '</p></div>';
+    html += '<div class="recursos-head-actions">' + acordesToggleHtml(c.conAcordes);
     if(canEdit){
-      html += '<div class="recursos-head-actions">' +
-        '<button type="button" class="btn ghost small" id="cantoEditBtn">' + icon('pencil') + ' Editar</button>' +
-        '<button type="button" class="btn ghost small" id="cantoDeleteBtn" aria-label="Eliminar canto" title="Eliminar">' + icon('trash') + '</button>' +
-        '</div>';
+      html += '<button type="button" class="btn ghost small" id="cantoEditBtn">' + icon('pencil') + ' Editar</button>' +
+        '<button type="button" class="btn ghost small" id="cantoDeleteBtn" aria-label="Eliminar canto" title="Eliminar">' + icon('trash') + '</button>';
     }
-    html += '</div>';
-    return html + '<div class="canto-letra">' + letraHtml(c) + '</div>';
+    html += '</div></div>';
+    return html + '<div class="canto-letra' + (verAcordes(c) ? ' con-acordes' : '') + '">' + letraHtml(c) + '</div>';
   }
 
-  // Letra de un canto (nota + estrofas), reusada en la vista de una misa.
-  export function letraHtml(c){
+  // Acordes (30/10/2026): cada estrofa puede traer `acordes`, un texto por
+  // línea alineado con espacios sobre la letra (como en un cancionero de
+  // papel); una línea sin letra es solo de acordes (intro). Se muestran con
+  // el botón «Acordes», que vale para todos los cantos (AppState.cancioneroAcordes).
+  export function acordesBadge(c){
+    return c.conAcordes ? '<span class="canto-acordes-badge" title="Con acordes">' + icon('guitar') + '</span>' : '';
+  }
+
+  export function acordesToggleHtml(mostrar){
+    if(!mostrar) return '';
+    return '<button type="button" class="btn ghost small canto-acordes-toggle' + (AppState.cancioneroAcordes ? ' active' : '') + '" data-acordes-toggle aria-pressed="' + AppState.cancioneroAcordes + '">' + icon('guitar') + ' Acordes</button>';
+  }
+
+  export function bindAcordesToggle(root){
+    root.querySelectorAll('[data-acordes-toggle]').forEach(function(b){
+      b.onclick = function(){ AppState.cancioneroAcordes = !AppState.cancioneroAcordes; renderPanel(); };
+    });
+  }
+
+  function verAcordes(c){ return AppState.cancioneroAcordes && !!c.conAcordes; }
+
+  // Letra de un canto (nota + estrofas), reusada en la vista de una misa y el PDF.
+  export function letraHtml(c, conAcordes){
+    var acordes = conAcordes === undefined ? verAcordes(c) : (conAcordes && !!c.conAcordes);
     var html = '';
     if((c.nota || '').trim()) html += '<p class="canto-nota">' + escapeHtml(c.nota) + '</p>';
     (c.estrofas || []).forEach(function(e){
       var cls = e.tipo === 'estribillo' ? ' canto-estribillo' : (e.tipo === 'traduccion' ? ' canto-traduccion' : '');
-      html += '<p class="canto-estrofa' + cls + '">' + (e.lineas || []).map(escapeHtml).join('<br>') + '</p>';
+      var lineas = e.lineas || [];
+      if(acordes && e.acordes){
+        html += '<div class="canto-estrofa canto-acordes' + cls + '">' + lineas.map(function(l, i){
+          var a = e.acordes[i] || '';
+          return '<div class="canto-linea">' + (a ? '<span class="canto-acorde">' + escapeHtml(a) + '</span>' : '') +
+            (l ? '<span>' + escapeHtml(l) + '</span>' : '') + '</div>';
+        }).join('') + '</div>';
+      } else {
+        var visibles = lineas.filter(Boolean);
+        if(visibles.length) html += '<p class="canto-estrofa' + cls + '">' + visibles.map(escapeHtml).join('<br>') + '</p>';
+      }
     });
     if(!(c.estrofas || []).length) html += '<p class="empty">Este canto todavía no tiene letra.</p>';
     return html;
@@ -156,7 +187,9 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
     html += '<div class="panel-head"><div><h2>Ver cancionero</h2>';
     html += '<p class="mandos-sub">Marchas, canciones FASTA y cantos de Misa.</p></div>';
     if(canEdit){
-      html += '<div class="recursos-head-actions"><button type="button" class="btn small" id="cantoAddBtn">+ Agregar canto</button></div>';
+      html += '<div class="recursos-head-actions">' +
+        (isAdmin() && AppState.cancionero.length ? '<button type="button" class="btn ghost small" id="cancioneroImportMasBtn" title="Sumar o completar cantos desde un .json">' + icon('download') + ' Importar</button>' : '') +
+        '<button type="button" class="btn small" id="cantoAddBtn">+ Agregar canto</button></div>';
     }
     html += '</div>';
 
@@ -243,6 +276,18 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
     if(add) add.onclick = function(){ openCantoDialog(null); };
     var imp = document.getElementById('cancioneroImportBtn');
     if(imp) imp.onclick = runImport;
+    var impMas = document.getElementById('cancioneroImportMasBtn');
+    if(impMas) impMas.onclick = async function(){
+      var json = await pickJsonFile();
+      if(!json) return;
+      try{
+        var r = await importCancionero(json, function(m){ showStatus(m); });
+        showAlert('Listo: ' + r.nuevos + ' cantos nuevos y ' + r.actualizados + ' actualizados.');
+      }catch(err){
+        console.error(err);
+        showAlert('No se pudo importar: ' + (err.message || err));
+      }
+    };
   }
 
   function attachCantoEvents(canto){
@@ -250,6 +295,7 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
       AppState.cancioneroCantoId = null;
       renderPanel();
     };
+    bindAcordesToggle(document.getElementById('panel'));
     var edit = document.getElementById('cantoEditBtn');
     if(edit) edit.onclick = function(){ openCantoDialog(canto); };
     var del = document.getElementById('cantoDeleteBtn');
@@ -269,24 +315,48 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
 
   // Letra ↔ texto del diálogo: estrofas separadas por una línea en blanco;
   // una estrofa que arranca con "Estribillo:" o "Traducción:" es de ese tipo.
+  // Los acordes van en su propia línea, arriba de la letra (alineados con
+  // espacios); una línea es de acordes si todas sus palabras son acordes.
   function estrofasToText(estrofas){
     return (estrofas || []).map(function(e){
       var head = e.tipo === 'estribillo' ? 'Estribillo:\n' : (e.tipo === 'traduccion' ? 'Traducción:\n' : '');
-      return head + (e.lineas || []).join('\n');
+      return head + (e.lineas || []).map(function(l, i){
+        var a = e.acordes && e.acordes[i];
+        return a ? (l ? a + '\n' + l : a) : l;
+      }).join('\n');
     }).join('\n\n');
+  }
+
+  var NOTA = '(?:Do|Re|Mi|Fa|Sol|La|Si|[A-G])';
+  var ACORDE = new RegExp('^\\(?' + NOTA + '(?:#|b)?(?:m(?!a)|M|maj|min)?(?:\\d+|sus\\d?|dim|aug|add\\d+|º|°|\\+|M)*(?:/' + NOTA + '(?:#|b)?m?)?\\)?[,.]?$');
+  function esLineaDeAcordes(l){
+    var toks = l.trim().split(/\s+/).filter(Boolean);
+    return toks.length > 0 && toks.some(function(t){ return ACORDE.test(t); }) &&
+      toks.every(function(t){ return ACORDE.test(t) || /^(\(?x?\d\)?|\||-|–)$/.test(t); });
   }
 
   function textToEstrofas(text){
     return (text || '').replace(/\r/g, '').split(/\n\s*\n/).map(function(block){
-      var lineas = block.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+      var crudas = block.split('\n').filter(function(l){ return l.trim(); });
       var tipo = 'estrofa';
-      var m = lineas.length && norm(lineas[0]).match(/^(estribillo|traduccion)\s*(?::\s*(.*))?$/);
+      var m = crudas.length && norm(crudas[0].trim()).match(/^(estribillo|traduccion)\s*(?::\s*(.*))?$/);
       if(m){
         tipo = m[1];
-        var resto = lineas[0].replace(/^[^:]*:?\s*/, '');
-        lineas = m[2] ? [resto].concat(lineas.slice(1)) : lineas.slice(1);
+        var resto = crudas[0].trim().replace(/^[^:]*:?\s*/, '');
+        crudas = m[2] ? [resto].concat(crudas.slice(1)) : crudas.slice(1);
       }
-      return { tipo: tipo, lineas: lineas };
+      var lineas = [], acordes = [];
+      for(var i = 0; i < crudas.length; i++){
+        if(esLineaDeAcordes(crudas[i])){
+          var sig = crudas[i + 1];
+          var a = crudas[i].replace(/\s+$/, '');
+          if(sig !== undefined && !esLineaDeAcordes(sig)){ lineas.push(sig.trim()); acordes.push(a); i++; }
+          else { lineas.push(''); acordes.push(a); }
+        } else { lineas.push(crudas[i].trim()); acordes.push(''); }
+      }
+      var e = { tipo: tipo, lineas: lineas };
+      if(acordes.some(Boolean)) e.acordes = acordes;
+      return e;
     }).filter(function(e){ return e.lineas.length; });
   }
 
@@ -304,8 +374,8 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
       '  <div class="form-row"><label for="cantoTitulo">Título</label><input type="text" id="cantoTitulo" value="' + escapeHtml(c.titulo) + '"></div>' +
       '  <div class="form-row"><label for="cantoCategoria">Categoría</label><select id="cantoCategoria">' + opts + '</select></div>' +
       '  <div class="form-row"><label for="cantoNota">Nota (opcional)</label><input type="text" id="cantoNota" placeholder="Ej: autor, cuándo se canta…" value="' + escapeHtml(c.nota || '') + '"></div>' +
-      '  <div class="form-row"><label for="cantoLetra">Letra</label><textarea id="cantoLetra" rows="12">' + escapeHtml(estrofasToText(c.estrofas)) + '</textarea>' +
-      '  <p class="mandos-sub" style="margin:4px 0 0">Dejá una línea en blanco entre estrofas. Para marcar el estribillo, escribí «Estribillo:» en la primera línea de esa estrofa.</p></div>' +
+      '  <div class="form-row"><label for="cantoLetra">Letra</label><textarea id="cantoLetra" class="canto-letra-input" rows="12">' + escapeHtml(estrofasToText(c.estrofas)) + '</textarea>' +
+      '  <p class="mandos-sub" style="margin:4px 0 0">Dejá una línea en blanco entre estrofas. Para marcar el estribillo, escribí «Estribillo:» en la primera línea de esa estrofa. Los acordes van en su propio renglón, arriba de la letra.</p></div>' +
       '  <div class="app-dialog-actions" style="margin-top:16px">' +
       '    <button type="button" class="btn ghost small" id="cantoCancelBtn">Cancelar</button>' +
       '    <button type="button" class="btn small" id="cantoSaveBtn">Guardar</button>' +
@@ -329,6 +399,7 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
         nota: overlay.querySelector('#cantoNota').value.trim(),
         estrofas: textToEstrofas(overlay.querySelector('#cantoLetra').value)
       });
+      next.conAcordes = next.estrofas.some(function(e){ return !!e.acordes; });
       if(!canto){
         next.orden = AppState.cancionero.reduce(function(m, x){ return Math.max(m, x.orden || 0); }, 0) + 1;
       }
@@ -361,9 +432,9 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
     if(!json) json = await pickJsonFile();
     if(!json) return;
     try{
-      var n = await importCancionero(json, setStatus);
+      var r = await importCancionero(json, setStatus);
       setStatus('');
-      showAlert('Listo: se importaron ' + n + ' cantos.');
+      showAlert('Listo: se importaron ' + (r.nuevos + r.actualizados) + ' cantos.');
     }catch(err){
       console.error(err);
       setStatus('');

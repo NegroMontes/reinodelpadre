@@ -138,7 +138,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.10.30.6';
+  export var APP_VERSION = '2026.10.30.7';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -147,6 +147,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.10.30.7', date: '30/10/2026', items: [
+      'Cancionero: cantos con acordes (ícono de guitarra) y botón «Acordes» para verlos, también en las misas y el PDF.'
+    ]},
     { version: '2026.10.30.6', date: '30/10/2026', items: [
       'Biblioteca: estantes «Iglesia» (YouCat, Catecismo, Biblia) y «Milicia» (el resto); el Catecismo ya no aparece dos veces.'
     ] },

@@ -66,26 +66,37 @@ import { renderPanel } from '../main.js';
     return deleteDoc(doc(cancioneroColRef, id));
   }
 
-  // Importación inicial desde seed-data/cancionero.json (botón admin, un
-  // solo uso). Reemplaza los cantos con el mismo id; no borra los demás.
+  // Importar desde un .json ({cantos:[…]}, botón admin). Un canto cuyo id
+  // ya existe solo actualiza los campos que trae el archivo (ej. la letra
+  // con acordes, `parte`); uno nuevo se crea entero, al final del orden.
+  // Devuelve {nuevos, actualizados}.
   export async function importCancionero(json, onProgress){
     if(!json || !Array.isArray(json.cantos)) throw new Error('El archivo no tiene la lista de cantos.');
-    var cantos = json.cantos.filter(function(c){ return c && c.id && c.titulo; });
+    var existentes = {};
+    var maxOrden = -1;
+    AppState.cancionero.forEach(function(c){ existentes[c.id] = true; if((c.orden || 0) > maxOrden) maxOrden = c.orden || 0; });
+    var cantos = json.cantos.filter(function(c){ return c && c.id && (existentes[c.id] || c.titulo); });
+    var res = { nuevos: 0, actualizados: 0 };
     for(var i = 0; i < cantos.length; i += 100){
       if(onProgress) onProgress('Escribiendo ' + Math.min(i + 100, cantos.length) + ' de ' + cantos.length + '…');
       var batch = writeBatch(db);
-      cantos.slice(i, i + 100).forEach(function(c, j){
-        batch.set(doc(cancioneroColRef, String(c.id).replace(/\//g, '-')), {
-          titulo: c.titulo,
-          categoria: c.categoria || 'otros',
-          nota: c.nota || '',
-          estrofas: Array.isArray(c.estrofas) ? c.estrofas : [],
-          fuente: c.fuente || '',
-          orden: i + j,
-          updatedAt: Date.now()
-        });
+      cantos.slice(i, i + 100).forEach(function(c){
+        var id = String(c.id).replace(/\//g, '-');
+        var data = Object.assign({}, c, { updatedAt: Date.now() });
+        delete data.id;
+        if(existentes[id]){
+          batch.set(doc(cancioneroColRef, id), data, { merge: true });
+          res.actualizados++;
+        } else {
+          data.categoria = data.categoria || 'otros';
+          data.nota = data.nota || '';
+          data.estrofas = Array.isArray(data.estrofas) ? data.estrofas : [];
+          if(data.orden == null) data.orden = ++maxOrden;
+          batch.set(doc(cancioneroColRef, id), data);
+          res.nuevos++;
+        }
       });
       await batch.commit();
     }
-    return cantos.length;
+    return res;
   }

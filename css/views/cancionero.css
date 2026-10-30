@@ -213,3 +213,20 @@
     #misaPrint .canto-traduccion{ font-style:italic; color:#444; }
     #misaPrint .canto-nota{ font-style:italic; color:#444; margin:0 0 6px; }
 }
+
+/* Acordes (30/10/2026): letra con el acorde arriba, en monoespaciada para
+   que la alineación con espacios se respete. */
+.canto-acordes-badge{ display:inline-flex; vertical-align:-2px; margin-left:6px; color:var(--teal); }
+.canto-acordes-badge svg{ width:14px; height:14px; }
+.btn.ghost.canto-acordes-toggle.active, .btn.ghost.canto-acordes-toggle.active:hover{ background:var(--teal); border-color:var(--teal); color:var(--card-bg); }
+.canto-letra.con-acordes{ overflow-x:auto; }
+.canto-acordes{ font-family:ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size:14px; line-height:1.35; }
+.canto-acordes .canto-linea{ white-space:pre; }
+.canto-acordes .canto-linea + .canto-linea{ margin-top:4px; }
+.canto-acorde{ display:block; color:var(--teal); font-weight:700; }
+.canto-acordes.canto-estribillo .canto-acorde{ font-weight:700; }
+.canto-letra-input{ font-family:ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size:13px; white-space:pre; overflow-x:auto; }
+@media print{
+    #misaPrint .canto-acordes{ font-size:10pt; }
+    #misaPrint .canto-acorde{ color:#000; }
+}
