@@ -127,7 +127,7 @@
 .misa-momento-rezado{ display:flex; align-items:center; gap:10px; padding:12px 14px; opacity:.7; }
 .misa-momento-rezado .misa-momento-titulo{ font-weight:400; font-style:italic; }
 
-.misa-tipos{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
+.misa-tipos{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; }
 .misa-tipo{
     display:flex;
     flex-direction:column;

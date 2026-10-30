@@ -1,6 +1,6 @@
 // "Crear misa" (30/10/2026), dentro del Cancionero: cada uno arma el
 // repertorio de una misa eligiendo cantos del cancionero para cada momento.
-// Primero se elige el tipo de día (con o sin Gloria); el ordinario se carga
+// Primero se elige el tipo de día (Gloria/Credo según el día); el ordinario se carga
 // solo. La misa guardada se ve con un desplegable por canto (se abre uno a
 // la vez) y se puede exportar a PDF (diálogo de impresión del navegador).
 // Vistas: AppState.cancioneroVista 'misas' (lista) | 'misa' (una) | 'misaEdit'.
@@ -14,20 +14,29 @@ import { showAlert, showConfirm } from '../components/dialog.js';
 import { renderPanel, showStatus } from '../main.js';
 import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.js';
 
+  // Según la Instrucción General del Misal Romano: el Gloria va los
+  // domingos, solemnidades y fiestas (IGMR 53); el Credo, solo domingos y
+  // solemnidades (IGMR 68). La oración de los fieles se recomienda en toda
+  // misa con pueblo (IGMR 69), así que no cambia según el día.
+  // ('mayor' incluía las fiestas hasta el 30/10/2026; las misas viejas
+  // así guardadas quedan como domingo/solemnidad.)
   export var MISA_TIPOS = [
-    { id: 'mayor', label: 'Domingo, sábado a la tarde, solemnidad o fiesta', sub: 'Con Gloria' },
-    { id: 'menor', label: 'Memoria o día de semana', sub: 'Sin Gloria' }
+    { id: 'mayor', label: 'Domingo, sábado a la tarde o solemnidad', sub: 'Con Gloria y Credo' },
+    { id: 'fiesta', label: 'Fiesta', sub: 'Con Gloria, sin Credo' },
+    { id: 'menor', label: 'Memoria o día de semana', sub: 'Sin Gloria ni Credo' }
   ];
 
   // Momentos de la misa, en orden. `ordinario`: se completa solo con el canto
-  // del cancionero cuyo título coincide. `cats`: categorías que se sugieren
-  // primero al elegir un canto.
+  // del cancionero cuyo título coincide. `tipos`: solo en esos tipos de día.
+  // `cats`: categorías que se sugieren primero al elegir un canto.
   var MOMENTOS = [
     { id: 'entrada', label: 'Entrada', cats: ['entrada'] },
     { id: 'kyrie', label: 'Señor, ten piedad', cats: ['ordinario'], ordinario: /kyrie|piedad/ },
-    { id: 'gloria', label: 'Gloria', cats: ['ordinario'], ordinario: /gloria/, soloMayor: true },
+    { id: 'gloria', label: 'Gloria', cats: ['ordinario'], ordinario: /gloria/, tipos: ['mayor', 'fiesta'] },
     { id: 'salmo', label: 'Salmo', cats: ['otros'] },
     { id: 'aleluya', label: 'Aleluya', cats: ['ordinario'], ordinario: /aleluya/ },
+    // Sin canto en el cancionero: queda «Rezado» salvo que se elija uno.
+    { id: 'credo', label: 'Credo', cats: ['ordinario'], ordinario: /credo/, tipos: ['mayor'] },
     { id: 'ofertorio', label: 'Ofertorio', cats: ['ofertorio'] },
     { id: 'santo', label: 'Santo', cats: ['ordinario'], ordinario: /^santo/ },
     { id: 'padrenuestro', label: 'Padre Nuestro', cats: ['ordinario'], ordinario: /padre nuestro/ },
@@ -38,7 +47,7 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
   ];
 
   function momentosDe(tipo){
-    return MOMENTOS.filter(function(m){ return !m.soloMayor || tipo === 'mayor'; });
+    return MOMENTOS.filter(function(m){ return !m.tipos || m.tipos.indexOf(tipo) !== -1; });
   }
 
   function tipoLabel(tipo){

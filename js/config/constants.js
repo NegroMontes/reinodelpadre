@@ -148,6 +148,9 @@
   // novedades, más viejo abajo.
   export var CHANGELOG = [
     { version: '2026.10.30.3', date: '30/10/2026', items: [
+      'Crear misa: se separan las fiestas (Gloria sin Credo) y se suma el Credo los domingos y solemnidades.'
+    ]},
+    { version: '2026.10.30.3', date: '30/10/2026', items: [
       'Milicia y lectura: accesos a la Biblioteca, Milican, Evangelio del día y Documentos de la Iglesia.'
     ] },
     { version: '2026.10.30.2', date: '30/10/2026', items: [
