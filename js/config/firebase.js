@@ -58,3 +58,6 @@ export var feedbackColRef = collection(db, 'feedback');
 // uno solo. Legible por cualquiera logueado, escribible solo por admin
 // (mismo criterio que `mandos/data`).
 export var librosColRef = collection(db, 'libros');
+// Cancionero (T6, 30/10/2026): un documento por canto. Legible por
+// cualquiera logueado; escriben admin y jefes (ver reglas en CLAUDE.md).
+export var cancioneroColRef = collection(db, 'cancionero');

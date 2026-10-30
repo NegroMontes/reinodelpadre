@@ -1,0 +1,93 @@
+/* Cancionero (T6 E2, 30/10/2026) — ver js/views/cancionero.js. */
+.cancionero-search{
+    position:relative;
+    display:flex;
+    align-items:center;
+    margin:4px 0 14px;
+}
+.cancionero-search svg{
+    position:absolute;
+    left:12px;
+    width:18px;
+    height:18px;
+    color:var(--ink-soft);
+    pointer-events:none;
+}
+.cancionero-search input{
+    width:100%;
+    padding:10px 12px 10px 40px;
+    font:inherit;
+    color:var(--ink);
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+}
+.cancionero-search input:focus{ outline:none; border-color:var(--teal); }
+.cancionero-cats{ margin-bottom:12px; }
+.cancionero-import{ margin-bottom:16px; }
+
+.canto-cat-title{
+    margin:18px 0 8px;
+    font-size:15px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+}
+.canto-list{
+    display:flex;
+    flex-direction:column;
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+}
+.canto-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:11px 14px;
+    background:none;
+    border:0;
+    border-top:1px solid var(--line);
+    color:var(--ink);
+    font:inherit;
+    text-align:left;
+    cursor:pointer;
+}
+.canto-item:first-child{ border-top:0; }
+.canto-item:hover, .canto-item:focus-visible{ background:color-mix(in srgb, var(--teal) 8%, transparent); }
+.canto-item > svg{ flex:0 0 auto; width:18px; height:18px; color:var(--ink-soft); }
+.canto-item-text{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
+.canto-item-title{ font-weight:600; }
+.canto-item-sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.canto-letra{
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    font-size:17px;
+    line-height:1.6;
+}
+.canto-nota{ margin:0 0 14px; font-size:14px; color:var(--ink-soft); font-style:italic; }
+.canto-estrofa{ margin:0 0 18px; }
+.canto-estrofa:last-child{ margin-bottom:0; }
+.canto-estribillo{
+    font-weight:700;
+    padding-left:12px;
+    border-left:3px solid var(--teal);
+}
+.canto-traduccion{ font-style:italic; color:var(--ink-soft); font-size:15px; }
+.canto-dialog{ max-width:560px; max-height:90vh; overflow-y:auto; }
+.canto-dialog textarea{ font-family:inherit; }
+
+@media (max-width:600px){
+    .canto-letra{ padding:16px; font-size:16px; }
+}

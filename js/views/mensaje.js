@@ -13,6 +13,7 @@ import { showConfirm } from '../components/dialog.js';
 import { renderEntriesListHtml } from '../components/entry.js';
 import { renderForm, attachPanelEvents } from '../components/form.js';
 import { renderPanel } from '../main.js';
+import { renderCancioneroPanel, cancioneroTileHtml } from './cancionero.js';
 
   // "Departamentos": contenido de coordinación interna del comando que NO está
   // ligado a ningún día de campamento (instructivos, avisos internos, etc.) —
@@ -200,6 +201,12 @@ import { renderPanel } from '../main.js';
     var items = AppState.state.entries.filter(function(e){ return e.dayId === 'RESOURCES' && canSeeEntry(e); })
       .sort(compareEntryOrder);
     var canAddHere = canCreateRecurso();
+    // Cancionero (30/10/2026): vive adentro de Vida espiritual, con su propia vista.
+    if(AppState.recursosCategoria === 'cancionero'){
+      AppState.formOpen = false;
+      renderCancioneroPanel();
+      return;
+    }
 
     // Categorías (27/10/2026): sin categoría abierta se ve la grilla; al
     // tocar una, la lista de sus entradas como tarjetas anchas.
@@ -208,6 +215,7 @@ import { renderPanel } from '../main.js';
     // Subcategorías (29/10/2026): una categoría con `parent` se abre desde
     // adentro de su madre, y sus entradas cuentan también para la madre.
     function hijas(id){ return RECURSO_CATEGORIAS.filter(function(c){ return c.parent === id; }); }
+    function tieneAlgo(id){ return id === 'biblia' || entradasDe(id).length > 0; }
     function entradasDe(id){
       return hijas(id).reduce(function(acc, c){ return acc.concat(porCat[c.id] || []); }, (porCat[id] || []).slice());
     }
@@ -227,7 +235,7 @@ import { renderPanel } from '../main.js';
         '</button>';
     }
     var cat = RECURSO_CATEGORIAS.find(function(c){ return c.id === AppState.recursosCategoria; });
-    if(cat && !canAddHere && !entradasDe(cat.id).length){ cat = null; }
+    if(cat && !canAddHere && !tieneAlgo(cat.id)){ cat = null; }
     AppState.recursosCategoria = cat ? cat.id : '';
 
     var html = '';
@@ -236,7 +244,7 @@ import { renderPanel } from '../main.js';
       html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes, oraciones y misterios del Rosario para todo el campamento.</p></div></div>';
       // Quien puede agregar ve todas las categorías (para cargar en una
       // vacía); el resto, solo las que tienen algo.
-      var cats = RECURSO_CATEGORIAS.filter(function(c){ return !c.parent && (canAddHere || entradasDe(c.id).length); });
+      var cats = RECURSO_CATEGORIAS.filter(function(c){ return !c.parent && (canAddHere || tieneAlgo(c.id)); });
       if(cats.length === 0){
         html += '<p class="empty">Todavía no hay recursos cargados.</p>';
       } else {
@@ -277,9 +285,11 @@ import { renderPanel } from '../main.js';
       html += '</div>';
 
       var subs = grupo ? [] : hijas(cat.id).filter(function(c){ return canAddHere || entradasDe(c.id).length; });
-      if(subs.length){
+      var conCancionero = !grupo && cat.id === 'biblia';
+      if(subs.length || conCancionero){
         html += '<div class="recursos-grid recursos-subcats">';
         subs.forEach(function(c){ html += catTileHtml(c); });
+        if(conCancionero){ html += cancioneroTileHtml(); }
         html += '</div>';
       }
       if(!grupo){
@@ -293,7 +303,7 @@ import { renderPanel } from '../main.js';
       }
       html += '<div class="entries">';
       if(lista.length === 0){
-        if(grupo || !(grupos.length && catItems.length) && !subs.length){
+        if(grupo || !(grupos.length && catItems.length) && !subs.length && !conCancionero){
           html += '<p class="empty">' + (grupo ? 'Todavía no hay nada en este grupo.' : 'Todavía no hay nada en esta categoría.') + '</p>';
         }
       } else {

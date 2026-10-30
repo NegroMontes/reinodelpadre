@@ -124,7 +124,21 @@
   // avisa con un toast (significa que alguien pusheó una versión nueva
   // mientras la página seguía abierta). Bump a mano en cada cambio grande
   // — fecha + un contador chico si hay más de un cambio el mismo día.
-  export var APP_VERSION = '2026.10.29.9';
+  // Categorías del Cancionero (T6, 30/10/2026), en el orden en que se muestran.
+  export var CANCIONERO_CATEGORIAS = [
+    { id: 'marchas', label: 'Marchas y canciones FASTA' },
+    { id: 'entrada', label: 'Entrada' },
+    { id: 'ordinario', label: 'Ordinario de la Misa' },
+    { id: 'ofertorio', label: 'Ofertorio' },
+    { id: 'comunion', label: 'Comunión' },
+    { id: 'poscomunion', label: 'Acción de gracias' },
+    { id: 'adoracion', label: 'Adoración' },
+    { id: 'maria', label: 'Virgen María' },
+    { id: 'espiritu', label: 'Espíritu Santo' },
+    { id: 'otros', label: 'Otros cantos' }
+  ];
+
+  export var APP_VERSION = '2026.10.30.1';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -133,6 +147,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.10.30.1', date: '30/10/2026', items: [
+      'Recursos → Vida espiritual: nuevo «Cancionero», con letras de marchas y cantos de Misa y un buscador.'
+    ]},
     { version: '2026.10.29.9', date: '29/10/2026', items: [
       'Recursos: nueva categoría «Misa» dentro de Vida espiritual.'
     ]},

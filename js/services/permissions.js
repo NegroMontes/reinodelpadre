@@ -302,6 +302,12 @@ import { AppState } from '../app-state.js';
   }
 
 
+  // Cancionero (30/10/2026): mismo criterio que Recursos.
+  export function canEditCancionero(){
+    return canCreateRecurso();
+  }
+
+
   export function canCreateInfoGeneral(){
     return isAdmin() || (isJefeSeccionEditing() && effectiveDepto() === 'Logística');
   }

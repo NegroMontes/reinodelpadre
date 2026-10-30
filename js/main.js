@@ -8,6 +8,7 @@ import { renderPapeleraPanel, attachPapeleraPanelEvents } from './views/papelera
 import { renderDepartamentosPanel, renderRecursosPanel, renderMensajePanel } from './views/mensaje.js';
 import { renderMandosPanel, attachMandosEvents } from './views/mandos.js';
 import { loadMandos } from './services/mandos.service.js';
+import { stopCancioneroSub } from './services/cancionero.service.js';
 import { stopCountdownTicker, startCountdownTicker, renderHomePanel, attachHomeEvents } from './views/home.js';
 import { renderGate } from './views/gate.js';
 import { canSeeFeedbackWidget, renderFeedbackWidget, attachFeedbackWidgetEvents } from './components/feedback-widget.js';
@@ -348,6 +349,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       if(AppState.unsubState){ AppState.unsubState(); AppState.unsubState = null; }
       if(AppState.unsubMandos){ AppState.unsubMandos(); AppState.unsubMandos = null; }
       AppState.mandosSubscribed = false; AppState.mandosLoaded = false; AppState.mandosData = null;
+      stopCancioneroSub();
       unsubAllProgress();
       unsubAllCompletions();
       AppState.secuencialCompletionsOpenId = null;
@@ -743,7 +745,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       var day = (AppState.state.days || []).find(function(d){ return d.id === AppState.activeMensajeDayId; });
       return day ? ('Mensaje — ' + day.label) : 'Mensaje';
     }
-    if(AppState.activeDayId === 'RECURSOS') return 'Recursos';
+    if(AppState.activeDayId === 'RECURSOS') return AppState.recursosCategoria === 'cancionero' ? 'Recursos — Cancionero' : 'Recursos';
     if(AppState.activeDayId === 'DEPARTAMENTOS') return 'Departamentos';
     if(AppState.activeDayId === 'MANDOS') return 'Comando — ' + (AppState.mandosActiveSubTab === 'micomando' ? 'Mi comando' : 'Cuadro de mandos');
     if(AppState.activeDayId === 'USERS') return 'Usuarios';
