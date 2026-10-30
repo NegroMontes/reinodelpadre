@@ -31,6 +31,9 @@
 //                                       eligió uno o varios libros de su biblioteca de la Fordoquera
 //                                       (mismo formato que libros/<id>.json); se importan a Firestore.
 //                                       Cancelar → {fq:'cerrado'}.
+//   (protocolo 5, 30/10/2026) modo 'biblioteca': solo lectura de los libros
+//   que le mandamos en `libros` (los del comando, en Firestore); espacio:null.
+//   Cerrar → {fq:'cerrado'}.
 
 import { AppState } from '../app-state.js';
 import { FORDOQUERA_URL } from '../config/constants.js';
@@ -145,7 +148,7 @@ function open(opts){
       // así que el "✕" nuestro se oculta para no taparle su barra. Solo
       // queda visible si la Fordoquera nunca llega a cargar.
       built.closeBtn.hidden = true;
-      var versionMinima = opts.modo === 'traer' ? 3 : (opts.modo === 'traerLibros' ? 4 : 0);
+      var versionMinima = { traer: 3, traerLibros: 4, biblioteca: 5 }[opts.modo] || 0;
       if(versionMinima && !(d.version >= versionMinima)){
         closeOverlay();
         if(opts.onSinSoporte) opts.onSinSoporte();
@@ -247,6 +250,17 @@ export function openFordoqueraTraerLibros(onTraidos, onSinSoporte){
     modo: 'traerLibros',
     volver: 'Volver',
     onTraidos: onTraidos,
+    onSinSoporte: onSinSoporte,
+    onClose: function(){}
+  });
+}
+
+// Biblioteca (protocolo 5): leer y buscar en los libros del comando.
+// `onSinSoporte()` si la Fordoquera todavía no conoce el modo.
+export function openFordoqueraBiblioteca(onSinSoporte){
+  open({
+    modo: 'biblioteca',
+    volver: 'Volver',
     onSinSoporte: onSinSoporte,
     onClose: function(){}
   });

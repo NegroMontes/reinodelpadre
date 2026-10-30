@@ -9,11 +9,12 @@ import { escapeHtml, linkify, dayDateToIso, compareEntryOrder, recursoCategoriaD
 import { icon } from '../utils/icons.js';
 import { entryScope, canSeeEntry, isAdmin, isJefeSeccionEditing, isJefeSeccion, effectiveDepto, effectiveSeccion, effectiveRole, lectorModeActive, isLectorLike, canEditStructure, canCreateRecurso } from '../services/permissions.js';
 import { addDay, save } from '../services/state.service.js';
-import { showConfirm } from '../components/dialog.js';
 import { renderEntriesListHtml } from '../components/entry.js';
 import { renderForm, attachPanelEvents } from '../components/form.js';
 import { renderPanel } from '../main.js';
 import { renderCancioneroPanel, cancioneroTileHtml } from './cancionero.js';
+import { openFordoqueraBiblioteca } from '../components/fordoquera-embed.js';
+import { showConfirm, showAlert } from '../components/dialog.js';
 
   // "Departamentos": contenido de coordinación interna del comando que NO está
   // ligado a ningún día de campamento (instructivos, avisos internos, etc.) —
@@ -195,6 +196,27 @@ import { renderCancioneroPanel, cancioneroTileHtml } from './cancionero.js';
   // de "Departamentos", es contenido para todo el mundo (comando y, a futuro,
   // milicianos), así que no hay filtro de visibilidad más allá de estar logueado.
   // Se guarda como entradas con dayId sentinel 'RESOURCES' (sin seccion/depto).
+  // Accesos de «Milicia y lectura» (30/10/2026): la biblioteca de la
+  // Fordoquera incrustada (modo 'biblioteca', protocolo 5) y links externos.
+  var LECTURA_LINKS = [
+    { label: 'Milican', sub: 'Marchas y textos milicianos', icon: 'shield', url: 'https://wmil.heladeradragon.com.ar/' },
+    { label: 'Evangelio del día', sub: 'Lecturas de la Misa de hoy', icon: 'book-open', url: 'https://evangeli.net/evangelio' },
+    { label: 'Documentos de la Iglesia', sub: 'Encíclicas y magisterio (vatican.va)', icon: 'cross', url: 'https://www.vatican.va/content/vatican/es.html' }
+  ];
+  function lecturaTilesHtml(){
+    var html = '<button type="button" class="recurso-cat" id="bibliotecaBtn">' +
+      '<span class="recurso-cat-icon">' + icon('library') + '</span>' +
+      '<span class="recurso-cat-label">Biblioteca</span>' +
+      '<span class="recurso-cat-count">Biblia, YouCat, Catecismo…</span></button>';
+    LECTURA_LINKS.forEach(function(l){
+      html += '<a class="recurso-cat" href="' + l.url + '" target="_blank" rel="noopener">' +
+        '<span class="recurso-cat-icon">' + icon(l.icon) + '</span>' +
+        '<span class="recurso-cat-label">' + escapeHtml(l.label) + ' ' + icon('external-link') + '</span>' +
+        '<span class="recurso-cat-count">' + escapeHtml(l.sub) + '</span></a>';
+    });
+    return html;
+  }
+
   export function renderRecursosPanel(){
     var panel = document.getElementById('panel');
     // Orden ascendente, igual que "Mensaje"/"Departamentos" (08/10/2026).
@@ -215,7 +237,7 @@ import { renderCancioneroPanel, cancioneroTileHtml } from './cancionero.js';
     // Subcategorías (29/10/2026): una categoría con `parent` se abre desde
     // adentro de su madre, y sus entradas cuentan también para la madre.
     function hijas(id){ return RECURSO_CATEGORIAS.filter(function(c){ return c.parent === id; }); }
-    function tieneAlgo(id){ return id === 'biblia' || entradasDe(id).length > 0; }
+    function tieneAlgo(id){ return id === 'biblia' || id === 'textos' || entradasDe(id).length > 0; }
     function entradasDe(id){
       return hijas(id).reduce(function(acc, c){ return acc.concat(porCat[c.id] || []); }, (porCat[id] || []).slice());
     }
@@ -286,10 +308,12 @@ import { renderCancioneroPanel, cancioneroTileHtml } from './cancionero.js';
 
       var subs = grupo ? [] : hijas(cat.id).filter(function(c){ return canAddHere || entradasDe(c.id).length; });
       var conCancionero = !grupo && cat.id === 'biblia';
-      if(subs.length || conCancionero){
+      var conLectura = !grupo && cat.id === 'textos';
+      if(subs.length || conCancionero || conLectura){
         html += '<div class="recursos-grid recursos-subcats">';
         subs.forEach(function(c){ html += catTileHtml(c); });
         if(conCancionero){ html += cancioneroTileHtml(); }
+        if(conLectura){ html += lecturaTilesHtml(); }
         html += '</div>';
       }
       if(!grupo){
@@ -303,7 +327,7 @@ import { renderCancioneroPanel, cancioneroTileHtml } from './cancionero.js';
       }
       html += '<div class="entries">';
       if(lista.length === 0){
-        if(grupo || !(grupos.length && catItems.length) && !subs.length && !conCancionero){
+        if(grupo || !(grupos.length && catItems.length) && !subs.length && !conCancionero && !conLectura){
           html += '<p class="empty">' + (grupo ? 'Todavía no hay nada en este grupo.' : 'Todavía no hay nada en esta categoría.') + '</p>';
         }
       } else {
@@ -337,6 +361,14 @@ import { renderCancioneroPanel, cancioneroTileHtml } from './cancionero.js';
         renderPanel();
       };
     });
+    var biblioBtn = document.getElementById('bibliotecaBtn');
+    if(biblioBtn){
+      biblioBtn.onclick = function(){
+        openFordoqueraBiblioteca(function(){
+          showAlert('La Fordoquera todavía no tiene el modo biblioteca. Hay que actualizarla (protocolo 5).');
+        });
+      };
+    }
     var addGrupo = document.getElementById('addGrupoBtn');
     if(addGrupo){ addGrupo.onclick = function(){ openRecursoGrupoDialog(null); }; }
 

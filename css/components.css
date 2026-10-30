@@ -1370,6 +1370,8 @@ body.entry-arrastrando, body.entry-arrastrando *{ user-select:none; -webkit-user
 .recurso-cat-label{ font-weight:700; font-size:15px; text-align:center; }
 .recurso-cat-count{ font-size:12px; color:var(--ink-soft); }
 /* Categoría sin entradas (solo la ve quien puede agregar): más transparente. */
+a.recurso-cat{ text-decoration:none; }
+.recurso-cat-label svg{ width:13px; height:13px; vertical-align:-1px; opacity:.6; }
 .recurso-cat-empty{ opacity:.45; }
 .recurso-cat-empty:hover, .recurso-cat-empty:focus-visible{ opacity:.85; }
 
