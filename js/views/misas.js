@@ -132,9 +132,36 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
   // ---- Una misa: desplegables (uno abierto a la vez) ----
   // Filas de la misa: un renglón por canto elegido; un momento del ordinario
   // sin canto figura como "Rezado".
+  // Notas del rito que van antes de cada momento (30/10/2026, pedido del
+  // usuario): qué pasa en el medio, según el tipo de día. Se muestran aunque
+  // ese momento no tenga canto, como guía de por dónde va la misa.
+  function notaAntes(momId, tipo){
+    var credo = tipo === 'mayor';
+    var gloria = tipo !== 'menor';
+    switch(momId){
+      case 'entrada': return 'Al entrar el sacerdote en procesión.';
+      case 'kyrie': return 'Después del saludo y el acto penitencial.';
+      case 'salmo': return (gloria ? '' : 'No hay Gloria. ') + 'Oración colecta y primera lectura.';
+      case 'aleluya': return credo ? 'Segunda lectura.' : 'No hay segunda lectura: después del salmo, el Aleluya antes del Evangelio.';
+      case 'credo': return 'Evangelio y homilía.';
+      case 'ofertorio': return credo
+        ? 'Terminado el Credo, oración de los fieles. Después arranca el ofertorio (presentación de los dones).'
+        : 'Evangelio y homilía. No hay Credo: después de la homilía, oración de los fieles, y arranca el ofertorio (presentación de los dones).';
+      case 'santo': return 'Oración sobre las ofrendas y prefacio. Al terminar el prefacio se canta el Santo.';
+      case 'padrenuestro': return 'Plegaria eucarística y consagración. Después del «Por Cristo, con Él y en Él… Amén».';
+      case 'cordero': return 'Rito de la paz. Durante la fracción del pan.';
+      case 'comunion': return 'Mientras se distribuye la comunión.';
+      case 'poscomunion': return 'Terminada la comunión, en el silencio de acción de gracias.';
+      case 'salida': return 'Oración después de la comunión, bendición y despedida.';
+    }
+    return '';
+  }
+
   function filasDe(m){
     var filas = [];
     momentosDe(m.tipo).forEach(function(mom){
+      var nota = notaAntes(mom.id, m.tipo);
+      if(nota) filas.push({ nota: nota });
       var ids = (m.momentos && m.momentos[mom.id]) || [];
       var cantos = ids.map(cantoPorId).filter(Boolean);
       if(cantos.length){ cantos.forEach(function(c){ filas.push({ momento: mom, canto: c }); }); }
@@ -158,6 +185,10 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
     if(!AppState.cancioneroLoaded){ html += '<p class="empty">Cargando cantos…</p>'; }
     html += '<div class="misa-momentos">';
     filasDe(m).forEach(function(f, idx){
+      if(f.nota){
+        html += '<p class="misa-nota">' + escapeHtml(f.nota) + '</p>';
+        return;
+      }
       if(!f.canto){
         html += '<div class="misa-momento misa-momento-rezado"><span class="misa-momento-label">' + escapeHtml(f.momento.label) + '</span><span class="misa-momento-titulo">Rezado</span></div>';
         return;
@@ -220,11 +251,13 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml } from './cancionero.j
     var filas = filasDe(m);
     html += '<ol class="misa-print-indice">';
     filas.forEach(function(f){
+      if(f.nota) return;
       html += '<li><strong>' + escapeHtml(f.momento.label) + ':</strong> ' + (f.canto ? escapeHtml(f.canto.titulo) : 'Rezado') + '</li>';
     });
     html += '</ol>';
     filas.forEach(function(f){
-      if(!f.canto) return;
+      if(f.nota){ html += '<p class="misa-print-nota">' + escapeHtml(f.nota) + '</p>'; return; }
+      if(!f.canto){ html += '<p class="misa-print-nota"><strong>' + escapeHtml(f.momento.label) + ':</strong> rezado.</p>'; return; }
       html += '<section class="misa-print-canto"><h2><span>' + escapeHtml(f.momento.label) + '</span> ' + escapeHtml(f.canto.titulo) + '</h2>' + letraHtml(f.canto) + '</section>';
     });
     div.innerHTML = html;
