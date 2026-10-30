@@ -12,12 +12,13 @@ import { canEditCancionero, isAdmin } from '../services/permissions.js';
 import { ensureCancioneroSub, saveCanto, deleteCanto, importCancionero } from '../services/cancionero.service.js';
 import { showAlert, showConfirm } from '../components/dialog.js';
 import { renderPanel, showStatus } from '../main.js';
+import { renderMisasPanel, misasCountTxt } from './misas.js';
 
-  function norm(s){
+  export function norm(s){
     return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
 
-  function catLabel(id){
+  export function catLabel(id){
     var c = CANCIONERO_CATEGORIAS.find(function(c){ return c.id === id; });
     return c ? c.label : 'Otros cantos';
   }
@@ -27,7 +28,7 @@ import { renderPanel, showStatus } from '../main.js';
     return i === -1 ? CANCIONERO_CATEGORIAS.length : i;
   }
 
-  function sortedCantos(){
+  export function sortedCantos(){
     return AppState.cancionero.slice().sort(function(a, b){
       return (catIndex(a.categoria) - catIndex(b.categoria)) ||
         ((a.orden != null ? a.orden : 1e9) - (b.orden != null ? b.orden : 1e9)) ||
@@ -35,7 +36,7 @@ import { renderPanel, showStatus } from '../main.js';
     });
   }
 
-  function textoDe(canto){
+  export function textoDe(canto){
     return (canto.estrofas || []).map(function(e){ return (e.lineas || []).join(' '); }).join(' ');
   }
 
@@ -94,19 +95,53 @@ import { renderPanel, showStatus } from '../main.js';
         '</div>';
     }
     html += '</div>';
-    html += '<div class="canto-letra">';
+    return html + '<div class="canto-letra">' + letraHtml(c) + '</div>';
+  }
+
+  // Letra de un canto (nota + estrofas), reusada en la vista de una misa.
+  export function letraHtml(c){
+    var html = '';
     if((c.nota || '').trim()) html += '<p class="canto-nota">' + escapeHtml(c.nota) + '</p>';
     (c.estrofas || []).forEach(function(e){
       var cls = e.tipo === 'estribillo' ? ' canto-estribillo' : (e.tipo === 'traduccion' ? ' canto-traduccion' : '');
       html += '<p class="canto-estrofa' + cls + '">' + (e.lineas || []).map(escapeHtml).join('<br>') + '</p>';
     });
     if(!(c.estrofas || []).length) html += '<p class="empty">Este canto todavía no tiene letra.</p>';
-    return html + '</div>';
+    return html;
   }
 
+  // Entrada al Cancionero (30/10/2026): dos tarjetas, «Ver cancionero» y
+  // «Crear misa». AppState.cancioneroVista: '' (tarjetas) | 'ver' (el
+  // cancionero) | 'misas' | 'misa' | 'misaEdit' (ver js/views/misas.js).
   export function renderCancioneroPanel(){
-    var panel = document.getElementById('panel');
     ensureCancioneroSub();
+    var v = AppState.cancioneroVista;
+    if(v === 'ver'){ renderVerCancionero(); return; }
+    if(v === 'misas' || v === 'misa' || v === 'misaEdit'){ renderMisasPanel(); return; }
+    var panel = document.getElementById('panel');
+    var n = AppState.cancionero.length;
+    var html = '<button type="button" class="recursos-back" id="cancioneroUpBtn">' + icon('chevron-left') + ' Vida espiritual</button>';
+    html += '<div class="panel-head"><div><h2>Cancionero</h2>';
+    html += '<p class="mandos-sub">Marchas, canciones FASTA y cantos de Misa.</p></div></div>';
+    html += '<div class="recursos-grid recursos-subcats">';
+    html += '<button type="button" class="recurso-cat" data-cancionero-vista="ver"><span class="recurso-cat-icon">' + icon('music') + '</span>' +
+      '<span class="recurso-cat-label">Ver cancionero</span><span class="recurso-cat-count">' + (n ? n + ' canto' + (n === 1 ? '' : 's') : 'Letras de cantos') + '</span></button>';
+    html += '<button type="button" class="recurso-cat" data-cancionero-vista="misas"><span class="recurso-cat-icon">' + icon('chalice') + '</span>' +
+      '<span class="recurso-cat-label">Crear misa</span><span class="recurso-cat-count">' + misasCountTxt() + '</span></button>';
+    html += '</div>';
+    panel.innerHTML = html;
+    document.getElementById('cancioneroUpBtn').onclick = salir;
+    panel.querySelectorAll('[data-cancionero-vista]').forEach(function(btn){
+      btn.onclick = function(){
+        AppState.cancioneroVista = btn.getAttribute('data-cancionero-vista');
+        renderPanel();
+        window.scrollTo(0, 0);
+      };
+    });
+  }
+
+  function renderVerCancionero(){
+    var panel = document.getElementById('panel');
     var canEdit = canEditCancionero();
     var abierto = AppState.cancioneroCantoId && AppState.cancionero.find(function(c){ return c.id === AppState.cancioneroCantoId; });
     if(AppState.cancioneroCantoId && !abierto && AppState.cancioneroLoaded){ AppState.cancioneroCantoId = null; }
@@ -117,8 +152,8 @@ import { renderPanel, showStatus } from '../main.js';
       return;
     }
 
-    var html = '<button type="button" class="recursos-back" id="cancioneroUpBtn">' + icon('chevron-left') + ' Vida espiritual</button>';
-    html += '<div class="panel-head"><div><h2>Cancionero</h2>';
+    var html = '<button type="button" class="recursos-back" id="cancioneroUpBtn">' + icon('chevron-left') + ' Cancionero</button>';
+    html += '<div class="panel-head"><div><h2>Ver cancionero</h2>';
     html += '<p class="mandos-sub">Marchas, canciones FASTA y cantos de Misa.</p></div>';
     if(canEdit){
       html += '<div class="recursos-head-actions"><button type="button" class="btn small" id="cantoAddBtn">+ Agregar canto</button></div>';
@@ -127,7 +162,7 @@ import { renderPanel, showStatus } from '../main.js';
 
     if(!AppState.cancioneroLoaded){
       panel.innerHTML = html + '<p class="empty">Cargando…</p>';
-      document.getElementById('cancioneroUpBtn').onclick = salir;
+      document.getElementById('cancioneroUpBtn').onclick = alInicio;
       return;
     }
 
@@ -157,6 +192,12 @@ import { renderPanel, showStatus } from '../main.js';
   function salir(){
     AppState.recursosCategoria = 'biblia';
     AppState.cancioneroCantoId = null;
+    AppState.cancioneroVista = '';
+    renderPanel();
+  }
+
+  function alInicio(){
+    AppState.cancioneroVista = '';
     renderPanel();
   }
 
@@ -173,7 +214,7 @@ import { renderPanel, showStatus } from '../main.js';
 
   function attachListEvents(){
     var panel = document.getElementById('panel');
-    document.getElementById('cancioneroUpBtn').onclick = salir;
+    document.getElementById('cancioneroUpBtn').onclick = alInicio;
     var search = document.getElementById('cancioneroSearch');
     var lista = document.getElementById('cancioneroLista');
     function bindItems(){

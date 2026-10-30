@@ -91,3 +91,118 @@
 @media (max-width:600px){
     .canto-letra{ padding:16px; font-size:16px; }
 }
+
+/* Misas (30/10/2026) — ver js/views/misas.js. */
+.misa-subtitulo{ margin:2px 0 4px; font-weight:600; color:var(--ink); }
+.misa-momentos{ display:flex; flex-direction:column; gap:8px; }
+.misa-momento{
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    scroll-margin-top:80px;
+}
+.misa-momento summary{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 14px;
+    cursor:pointer;
+    list-style:none;
+}
+.misa-momento summary::-webkit-details-marker{ display:none; }
+.misa-momento summary > svg{ flex:0 0 auto; width:18px; height:18px; margin-left:auto; color:var(--ink-soft); transition:transform .15s; }
+.misa-momento[open] summary > svg{ transform:rotate(90deg); }
+.misa-momento[open] summary{ border-bottom:1px solid var(--line); }
+.misa-momento .canto-letra{ border:0; border-radius:0 0 var(--radius) var(--radius); }
+.misa-momento-label{
+    flex:0 0 auto;
+    min-width:120px;
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    color:var(--teal);
+}
+.misa-momento-titulo{ font-weight:600; min-width:0; }
+.misa-momento-rezado{ display:flex; align-items:center; gap:10px; padding:12px 14px; opacity:.7; }
+.misa-momento-rezado .misa-momento-titulo{ font-weight:400; font-style:italic; }
+
+.misa-tipos{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
+.misa-tipo{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:14px 16px;
+    background:var(--card-bg);
+    border:2px solid var(--line);
+    border-radius:var(--radius);
+    color:var(--ink);
+    font:inherit;
+    text-align:left;
+    cursor:pointer;
+}
+.misa-tipo span{ font-size:13px; color:var(--ink-soft); }
+.misa-tipo:hover{ border-color:var(--teal); }
+.misa-tipo.active{ border-color:var(--teal); background:color-mix(in srgb, var(--teal) 10%, var(--card-bg)); }
+
+.misa-edit-momentos{ display:flex; flex-direction:column; gap:8px; }
+.misa-edit-momento{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+    padding:12px 14px;
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+}
+.misa-edit-head{ display:flex; align-items:center; gap:8px; }
+.misa-edit-canto{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    width:100%;
+    padding:6px 4px 6px 10px;
+    border-left:3px solid var(--teal);
+}
+.misa-edit-canto button{
+    display:inline-flex;
+    padding:4px;
+    background:none;
+    border:0;
+    color:var(--ink-soft);
+    cursor:pointer;
+}
+.misa-edit-canto button svg{ width:16px; height:16px; }
+.misa-edit-canto button:hover{ color:var(--bordeaux); }
+.misa-edit-vacio{ margin:0; font-style:italic; }
+
+.misa-picker-todos{ display:flex; align-items:center; gap:6px; margin:0 0 6px; font-size:14px; }
+.misa-picker-lista{ max-height:50vh; overflow-y:auto; }
+.misa-picker-lista .canto-cat-title{ margin:12px 0 6px; font-size:13px; }
+
+@media (max-width:600px){
+    .misa-momento-label{ min-width:0; }
+    .misa-momento summary{ flex-wrap:wrap; row-gap:2px; }
+    .misa-momento summary .misa-momento-label{ flex-basis:calc(100% - 30px); }
+}
+
+/* PDF de una misa: solo se imprime #misaPrint (ver exportarPdf()). */
+#misaPrint{ display:none; }
+@media print{
+    body.printing-misa > *:not(#misaPrint){ display:none !important; }
+    body.printing-misa{ background:#fff !important; }
+    body.printing-misa #misaPrint{ display:block; color:#000; font-family:Raleway, sans-serif; font-size:12pt; line-height:1.45; }
+    #misaPrint h1{ margin:0 0 4px; font-size:20pt; }
+    #misaPrint .misa-print-sub{ margin:0 0 4px; font-size:13pt; font-weight:600; }
+    #misaPrint .misa-print-meta{ margin:0 0 12px; font-size:10pt; color:#444; }
+    #misaPrint .misa-print-indice{ margin:0 0 18px; padding-left:20px; }
+    #misaPrint .misa-print-canto{ break-inside:avoid-page; margin:0 0 16px; }
+    #misaPrint h2{ margin:0 0 6px; font-size:14pt; border-bottom:1px solid #999; padding-bottom:2px; }
+    #misaPrint h2 span{ font-size:9pt; text-transform:uppercase; letter-spacing:.04em; color:#555; margin-right:6px; }
+    #misaPrint .canto-estrofa{ margin:0 0 8px; }
+    #misaPrint .canto-estribillo{ font-weight:700; padding-left:8px; border-left:2px solid #555; }
+    #misaPrint .canto-traduccion{ font-style:italic; color:#444; }
+    #misaPrint .canto-nota{ font-style:italic; color:#444; margin:0 0 6px; }
+}

@@ -138,7 +138,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.10.30.1';
+  export var APP_VERSION = '2026.10.30.2';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -147,6 +147,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.10.30.2', date: '30/10/2026', items: [
+      'Cancionero: «Crear misa» para armar el repertorio de una misa, verlo en desplegables y guardarlo en PDF.'
+    ]},
     { version: '2026.10.30.1', date: '30/10/2026', items: [
       'Recursos → Vida espiritual: nuevo «Cancionero», con letras de marchas y cantos de Misa y un buscador.'
     ]},

@@ -35,6 +35,13 @@ export const AppState = {
   cancioneroCategoria: '', // filtro de categoría del Cancionero — '' = todas
   cancioneroBusqueda: '',
   cancioneroCantoId: null, // canto abierto — null = lista
+  cancioneroVista: '', // '' tarjetas | 'ver' | 'misas' | 'misa' | 'misaEdit'
+  misas: [], // misas armadas (colección `misas`)
+  misasLoaded: false,
+  unsubMisas: null,
+  misaId: null, // misa abierta
+  misaDraft: null, // misa en edición
+  misaOpenIdx: null, // desplegable abierto en la misa que se está viendo
   mensajeFold: {}, // bloques plegables de "Mensaje" (consignas/cita) abiertos
   formAmbitoOpen: false, // desplegable "Visible para" del formulario (solo admin) abierto/cerrado
   collapsedEntryIds: {},

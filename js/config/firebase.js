@@ -61,3 +61,6 @@ export var librosColRef = collection(db, 'libros');
 // Cancionero (T6, 30/10/2026): un documento por canto. Legible por
 // cualquiera logueado; escriben admin y jefes (ver reglas en CLAUDE.md).
 export var cancioneroColRef = collection(db, 'cancionero');
+// Misas armadas con el Cancionero (30/10/2026): las crea cualquiera
+// logueado; las edita o borra quien la creó o un admin.
+export var misasColRef = collection(db, 'misas');
