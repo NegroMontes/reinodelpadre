@@ -139,7 +139,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.03.1';
+  export var APP_VERSION = '2026.11.03.2';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -148,6 +148,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.03.2', date: '03/11/2026', items: [
+      'Recursos: Vida espiritual, Milicia y lectura y Santo Rosario ya no se ven transparentes aunque no tengan entradas (tienen cancionero, biblioteca y cantos).'
+    ]},
     { version: '2026.11.03.1', date: '03/11/2026', items: [
       'Santo Rosario: tarjeta «Cantos para el Rosario» con los cantos para cantar entre los misterios.'
     ]},

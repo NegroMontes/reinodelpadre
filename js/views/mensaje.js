@@ -244,7 +244,10 @@ import { showConfirm, showAlert } from '../components/dialog.js';
     // Subcategorías (29/10/2026): una categoría con `parent` se abre desde
     // adentro de su madre, y sus entradas cuentan también para la madre.
     function hijas(id){ return RECURSO_CATEGORIAS.filter(function(c){ return c.parent === id; }); }
-    function tieneAlgo(id){ return id === 'biblia' || id === 'textos' || entradasDe(id).length > 0; }
+    // Categorías con contenido fijo (cancionero, biblioteca/links, cantos
+    // del Rosario): nunca se ven vacías aunque no tengan entradas.
+    function conFijo(id){ return id === 'biblia' || id === 'textos' || id === 'rosario'; }
+    function tieneAlgo(id){ return conFijo(id) || entradasDe(id).length > 0; }
     function entradasDe(id){
       return hijas(id).reduce(function(acc, c){ return acc.concat(porCat[c.id] || []); }, (porCat[id] || []).slice());
     }
@@ -255,9 +258,9 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       var lista = entradasDe(c.id);
       var ocultas = lista.filter(function(e){ return e.oculta; }).length;
       var n = lista.length - ocultas;
-      var countTxt = n ? (n + ' entrada' + (n === 1 ? '' : 's')) : (ocultas ? '' : 'Vacía');
+      var countTxt = n ? (n + ' entrada' + (n === 1 ? '' : 's')) : (ocultas || conFijo(c.id) ? '' : 'Vacía');
       if(ocultas){ countTxt += (n ? ' · ' : '') + ocultas + ' oculta' + (ocultas === 1 ? '' : 's'); }
-      return '<button type="button" class="recurso-cat' + (n ? '' : ' recurso-cat-empty') + '" data-recurso-cat="' + c.id + '">' +
+      return '<button type="button" class="recurso-cat' + (n || conFijo(c.id) ? '' : ' recurso-cat-empty') + '" data-recurso-cat="' + c.id + '">' +
         '<span class="recurso-cat-icon">' + icon(c.icon) + '</span>' +
         '<span class="recurso-cat-label">' + escapeHtml(c.label) + '</span>' +
         '<span class="recurso-cat-count">' + countTxt + '</span>' +
@@ -313,7 +316,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       }
       html += '</div>';
 
-      var subs = grupo ? [] : hijas(cat.id).filter(function(c){ return canAddHere || entradasDe(c.id).length; });
+      var subs = grupo ? [] : hijas(cat.id).filter(function(c){ return canAddHere || tieneAlgo(c.id); });
       var conCancionero = !grupo && cat.id === 'biblia';
       var conLectura = !grupo && cat.id === 'textos';
       var conCantosRosario = !grupo && cat.id === 'rosario';
