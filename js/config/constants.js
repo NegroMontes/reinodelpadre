@@ -135,10 +135,11 @@
     { id: 'adoracion', label: 'Adoración' },
     { id: 'maria', label: 'Virgen María' },
     { id: 'espiritu', label: 'Espíritu Santo' },
+    { id: 'rosario', label: 'Cantos para el Rosario' },
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.10.30.7';
+  export var APP_VERSION = '2026.11.03.1';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -147,6 +148,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.03.1', date: '03/11/2026', items: [
+      'Santo Rosario: tarjeta «Cantos para el Rosario» con los cantos para cantar entre los misterios.'
+    ]},
     { version: '2026.10.30.7', date: '30/10/2026', items: [
       'Cancionero: cantos con acordes (ícono de guitarra) y botón «Acordes» para verlos, también en las misas y el PDF.'
     ]},

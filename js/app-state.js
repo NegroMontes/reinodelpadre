@@ -36,6 +36,7 @@ export const AppState = {
   cancioneroBusqueda: '',
   cancioneroCantoId: null, // canto abierto — null = lista
   cancioneroAcordes: false, // mostrar acordes (cantos que los tienen)
+  cancioneroDesdeRosario: false, // «Ver cancionero» abierto desde la tarjeta de Santo Rosario
   cancioneroVista: '', // '' tarjetas | 'ver' | 'misas' | 'misa' | 'misaEdit'
   misas: [], // misas armadas (colección `misas`)
   misasLoaded: false,

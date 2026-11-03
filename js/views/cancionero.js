@@ -183,9 +183,10 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
       return;
     }
 
-    var html = '<button type="button" class="recursos-back" id="cancioneroUpBtn">' + icon('chevron-left') + ' Cancionero</button>';
-    html += '<div class="panel-head"><div><h2>Ver cancionero</h2>';
-    html += '<p class="mandos-sub">Marchas, canciones FASTA y cantos de Misa.</p></div>';
+    var rosario = AppState.cancioneroDesdeRosario;
+    var html = '<button type="button" class="recursos-back" id="cancioneroUpBtn">' + icon('chevron-left') + (rosario ? ' Santo Rosario' : ' Cancionero') + '</button>';
+    html += '<div class="panel-head"><div><h2>' + (rosario ? 'Cantos para el Rosario' : 'Ver cancionero') + '</h2>';
+    html += '<p class="mandos-sub">' + (rosario ? 'Para cantar entre los misterios.' : 'Marchas, canciones FASTA y cantos de Misa.') + '</p></div>';
     if(canEdit){
       html += '<div class="recursos-head-actions">' +
         (isAdmin() && AppState.cancionero.length ? '<button type="button" class="btn ghost small" id="cancioneroImportMasBtn" title="Sumar o completar cantos desde un .json">' + icon('download') + ' Importar</button>' : '') +
@@ -231,7 +232,36 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
 
   function alInicio(){
     AppState.cancioneroVista = '';
+    if(AppState.cancioneroDesdeRosario){
+      AppState.cancioneroDesdeRosario = false;
+      AppState.cancioneroCategoria = '';
+      AppState.recursosCategoria = 'rosario';
+    }
     renderPanel();
+  }
+
+  // Tarjeta «Cantos para el Rosario» (03/11/2026) dentro de Recursos → Santo
+  // Rosario: abre el cancionero filtrado en la categoría `rosario`, y el
+  // «‹ volver» lleva de nuevo a Santo Rosario.
+  export function cantosRosarioTileHtml(){
+    ensureCancioneroSub();
+    var n = AppState.cancionero.filter(function(c){ return c.categoria === 'rosario'; }).length;
+    return '<button type="button" class="recurso-cat' + (n ? '' : ' recurso-cat-empty') + '" data-cantos-rosario>' +
+      '<span class="recurso-cat-icon">' + icon('music') + '</span>' +
+      '<span class="recurso-cat-label">Cantos para el Rosario</span>' +
+      '<span class="recurso-cat-count">' + (n ? n + ' canto' + (n === 1 ? '' : 's') : 'Vacía') + '</span>' +
+      '</button>';
+  }
+
+  export function abrirCantosRosario(){
+    AppState.recursosCategoria = 'cancionero';
+    AppState.cancioneroVista = 'ver';
+    AppState.cancioneroCategoria = 'rosario';
+    AppState.cancioneroBusqueda = '';
+    AppState.cancioneroCantoId = null;
+    AppState.cancioneroDesdeRosario = true;
+    renderPanel();
+    window.scrollTo(0, 0);
   }
 
   // Tarjeta del Cancionero entre las subcategorías de Vida espiritual.

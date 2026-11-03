@@ -12,7 +12,7 @@ import { addDay, save } from '../services/state.service.js';
 import { renderEntriesListHtml } from '../components/entry.js';
 import { renderForm, attachPanelEvents } from '../components/form.js';
 import { renderPanel } from '../main.js';
-import { renderCancioneroPanel, cancioneroTileHtml } from './cancionero.js';
+import { renderCancioneroPanel, cancioneroTileHtml, cantosRosarioTileHtml, abrirCantosRosario } from './cancionero.js';
 import { openFordoqueraBiblioteca } from '../components/fordoquera-embed.js';
 import { showConfirm, showAlert } from '../components/dialog.js';
 
@@ -224,6 +224,13 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       .sort(compareEntryOrder);
     var canAddHere = canCreateRecurso();
     // Cancionero (30/10/2026): vive adentro de Vida espiritual, con su propia vista.
+    // Si se salió del cancionero abierto desde Santo Rosario (otra pestaña,
+    // otra categoría), la próxima vez el cancionero arranca normal.
+    if(AppState.cancioneroDesdeRosario && AppState.recursosCategoria !== 'cancionero'){
+      AppState.cancioneroDesdeRosario = false;
+      AppState.cancioneroVista = '';
+      AppState.cancioneroCategoria = '';
+    }
     if(AppState.recursosCategoria === 'cancionero'){
       AppState.formOpen = false;
       renderCancioneroPanel();
@@ -309,11 +316,13 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       var subs = grupo ? [] : hijas(cat.id).filter(function(c){ return canAddHere || entradasDe(c.id).length; });
       var conCancionero = !grupo && cat.id === 'biblia';
       var conLectura = !grupo && cat.id === 'textos';
-      if(subs.length || conCancionero || conLectura){
+      var conCantosRosario = !grupo && cat.id === 'rosario';
+      if(subs.length || conCancionero || conLectura || conCantosRosario){
         html += '<div class="recursos-grid recursos-subcats">';
         subs.forEach(function(c){ html += catTileHtml(c); });
         if(conCancionero){ html += cancioneroTileHtml(); }
         if(conLectura){ html += lecturaTilesHtml(); }
+        if(conCantosRosario){ html += cantosRosarioTileHtml(); }
         html += '</div>';
       }
       if(!grupo){
@@ -327,7 +336,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       }
       html += '<div class="entries">';
       if(lista.length === 0){
-        if(grupo || !(grupos.length && catItems.length) && !subs.length && !conCancionero && !conLectura){
+        if(grupo || !(grupos.length && catItems.length) && !subs.length && !conCancionero && !conLectura && !conCantosRosario){
           html += '<p class="empty">' + (grupo ? 'Todavía no hay nada en este grupo.' : 'Todavía no hay nada en esta categoría.') + '</p>';
         }
       } else {
@@ -372,6 +381,8 @@ import { showConfirm, showAlert } from '../components/dialog.js';
     var addGrupo = document.getElementById('addGrupoBtn');
     if(addGrupo){ addGrupo.onclick = function(){ openRecursoGrupoDialog(null); }; }
 
+    var cantosRosario = panel.querySelector('[data-cantos-rosario]');
+    if(cantosRosario){ cantosRosario.onclick = abrirCantosRosario; }
     panel.querySelectorAll('[data-recurso-cat]').forEach(function(btn){
       btn.onclick = function(){
         AppState.recursosCategoria = btn.getAttribute('data-recurso-cat');
