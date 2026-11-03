@@ -217,6 +217,14 @@ import { showConfirm, showAlert } from '../components/dialog.js';
     return html;
   }
 
+  // Link de Santo Rosario (03/11/2026): Red Mundial de Oración del Papa.
+  function popeTileHtml(){
+    return '<a class="recurso-cat" href="https://www.popesprayer.va/es/" target="_blank" rel="noopener">' +
+      '<span class="recurso-cat-icon">' + icon('praying-hands') + '</span>' +
+      '<span class="recurso-cat-label">Intenciones del Papa ' + icon('external-link') + '</span>' +
+      '<span class="recurso-cat-count">Red Mundial de Oración del Papa</span></a>';
+  }
+
   export function renderRecursosPanel(){
     var panel = document.getElementById('panel');
     // Orden ascendente, igual que "Mensaje"/"Departamentos" (08/10/2026).
@@ -325,7 +333,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
         subs.forEach(function(c){ html += catTileHtml(c); });
         if(conCancionero){ html += cancioneroTileHtml(); }
         if(conLectura){ html += lecturaTilesHtml(); }
-        if(conCantosRosario){ html += cantosRosarioTileHtml(); }
+        if(conCantosRosario){ html += cantosRosarioTileHtml() + popeTileHtml(); }
         html += '</div>';
       }
       if(!grupo){
