@@ -140,7 +140,18 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.05.4';
+  export var APP_VERSION = '2026.11.05.5';
+
+  // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
+  // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
+  // a ese rango (el admin los cambia, se guardan en `fordoc/shared` → `rangos`).
+  export var RANGOS = [
+    { n: 1, nombre: 'Hijo lejano', umbral: 0 },
+    { n: 2, nombre: 'Hijo que vuelve', umbral: 20 },
+    { n: 3, nombre: 'Hijo perdonado', umbral: 40 },
+    { n: 4, nombre: 'Hijo amado', umbral: 60 },
+    { n: 5, nombre: 'Heredero', umbral: 80 }
+  ];
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -149,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.05.5', date: '05/11/2026', items: [
+      'Rangos: cada entrada puede valer puntos (o 0) y ser obligatoria para llegar a un rango. Los admins ajustan los porcentajes de cada rango.'
+    ]},
     { version: '2026.11.05.4', date: '05/11/2026', items: [
       'Recursos: los admins pueden editar las categorías (nombre, ícono, orden, meterlas dentro de otra), agregar nuevas y borrarlas.'
     ]},

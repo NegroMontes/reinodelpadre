@@ -8,7 +8,7 @@
 // y si es la entrada de bienvenida.
 
 import { AppState } from '../app-state.js';
-import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
+import { SECCIONES, DEPARTAMENTOS, RANGOS } from '../config/constants.js';
 import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recursoCategorias, recursoCategoriasOrdenadas, recursoGruposDe, recursoGrupoDe, mediodiaDe, isoDeFecha } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
@@ -137,6 +137,7 @@ import { attachEntryReorder } from './entry-reorder.js';
     AppState.formEntrySnapshot = null;
     AppState.formSecciones = []; AppState.formDeptos = []; AppState.formComandoGeneral = false; AppState.formSeccionComandoOnly = false;
     AppState.formAnonimo = false; AppState.formOculta = false; AppState.formPublishDate = ''; AppState.formBienvenida = false; AppState.formTambienDeptos = false;
+    AppState.formPuntos = ''; AppState.formObligRango = '';
     AppState.formAmbitoOpen = false;
     AppState.formCategoria = '';
     AppState.formGrupo = null;
@@ -214,6 +215,16 @@ import { attachEntryReorder } from './entry-reorder.js';
       html += '  <div class="signature-row switch-row"><label><input type="checkbox" class="switch" id="fBienvenida"' + (AppState.formBienvenida ? ' checked' : '') + '> Entrada de bienvenida</label>' + helpTipHtml('Aparece arriba de todo en Inicio para quien todavía no la completó — comando y milicianos por igual.') + '</div>';
     }
     html += '  </div>';
+    // Rangos (T13 E2, 05/11/2026): puntos de la entrada y si es obligatoria
+    // para llegar a un rango — solo admin.
+    if(isAdmin() && day !== 'INFO_GENERAL'){
+      html += '  <div class="form-row rango-row"><label for="fPuntos">Puntos</label><input type="number" id="fPuntos" min="0" step="1" inputmode="numeric" placeholder="1" value="' + escapeHtml(AppState.formPuntos || '') + '">' + helpTipHtml('Lo que suma al completarla. Vacío = 1. Con 0 no suma ni cuenta para el porcentaje del rango.') + '</div>';
+      html += '  <div class="form-row rango-row"><label for="fObligRango">Obligatoria para llegar a</label><select id="fObligRango"><option value="">(No es obligatoria)</option>';
+      RANGOS.slice(1).forEach(function(r){
+        html += '<option value="' + r.n + '"' + (String(r.n) === String(AppState.formObligRango) ? ' selected' : '') + '>' + r.n + ' · ' + escapeHtml(r.nombre) + '</option>';
+      });
+      html += '</select>' + helpTipHtml('Aunque tenga el porcentaje, nadie sube a ese rango (ni a los de arriba) sin completarla.') + '</div>';
+    }
     // Acciones alineadas a la derecha, con "Cancelar" antes del botón
     // principal (19/10/2026).
     html += '  <div class="form-actions">';
@@ -235,6 +246,16 @@ import { attachEntryReorder } from './entry-reorder.js';
     html += '  <div class="status-msg" id="statusMsg"></div>';
     html += '</div>';
     return html;
+  }
+
+
+  // Puntos / obligatoria del formulario → la entrada (sin valor = se borra el campo).
+  function aplicarRango(entry){
+    var p = String(AppState.formPuntos == null ? '' : AppState.formPuntos).trim();
+    var n = Math.floor(Number(p));
+    if(p !== '' && isFinite(n) && n >= 0) entry.puntos = n; else delete entry.puntos;
+    var o = Number(AppState.formObligRango);
+    if(o >= 2 && o <= RANGOS.length) entry.obligatoriaRango = o; else delete entry.obligatoriaRango;
   }
 
 
@@ -339,6 +360,7 @@ import { attachEntryReorder } from './entry-reorder.js';
       if(pubAt && AppState.formOculta){ entry.publishAt = pubAt; } else { delete entry.publishAt; }
       entry.bienvenida = bienvenida;
       if(day === 'RESOURCES' && isAdmin()){ if(AppState.formTambienDeptos) entry.tambienDepartamentos = true; else delete entry.tambienDepartamentos; }
+      if(isAdmin() && day !== 'INFO_GENERAL') aplicarRango(entry);
       if(categoria) entry.categoria = categoria;
       if(categoria){ if(grupo) entry.grupo = grupo; else delete entry.grupo; }
       // Si el espacio ya tiene su propio título (puesto desde la Fordoquera),
@@ -366,6 +388,7 @@ import { attachEntryReorder } from './entry-reorder.js';
       var pubAtNew = mediodiaDe(AppState.formPublishDate);
       if(pubAtNew && AppState.formOculta){ AppState.state.entries[AppState.state.entries.length - 1].publishAt = pubAtNew; }
       if(day === 'RESOURCES' && isAdmin() && AppState.formTambienDeptos){ AppState.state.entries[AppState.state.entries.length - 1].tambienDepartamentos = true; }
+      if(isAdmin() && day !== 'INFO_GENERAL') aplicarRango(AppState.state.entries[AppState.state.entries.length - 1]);
       if(categoria){ AppState.state.entries[AppState.state.entries.length - 1].categoria = categoria; }
       if(grupo){ AppState.state.entries[AppState.state.entries.length - 1].grupo = grupo; }
       if(newOrder != null){ AppState.state.entries[AppState.state.entries.length - 1].order = newOrder + (imp ? imp.index * 1e-6 : 0); }
@@ -593,6 +616,10 @@ import { attachEntryReorder } from './entry-reorder.js';
         if(publishDateInput.value && ocultaCheck && !ocultaCheck.checked){ ocultaCheck.checked = true; AppState.formOculta = true; }
       };
     }
+    var puntosInput = document.getElementById('fPuntos');
+    if(puntosInput){ puntosInput.oninput = function(){ AppState.formPuntos = puntosInput.value; }; }
+    var obligSelect = document.getElementById('fObligRango');
+    if(obligSelect){ obligSelect.onchange = function(){ AppState.formObligRango = obligSelect.value; }; }
     var tambienDeptosCheck = document.getElementById('fTambienDeptos');
     if(tambienDeptosCheck){ tambienDeptosCheck.onchange = function(){ AppState.formTambienDeptos = tambienDeptosCheck.checked; }; }
     var categoriaSelect = document.getElementById('fCategoria');
@@ -766,6 +793,8 @@ import { attachEntryReorder } from './entry-reorder.js';
         AppState.formPublishDate = isoDeFecha(entry.publishAt);
         AppState.formBienvenida = !!entry.bienvenida;
         AppState.formTambienDeptos = !!entry.tambienDepartamentos;
+        AppState.formPuntos = entry.puntos != null ? String(entry.puntos) : '';
+        AppState.formObligRango = entry.obligatoriaRango ? String(entry.obligatoriaRango) : '';
         AppState.formCategoria = entry.dayId === 'RESOURCES' ? recursoCategoriaDe(entry) : '';
         AppState.formGrupo = entry.dayId === 'RESOURCES' ? recursoGrupoDe(AppState.state, entry) : null;
         AppState.formTitleDraft = null;

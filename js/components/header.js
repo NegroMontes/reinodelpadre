@@ -294,6 +294,7 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
         html += '  <button class="user-menu-item" id="userMenuImportLibroBtn" type="button">' + icon('book-open') + ' Importar libros de la Fordoquera</button>';
         html += '  <input type="file" id="userMenuImportLibroFile" accept=".json,application/json" hidden>';
         html += '  <button class="user-menu-item" id="userMenuCalendarioBtn" type="button">' + icon('clock') + ' Programar calendario de publicación</button>';
+        html += '  <button class="user-menu-item" id="userMenuRangosBtn" type="button">' + icon('star') + ' Rangos y puntos</button>';
       }
       html += '  <button class="user-menu-item user-menu-item-danger" id="userMenuSignOutBtn" type="button">' + icon('log-out') + ' Cerrar sesión</button>';
       // Versión + historial de cambios, discreto, solo admin (19/10/2026,
@@ -399,6 +400,14 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
     }
     // Calendario de publicación (05/11/2026): programa las entradas ocultas
     // de Recursos según la pestaña "Calendario de publicaciones" del doc.
+    var rangosBtn = document.getElementById('userMenuRangosBtn');
+    if(rangosBtn){
+      rangosBtn.onclick = async function(){
+        AppState.userMenuOpen = false;
+        renderAuthBar();
+        (await import('./rangos-dialog.js')).openRangosDialog();
+      };
+    }
     var calendarioBtn = document.getElementById('userMenuCalendarioBtn');
     if(calendarioBtn){
       calendarioBtn.onclick = async function(){

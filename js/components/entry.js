@@ -13,6 +13,7 @@ import { icon } from '../utils/icons.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '../services/permissions.js';
 import { canSeeCompletions } from '../services/progress.service.js';
+import { puntosDe, obligatoriaRangoDe, rangoNombre } from '../services/rangos.service.js';
 
   // Uno o más tags de ámbito para una entrada (antes era siempre uno solo) —
   // una sección/depto por cada elegido, más "Todos los comandos" si corresponde.
@@ -149,8 +150,15 @@ import { canSeeCompletions } from '../services/progress.service.js';
     var anonimoTag = (entry.anonimo && isAdmin())
       ? ' <span class="tag tag-muted" title="Solo vos (admin) ves esto — el resto la ve sin firma">' + icon('lock') + ' ' + escapeHtml(entry.authorReal || '(autor desconocido)') + '</span>'
       : '';
+    // Rangos (T13 E2): puntos y obligatoria, solo para el admin.
+    var rangoTag = '';
+    if(isAdmin() && entry.dayId !== 'INFO_GENERAL'){
+      var pts = puntosDe(entry), obl = obligatoriaRangoDe(entry);
+      rangoTag = ' <span class="tag tag-muted" title="Puntos que suma al completarla (solo admin ve esto)">' + icon('star') + ' ' + pts + ' pt' + (pts === 1 ? '' : 's') + '</span>' +
+        (obl ? ' <span class="tag tag-muted" title="Sin completarla no se llega a ese rango">Obligatoria · ' + escapeHtml(rangoNombre(obl)) + '</span>' : '');
+    }
     html += '      <div class="entry-meta">' +
-      scopeTag + ocultaTag + anonimoTag +
+      scopeTag + ocultaTag + anonimoTag + rangoTag +
       (entry.anonimo ? '' : (entry.author ? '<span class="entry-author">' + escapeHtml(entry.author) + '</span>' : '')) + '</div>';
     html += '      <div class="entry-start-row">';
     html += '        <button class="btn small entry-start-btn" data-action="view" data-id="' + entry.id + '">Comenzar</button>';

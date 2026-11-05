@@ -27,6 +27,8 @@ export const AppState = {
   formPublishDate: '', // 'aaaa-mm-dd' de la publicación programada ('' = sin fecha)
   formBienvenida: false,
   formTambienDeptos: false, // entrada de Recursos que también se ve en Departamentos
+  formPuntos: '', // puntos de la entrada ('' = 1, ver rangos.service.js)
+  formObligRango: '', // obligatoria para llegar al rango N ('' = no)
   formCategoria: '', // categoría de Recursos elegida en el formulario (ver RECURSO_CATEGORIAS)
   recursosCategoria: '', // categoría abierta en Recursos — '' = grilla de categorías
   recursosGrupo: '', // grupo abierto dentro de la categoría — '' = lista de la categoría

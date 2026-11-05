@@ -1478,3 +1478,8 @@ a.recurso-cat{ text-decoration:none; }
 .cat-admin-row .entry-lead-icon{ width:32px; height:32px; flex:0 0 32px; }
 .cat-admin-row .entry-icon-btn[disabled]{ opacity:.3; cursor:default; }
 .cat-admin-gap{ display:inline-block; width:32px; }
+
+/* Rangos y puntos (T13 E2, 05/11/2026) */
+.rango-tabla{display:flex;flex-direction:column;gap:6px}
+.rango-fila{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.rango-fila input{width:72px}
