@@ -137,7 +137,8 @@ import { openFordoqueraViewer } from '../components/fordoquera-embed.js';
     var obligIds = {};
     if(r.siguiente) r.siguiente.obligatoriasPendientes.forEach(function(e){ obligIds[e.id] = true; });
     var items = entradasQueCuentan().filter(function(e){
-      return !estaOculta(e) && !hecha(e) && (puntosDe(e) > 0 || obligIds[e.id]);
+      // Las de bienvenida ya salen arriba, no se repiten (pedido del usuario, 05/11/2026).
+      return !estaOculta(e) && !hecha(e) && !e.bienvenida && (puntosDe(e) > 0 || obligIds[e.id]);
     });
     if(!items.length) return '';
     items.sort(function(a, b){ return (obligIds[b.id] ? 1 : 0) - (obligIds[a.id] ? 1 : 0) || puntosDe(b) - puntosDe(a); });
