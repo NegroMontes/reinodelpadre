@@ -9,7 +9,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, RECURSO_CATEGORIAS } from '../config/constants.js';
-import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recursoGruposDe, recursoGrupoDe } from '../utils/helpers.js';
+import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recursoGruposDe, recursoGrupoDe, mediodiaDe, isoDeFecha } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
@@ -136,7 +136,7 @@ import { attachEntryReorder } from './entry-reorder.js';
     AppState.formNewEntryId = null;
     AppState.formEntrySnapshot = null;
     AppState.formSecciones = []; AppState.formDeptos = []; AppState.formComandoGeneral = false; AppState.formSeccionComandoOnly = false;
-    AppState.formAnonimo = false; AppState.formOculta = false; AppState.formBienvenida = false;
+    AppState.formAnonimo = false; AppState.formOculta = false; AppState.formPublishDate = ''; AppState.formBienvenida = false;
     AppState.formAmbitoOpen = false;
     AppState.formCategoria = '';
     AppState.formGrupo = null;
@@ -200,6 +200,9 @@ import { attachEntryReorder } from './entry-reorder.js';
     // entrada con tiempo, con sus etiquetas de sección/depto ya puestas, sin
     // que la vean todavía quienes están en esas etiquetas (ver canSeeEntry).
     html += '  <div class="signature-row switch-row"><label><input type="checkbox" class="switch" id="fOculta"' + (AppState.formOculta ? ' checked' : '') + '> Ocultar (borrador)</label>' + helpTipHtml('Solo vos y otros editores la ven hasta que la publiques.') + '</div>';
+    // Publicación programada (05/11/2026): con fecha, queda oculta hasta ese
+    // día al mediodía y después se publica sola.
+    html += '  <div class="form-row publish-date-row"><label for="fPublishDate">Publicar sola el (12:00)</label><input type="date" id="fPublishDate" value="' + escapeHtml(AppState.formPublishDate || '') + '">' + helpTipHtml('Queda oculta hasta ese día al mediodía y después la ve todo el que corresponda. Vacío = sin fecha.') + '</div>';
     // "Entrada de bienvenida" (pedido del usuario, 24/09/2026) — solo tiene
     // sentido en Recursos; solo el admin la ve/toca (pedido del usuario,
     // 24/09/2026).
@@ -328,6 +331,8 @@ import { attachEntryReorder } from './entry-reorder.js';
       entry.secciones = secciones; entry.deptos = deptos; entry.comandoGeneral = comandoGeneral;
       entry.seccionesComandoOnly = seccionComandoOnly;
       entry.oculta = AppState.formOculta;
+      var pubAt = mediodiaDe(AppState.formPublishDate);
+      if(pubAt && AppState.formOculta){ entry.publishAt = pubAt; } else { delete entry.publishAt; }
       entry.bienvenida = bienvenida;
       if(categoria) entry.categoria = categoria;
       if(categoria){ if(grupo) entry.grupo = grupo; else delete entry.grupo; }
@@ -353,6 +358,8 @@ import { attachEntryReorder } from './entry-reorder.js';
         oculta: AppState.formOculta, bienvenida: bienvenida, espacio: imp ? imp.espacio : null,
         createdAt: Date.now() + (imp ? imp.index : 0)
       });
+      var pubAtNew = mediodiaDe(AppState.formPublishDate);
+      if(pubAtNew && AppState.formOculta){ AppState.state.entries[AppState.state.entries.length - 1].publishAt = pubAtNew; }
       if(categoria){ AppState.state.entries[AppState.state.entries.length - 1].categoria = categoria; }
       if(grupo){ AppState.state.entries[AppState.state.entries.length - 1].grupo = grupo; }
       if(newOrder != null){ AppState.state.entries[AppState.state.entries.length - 1].order = newOrder + (imp ? imp.index * 1e-6 : 0); }
@@ -565,7 +572,20 @@ import { attachEntryReorder } from './entry-reorder.js';
     // que los checkboxes de Ámbito.
     var ocultaCheck = document.getElementById('fOculta');
     if(ocultaCheck){
-      ocultaCheck.onchange = function(){ AppState.formOculta = ocultaCheck.checked; };
+      ocultaCheck.onchange = function(){
+        AppState.formOculta = ocultaCheck.checked;
+        // Sin ocultar no hay nada que programar: se borra la fecha.
+        var pd = document.getElementById('fPublishDate');
+        if(!ocultaCheck.checked){ AppState.formPublishDate = ''; if(pd) pd.value = ''; }
+      };
+    }
+    var publishDateInput = document.getElementById('fPublishDate');
+    if(publishDateInput){
+      publishDateInput.onchange = function(){
+        AppState.formPublishDate = publishDateInput.value;
+        // Con fecha, la entrada queda oculta hasta ese día.
+        if(publishDateInput.value && ocultaCheck && !ocultaCheck.checked){ ocultaCheck.checked = true; AppState.formOculta = true; }
+      };
     }
     var categoriaSelect = document.getElementById('fCategoria');
     if(categoriaSelect){
@@ -735,6 +755,7 @@ import { attachEntryReorder } from './entry-reorder.js';
         AppState.formSeccionComandoOnly = !!entry.seccionesComandoOnly;
         AppState.formAnonimo = !!entry.anonimo;
         AppState.formOculta = !!entry.oculta;
+        AppState.formPublishDate = isoDeFecha(entry.publishAt);
         AppState.formBienvenida = !!entry.bienvenida;
         AppState.formCategoria = entry.dayId === 'RESOURCES' ? recursoCategoriaDe(entry) : '';
         AppState.formGrupo = entry.dayId === 'RESOURCES' ? recursoGrupoDe(AppState.state, entry) : null;
@@ -769,6 +790,7 @@ import { attachEntryReorder } from './entry-reorder.js';
         var entry = AppState.state.entries.find(function(e){ return e.id === id; });
         if(!entry || !canEditEntry(entry)) return;
         entry.oculta = false;
+        delete entry.publishAt;
         save();
         render();
       };

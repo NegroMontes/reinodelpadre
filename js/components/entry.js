@@ -8,7 +8,7 @@
 // Fordoquera sola, con su propio reproductor).
 
 import { AppState } from '../app-state.js';
-import { escapeHtml } from '../utils/helpers.js';
+import { escapeHtml, estaOculta, estaProgramada, fechaCorta } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '../services/permissions.js';
@@ -140,7 +140,9 @@ import { canSeeCompletions } from '../services/progress.service.js';
     // ya dejó pasar a quien mira — y esa función solo deja ver una entrada
     // oculta a quien puede editarla — así que este tag nunca se le escapa a
     // un lector/miliciano.
-    var ocultaTag = entry.oculta ? ' <span class="tag imagen" title="Solo la ven quienes pueden editarla — no publicada todavía">' + icon('lock') + ' Oculta</span>' : '';
+    var ocultaTag = estaProgramada(entry)
+      ? ' <span class="tag imagen" title="Oculta hasta esa fecha: después se publica sola">' + icon('clock') + ' Se publica el ' + fechaCorta(entry.publishAt) + ' (12:00)</span>'
+      : (estaOculta(entry) ? ' <span class="tag imagen" title="Solo la ven quienes pueden editarla — no publicada todavía">' + icon('lock') + ' Oculta</span>' : '');
     // "Permitirme ver siempre todo lo anónimo": un admin (efectivo — respeta
     // "Ver como", para poder previsualizar que un lector/jefe NO lo ve)
     // siempre ve quién publicó una entrada anónima.
@@ -161,7 +163,7 @@ import { canSeeCompletions } from '../services/progress.service.js';
     if(canEdit){
       // Publicar de un click, sin tener que abrir el editor (pedido del
       // usuario, 23/09/2026: "que se publique en un momento a elección").
-      if(entry.oculta){ html += '      <button class="entry-publish-btn" data-action="publishEntry" data-id="' + entry.id + '">Publicar</button>'; }
+      if(estaOculta(entry)){ html += '      <button class="entry-publish-btn" data-action="publishEntry" data-id="' + entry.id + '">Publicar</button>'; }
       // Editar/Eliminar como íconos (19/10/2026, recomendación de diseño
       // que pasó el usuario) — antes eran links de texto subrayado.
       html += '      <button class="entry-icon-btn" data-action="edit" data-id="' + entry.id + '" title="Editar" aria-label="Editar">' + icon('pencil') + '</button>';

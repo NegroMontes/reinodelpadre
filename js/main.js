@@ -803,8 +803,24 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     }catch(e2){ console.error('No se pudo ni mostrar el error:', e2); }
   }
 
+  // Publicación programada (05/11/2026): cuando llega la hora de la próxima
+  // entrada programada, se vuelve a dibujar la página para que aparezca sola.
+  var publishTimer = null, publishTimerAt = 0;
+  function schedulePublishRender(){
+    var now = Date.now(), next = 0;
+    ((AppState.state && AppState.state.entries) || []).forEach(function(e){
+      if(e.oculta && e.publishAt && e.publishAt > now && (!next || e.publishAt < next)) next = e.publishAt;
+    });
+    if(next === publishTimerAt) return;
+    if(publishTimer) clearTimeout(publishTimer);
+    publishTimer = null; publishTimerAt = next;
+    // setTimeout no acepta más de ~24 días: si falta más, se reprograma al llegar.
+    if(next){ publishTimer = setTimeout(function(){ publishTimerAt = 0; render(); }, Math.min(next - now + 1000, 2147000000)); }
+  }
+
   render = function(){
     try{
+      schedulePublishRender();
       // Aviso de versión nueva en segundo plano (19/10/2026) — solo admin,
       // pedido explícito del usuario. startVersionWatch()/stopVersionWatch()
       // son idempotentes (no duplican el intervalo ni explotan si ya estaba

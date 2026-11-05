@@ -8,6 +8,39 @@
   export function entrySortKey(e){ return typeof e.order === 'number' ? e.order : (e.createdAt || 0); }
   export function compareEntryOrder(a, b){ return entrySortKey(a) - entrySortKey(b); }
 
+  // Publicación programada (05/11/2026): una entrada oculta con `publishAt`
+  // (ms) se publica sola cuando llega esa fecha. Se calcula en cada
+  // dispositivo al mirar la entrada: no hace falta servidor.
+  export function estaOculta(entry, now){
+    if(!entry || !entry.oculta) return false;
+    return !(entry.publishAt && (now || Date.now()) >= entry.publishAt);
+  }
+  // Programada: oculta y con fecha futura.
+  export function estaProgramada(entry, now){
+    return estaOculta(entry, now) && !!entry.publishAt;
+  }
+  // Fecha que cuenta para Novedades: si se publicó sola, la de publicación.
+  export function fechaNovedad(e){
+    if(e.oculta && e.publishAt && Date.now() >= e.publishAt) return Math.max(e.createdAt || 0, e.publishAt);
+    return e.createdAt || 0;
+  }
+  // 'aaaa-mm-dd' → ms a las 12:00 (mediodía, hora del dispositivo).
+  export function mediodiaDe(iso){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? new Date(+m[1], +m[2] - 1, +m[3], 12, 0, 0).getTime() : null;
+  }
+  // ms → 'aaaa-mm-dd' (para el <input type="date">).
+  export function isoDeFecha(ms){
+    if(!ms) return '';
+    var d = new Date(ms);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  // ms → '18/11' (para el cartel de la tarjeta).
+  export function fechaCorta(ms){
+    var d = new Date(ms);
+    return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
   export function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
 

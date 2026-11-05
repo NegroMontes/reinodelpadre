@@ -3,7 +3,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, VIEW_AS_ROLES, NOVEDADES_WINDOW_DAYS, APP_VERSION, CHANGELOG, FORDOQUERA_URL } from '../config/constants.js';
-import { escapeHtml, roleLabel, roleLabelScoped, activityIcon } from '../utils/helpers.js';
+import { escapeHtml, roleLabel, roleLabelScoped, activityIcon, fechaNovedad } from '../utils/helpers.js';
 import { userBadgeInnerHtml, cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { saveNovedadesSeenAt } from '../utils/storage.js';
 import { lectorModeActive, realIsAdmin, isComandoNonAdmin, canSeeEntry } from '../services/permissions.js';
@@ -71,7 +71,7 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
     // nada mientras dure.
     var lectorPill = lectorModeActive() ? ' <span class="role-pill" style="color:var(--gold);border-color:var(--gold)" title="Estás leyendo todo el comando — no podés editar nada mientras este modo esté activo">Modo Lector</span>' : '';
     var novedades = getNovedades();
-    var novedadesSinVer = novedades.filter(function(e){ return e.createdAt > AppState.novedadesSeenAt; });
+    var novedadesSinVer = novedades.filter(function(e){ return fechaNovedad(e) > AppState.novedadesSeenAt; });
     if(bellSlot){
       bellSlot.innerHTML = '<button id="novedadesBtn" class="novedades-bell" type="button" title="Novedades de los últimos ' + NOVEDADES_WINDOW_DAYS + ' días">' + icon('bell') + (novedadesSinVer.length > 0 ? '<span class="tag imagen novedades-count">' + novedadesSinVer.length + '</span>' : '') + '</button>';
     }
@@ -93,7 +93,7 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
       } else {
         html += '  <ul class="novedades-list">';
         novedades.forEach(function(e){
-          var fecha = new Date(e.createdAt).toLocaleString('es-AR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+          var fecha = new Date(fechaNovedad(e)).toLocaleString('es-AR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
           html += '<li data-novedad-id="' + e.id + '"><strong>' + escapeHtml(e.title) + '</strong><span class="mandos-sub" style="display:block;margin:2px 0 0">' + escapeHtml(entryLocationLabel(e)) + ' · ' + escapeHtml(fecha) + '</span></li>';
         });
         html += '  </ul>';
@@ -293,6 +293,7 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
       if(realIsAdmin()){
         html += '  <button class="user-menu-item" id="userMenuImportLibroBtn" type="button">' + icon('book-open') + ' Importar libros de la Fordoquera</button>';
         html += '  <input type="file" id="userMenuImportLibroFile" accept=".json,application/json" hidden>';
+        html += '  <button class="user-menu-item" id="userMenuCalendarioBtn" type="button">' + icon('clock') + ' Programar calendario de publicación</button>';
       }
       html += '  <button class="user-menu-item user-menu-item-danger" id="userMenuSignOutBtn" type="button">' + icon('log-out') + ' Cerrar sesión</button>';
       // Versión + historial de cambios, discreto, solo admin (19/10/2026,
@@ -394,6 +395,22 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
           console.error(e);
           await showAlert('❌ ' + (e.message || 'No se pudo leer el archivo.'));
         }
+      };
+    }
+    // Calendario de publicación (05/11/2026): programa las entradas ocultas
+    // de Recursos según la pestaña "Calendario de publicaciones" del doc.
+    var calendarioBtn = document.getElementById('userMenuCalendarioBtn');
+    if(calendarioBtn){
+      calendarioBtn.onclick = async function(){
+        AppState.userMenuOpen = false;
+        renderAuthBar();
+        var mod = await import('../services/calendario-publicacion.js');
+        var p = mod.planCalendario();
+        if(!p.plan.length){ await showAlert('No hay entradas ocultas en Recursos para programar.'); return; }
+        if(!(await showConfirm('Se van a programar ' + p.plan.length + ' entradas ocultas de Recursos (se publican solas ese día al mediodía):\n\n' + mod.resumenPlan(p) + '\n\n¿Programarlas?'))) return;
+        mod.aplicarPlan(p);
+        render();
+        await showAlert('Listo: ' + p.plan.length + ' entradas programadas. En cada tarjeta dice «Se publica el …».');
       };
     }
     var menuSignOutBtn = document.getElementById('userMenuSignOutBtn');
@@ -503,6 +520,6 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
   export function getNovedades(){
     var cutoff = Date.now() - NOVEDADES_WINDOW_DAYS * 24 * 60 * 60 * 1000;
     return (AppState.state.entries || [])
-      .filter(function(e){ return e.createdAt && e.createdAt >= cutoff && e.dayId !== 'INFO_GENERAL' && canSeeEntry(e); })
-      .sort(function(a,b){ return b.createdAt - a.createdAt; });
+      .filter(function(e){ return fechaNovedad(e) >= cutoff && e.dayId !== 'INFO_GENERAL' && canSeeEntry(e); })
+      .sort(function(a,b){ return fechaNovedad(b) - fechaNovedad(a); });
   }

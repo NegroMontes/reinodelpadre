@@ -24,6 +24,7 @@ export const AppState = {
   formSeccionComandoOnly: false,
   formAnonimo: false, // "Publicar sin firmar" — si está tildado, la entrada se guarda sin autor
   formOculta: false,
+  formPublishDate: '', // 'aaaa-mm-dd' de la publicación programada ('' = sin fecha)
   formBienvenida: false,
   formCategoria: '', // categoría de Recursos elegida en el formulario (ver RECURSO_CATEGORIAS)
   recursosCategoria: '', // categoría abierta en Recursos — '' = grilla de categorías

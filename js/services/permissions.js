@@ -4,6 +4,7 @@
 // libremente desde cualquier función de render.
 
 import { AppState } from '../app-state.js';
+import { estaOculta } from '../utils/helpers.js';
 
   // "Ver como": solo para admins reales, para poder previsualizar la app como
   // otro rol sin cerrar sesión ni necesitar otra cuenta de Google. No cambia
@@ -162,7 +163,8 @@ import { AppState } from '../app-state.js';
     // así se puede armar con tiempo, dejarla cargada con sus etiquetas de
     // sección/departamento ya puestas, y publicarla recién cuando esté lista,
     // sin que mientras tanto la vean los milicianos/lectores de esas etiquetas.
-    if(entry.oculta && !canEditEntry(entry)) return false;
+    // Programada (05/11/2026): `estaOculta()` deja de ocultarla sola al llegar la fecha.
+    if(estaOculta(entry) && !canEditEntry(entry)) return false;
     // Entrada borrada (pedido del usuario, 24/09/2026: "que se elimine para
     // ellos pero que se quede guardada y oculta para mi"): desaparece del
     // feed normal para TODOS, admin incluido — la única forma de verla es la

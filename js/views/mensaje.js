@@ -5,7 +5,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, RECURSO_CATEGORIAS } from '../config/constants.js';
-import { escapeHtml, linkify, dayDateToIso, compareEntryOrder, recursoCategoriaDe, recursoGruposDe, recursoGrupoDe, uid } from '../utils/helpers.js';
+import { escapeHtml, linkify, dayDateToIso, compareEntryOrder, estaOculta, recursoCategoriaDe, recursoGruposDe, recursoGrupoDe, uid } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { entryScope, canSeeEntry, isAdmin, isJefeSeccionEditing, isJefeSeccion, effectiveDepto, effectiveSeccion, effectiveRole, lectorModeActive, isLectorLike, canEditStructure, canCreateRecurso } from '../services/permissions.js';
 import { addDay, save } from '../services/state.service.js';
@@ -113,7 +113,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
   }
 
   function recursoGrupoCardHtml(g, items, canEdit){
-    var ocultas = items.filter(function(e){ return e.oculta; }).length;
+    var ocultas = items.filter(function(e){ return estaOculta(e); }).length;
     var n = items.length - ocultas;
     var countTxt = n ? (n + ' entrada' + (n === 1 ? '' : 's')) : (ocultas ? '' : 'Vacío');
     if(ocultas){ countTxt += (n ? ' · ' : '') + ocultas + ' oculta' + (ocultas === 1 ? '' : 's'); }
@@ -264,7 +264,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       // Las ocultas no cuentan como contenido: una categoría con solo
       // ocultas se ve transparente, igual que una vacía.
       var lista = entradasDe(c.id);
-      var ocultas = lista.filter(function(e){ return e.oculta; }).length;
+      var ocultas = lista.filter(function(e){ return estaOculta(e); }).length;
       var n = lista.length - ocultas;
       var countTxt = n ? (n + ' entrada' + (n === 1 ? '' : 's')) : (ocultas || conFijo(c.id) ? '' : 'Vacía');
       if(ocultas){ countTxt += (n ? ' · ' : '') + ocultas + ' oculta' + (ocultas === 1 ? '' : 's'); }
