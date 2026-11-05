@@ -5,7 +5,7 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, RECURSO_CATEGORIAS } from '../config/constants.js';
-import { escapeHtml, linkify, dayDateToIso, compareEntryOrder, estaOculta, recursoCategoriaDe, recursoGruposDe, recursoGrupoDe, uid } from '../utils/helpers.js';
+import { escapeHtml, linkify, dayDateToIso, compareEntryOrder, estaOculta, recursoCategoriaDe, recursoCategorias, recursoCategoriasOrdenadas, recursoGruposDe, recursoGrupoDe, uid } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { entryScope, canSeeEntry, isAdmin, isJefeSeccionEditing, isJefeSeccion, effectiveDepto, effectiveSeccion, effectiveRole, lectorModeActive, isLectorLike, canEditStructure, canCreateRecurso } from '../services/permissions.js';
 import { addDay, save } from '../services/state.service.js';
@@ -91,6 +91,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
   // de sección (imágenes reales, ver `sectionShieldHtml`).
   var GRUPO_ICONOS = [
     { id: 'folder', label: 'Carpeta' },
+    { id: 'house', label: 'Casa' },
     { id: 'img:escuderos', label: 'Escudo de Escuderos', src: 'assets/escudo-escuderos.png' },
     { id: 'img:templarios', label: 'Escudo de Templarios', src: 'assets/escudo-templarios.png' },
     { id: 'cross', label: 'Cruz' },
@@ -108,8 +109,152 @@ import { showConfirm, showAlert } from '../components/dialog.js';
     { id: 'wheat', label: 'Trigo' },
     { id: 'megaphone', label: 'Megáfono' },
     { id: 'image', label: 'Imagen' },
-    { id: 'clipboard-list', label: 'Lista' }
+    { id: 'clipboard-list', label: 'Lista' },
+    { id: 'chalice', label: 'Cáliz' }
   ];
+  // Ícono de una categoría: también acepta los escudos (`img:`) del picker.
+  function catIconHtml(id){
+    var op = GRUPO_ICONOS.find(function(o){ return o.id === id; });
+    if(op && op.src) return '<img src="' + op.src + '" alt="" class="recurso-grupo-img">';
+    return icon(id || 'folder');
+  }
+  function iconPickerHtml(sel){
+    return '<div class="grupo-icon-picker">' + GRUPO_ICONOS.map(function(o){
+      var on = o.id === sel;
+      return '<button type="button" class="grupo-icon-opt' + (on ? ' is-selected' : '') + '" data-icon="' + o.id + '" title="' + escapeHtml(o.label) + '" aria-label="' + escapeHtml(o.label) + '" aria-pressed="' + on + '">' + catIconHtml(o.id) + '</button>';
+    }).join('') + '</div>';
+  }
+  function wireIconPicker(root){
+    root.querySelectorAll('.grupo-icon-opt').forEach(function(btn){
+      btn.onclick = function(){
+        root.querySelectorAll('.grupo-icon-opt').forEach(function(b){ b.classList.remove('is-selected'); b.setAttribute('aria-pressed', 'false'); });
+        btn.classList.add('is-selected'); btn.setAttribute('aria-pressed', 'true');
+      };
+    });
+  }
+
+  // Editar las categorías de Recursos (05/11/2026, solo admin): renombrar,
+  // ícono, meter dentro de otra (subcategoría), ordenar, agregar y borrar.
+  // Se guarda la lista entera en `state.recursoCategorias` (fordoc/shared).
+  // «Otros» no se borra: es donde caen las entradas sin categoría.
+  function categoriasEditables(){
+    if(!Array.isArray(AppState.state.recursoCategorias) || !AppState.state.recursoCategorias.length){
+      AppState.state.recursoCategorias = RECURSO_CATEGORIAS.map(function(c){ return Object.assign({}, c); });
+    }
+    return AppState.state.recursoCategorias;
+  }
+  function openCategoriasDialog(){
+    if(!isAdmin()) return;
+    var overlay = document.createElement('div');
+    overlay.className = 'app-dialog-overlay';
+    document.body.appendChild(overlay);
+    function close(){ document.removeEventListener('keydown', onKey); overlay.remove(); renderPanel(); }
+    function onKey(e){ if(e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    overlay.onclick = function(e){ if(e.target === overlay) close(); };
+
+    function lista(){
+      var cats = recursoCategorias(AppState.state);
+      var orden = recursoCategoriasOrdenadas(cats);
+      var html = '<div class="app-dialog-box info-general-dialog" role="dialog" aria-modal="true">' +
+        '<h3 style="margin:0 0 4px">Categorías de Recursos</h3>' +
+        '<p class="mandos-sub" style="margin:0 0 12px">Las flechas ordenan; las subcategorías se ven adentro de su categoría.</p>' +
+        '<div class="cat-admin-list">';
+      orden.forEach(function(c){
+        var hermanas = cats.filter(function(x){ return (x.parent || '') === (c.parent || ''); });
+        var i = hermanas.indexOf(c);
+        html += '<div class="cat-admin-row' + (c.parent ? ' cat-admin-sub' : '') + '">' +
+          '<span class="entry-lead-icon recurso-grupo-icon">' + catIconHtml(c.icon) + '</span>' +
+          '<span class="cat-admin-label">' + escapeHtml(c.label) + '</span><span class="entry-actions">' +
+          '<button type="button" class="entry-icon-btn" data-cat-move="' + c.id + '" data-dir="-1" title="Subir" aria-label="Subir"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+          '<button type="button" class="entry-icon-btn" data-cat-move="' + c.id + '" data-dir="1" title="Bajar" aria-label="Bajar"' + (i === hermanas.length - 1 ? ' disabled' : '') + '>↓</button>' +
+          '<button type="button" class="entry-icon-btn" data-cat-edit="' + c.id + '" title="Editar" aria-label="Editar">' + icon('pencil') + '</button>' +
+          (c.id === 'otros' ? '<span class="cat-admin-gap"></span>' : '<button type="button" class="entry-icon-btn entry-icon-btn-danger" data-cat-delete="' + c.id + '" title="Eliminar" aria-label="Eliminar">' + icon('trash') + '</button>') +
+          '</span></div>';
+      });
+      html += '</div><div class="app-dialog-actions" style="margin-top:16px">' +
+        '<button type="button" class="btn ghost small" id="catNewBtn">+ Nueva categoría</button>' +
+        '<button type="button" class="btn small" id="catCloseBtn">Listo</button></div></div>';
+      overlay.innerHTML = html;
+      overlay.querySelector('#catCloseBtn').onclick = close;
+      overlay.querySelector('#catNewBtn').onclick = function(){ editar(null); };
+      overlay.querySelectorAll('[data-cat-edit]').forEach(function(b){ b.onclick = function(){ editar(b.getAttribute('data-cat-edit')); }; });
+      overlay.querySelectorAll('[data-cat-move]').forEach(function(b){
+        b.onclick = function(){
+          var all = categoriasEditables();
+          var c = all.find(function(x){ return x.id === b.getAttribute('data-cat-move'); });
+          var hermanas = all.filter(function(x){ return (x.parent || '') === (c.parent || ''); });
+          var otra = hermanas[hermanas.indexOf(c) + Number(b.getAttribute('data-dir'))];
+          if(!otra) return;
+          var ia = all.indexOf(c), ib = all.indexOf(otra);
+          all[ia] = otra; all[ib] = c;
+          save(); lista();
+        };
+      });
+      overlay.querySelectorAll('[data-cat-delete]').forEach(function(b){
+        b.onclick = async function(){
+          var id = b.getAttribute('data-cat-delete');
+          var all = categoriasEditables();
+          var c = all.find(function(x){ return x.id === id; });
+          var n = AppState.state.entries.filter(function(e){ return e.dayId === 'RESOURCES' && recursoCategoriaDe(e) === id; }).length;
+          var msg = '¿Eliminar la categoría «' + c.label + '»?' +
+            (n === 1 ? ' Su entrada pasa a «Otros» (no se borra).' : n ? ' Sus ' + n + ' entradas pasan a «Otros» (no se borran).' : '') +
+            (all.some(function(x){ return x.parent === id; }) ? ' Sus subcategorías quedan sueltas en la grilla.' : '');
+          if(!await showConfirm(msg)) return;
+          AppState.state.recursoCategorias = all.filter(function(x){ return x.id !== id; });
+          AppState.state.recursoCategorias.forEach(function(x){ if(x.parent === id) delete x.parent; });
+          AppState.state.entries.forEach(function(e){ if(e.dayId === 'RESOURCES' && recursoCategoriaDe(e) === id){ e.categoria = 'otros'; delete e.grupo; } });
+          (AppState.state.recursoGrupos || []).forEach(function(g){ if(g.categoria === id) g.categoria = 'otros'; });
+          if(AppState.recursosCategoria === id){ AppState.recursosCategoria = ''; AppState.recursosGrupo = ''; }
+          save(); lista();
+        };
+      });
+    }
+
+    function editar(id){
+      var cats = recursoCategorias(AppState.state);
+      var c = id ? cats.find(function(x){ return x.id === id; }) : null;
+      var tieneHijas = c && cats.some(function(x){ return x.parent === c.id; });
+      var madres = cats.filter(function(x){ return !x.parent && (!c || x.id !== c.id); });
+      var html = '<div class="app-dialog-box info-general-dialog" role="dialog" aria-modal="true">' +
+        '<h3 style="margin:0 0 12px">' + (c ? 'Editar categoría' : 'Nueva categoría') + '</h3>' +
+        '<div class="form-row"><label for="catLabel">Nombre</label><input type="text" id="catLabel" placeholder="Ej: Juegos" value="' + escapeHtml(c ? c.label : '') + '"></div>';
+      if(tieneHijas){
+        html += '<p class="mandos-sub">Tiene subcategorías adentro, así que no se puede meter dentro de otra.</p>';
+      } else {
+        html += '<div class="form-row"><label for="catParent">Dentro de</label><select id="catParent"><option value="">— Ninguna (se ve en la grilla) —</option>' +
+          madres.map(function(m){ return '<option value="' + m.id + '"' + (c && c.parent === m.id ? ' selected' : '') + '>' + escapeHtml(m.label) + '</option>'; }).join('') +
+          '</select></div>';
+      }
+      html += '<div class="form-row"><label>Ícono</label>' + iconPickerHtml((c && c.icon) || 'folder') + '</div>' +
+        '<p class="mandos-sub recurso-dialog-error" id="catError" hidden>Poné un nombre.</p>' +
+        '<div class="app-dialog-actions" style="margin-top:16px">' +
+        '<button type="button" class="btn ghost small" id="catBackBtn">Cancelar</button>' +
+        '<button type="button" class="btn small" id="catSaveBtn">Guardar</button></div></div>';
+      overlay.innerHTML = html;
+      wireIconPicker(overlay);
+      overlay.querySelector('#catBackBtn').onclick = lista;
+      overlay.querySelector('#catSaveBtn').onclick = function(){
+        var label = overlay.querySelector('#catLabel').value.trim();
+        if(!label){ overlay.querySelector('#catError').hidden = false; return; }
+        var parentSel = overlay.querySelector('#catParent');
+        var parent = parentSel ? parentSel.value : '';
+        var iconSel = overlay.querySelector('.grupo-icon-opt.is-selected').getAttribute('data-icon');
+        var all = categoriasEditables();
+        var obj = c ? all.find(function(x){ return x.id === c.id; }) : { id: 'cat-' + uid() };
+        obj.label = label; obj.icon = iconSel;
+        if(parent) obj.parent = parent; else delete obj.parent;
+        if(!c){
+          // Nueva: antes de «Otros» si va en la grilla; al final de sus hermanas si es subcategoría.
+          var iOtros = all.findIndex(function(x){ return x.id === 'otros'; });
+          if(!parent && iOtros >= 0) all.splice(iOtros, 0, obj); else all.push(obj);
+        }
+        save(); lista();
+      };
+      overlay.querySelector('#catLabel').focus();
+    }
+    lista();
+  }
   function grupoIconHtml(id){
     var op = GRUPO_ICONOS.find(function(o){ return o.id === id; }) || GRUPO_ICONOS[0];
     return op.src ? '<img src="' + op.src + '" alt="" class="recurso-grupo-img">' : icon(op.id);
@@ -250,11 +395,13 @@ import { showConfirm, showAlert } from '../components/dialog.js';
 
     // Categorías (27/10/2026): sin categoría abierta se ve la grilla; al
     // tocar una, la lista de sus entradas como tarjetas anchas.
+    var CATS = recursoCategorias(AppState.state);
     var porCat = {};
-    items.forEach(function(e){ var c = recursoCategoriaDe(e); (porCat[c] = porCat[c] || []).push(e); });
+    // Una categoría que ya no existe (borrada) cae en «Otros».
+    items.forEach(function(e){ var c = recursoCategoriaDe(e); if(!CATS.some(function(x){ return x.id === c; })) c = 'otros'; (porCat[c] = porCat[c] || []).push(e); });
     // Subcategorías (29/10/2026): una categoría con `parent` se abre desde
     // adentro de su madre, y sus entradas cuentan también para la madre.
-    function hijas(id){ return RECURSO_CATEGORIAS.filter(function(c){ return c.parent === id; }); }
+    function hijas(id){ return CATS.filter(function(c){ return c.parent === id; }); }
     // Categorías con contenido fijo (cancionero, biblioteca/links, cantos
     // del Rosario): nunca se ven vacías aunque no tengan entradas.
     function conFijo(id){ return id === 'biblia' || id === 'textos' || id === 'rosario'; }
@@ -272,22 +419,24 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       var countTxt = n ? (n + ' entrada' + (n === 1 ? '' : 's')) : (ocultas || conFijo(c.id) ? '' : 'Vacía');
       if(ocultas){ countTxt += (n ? ' · ' : '') + ocultas + ' oculta' + (ocultas === 1 ? '' : 's'); }
       return '<button type="button" class="recurso-cat' + (n || conFijo(c.id) ? '' : ' recurso-cat-empty') + '" data-recurso-cat="' + c.id + '">' +
-        '<span class="recurso-cat-icon">' + icon(c.icon) + '</span>' +
+        '<span class="recurso-cat-icon">' + catIconHtml(c.icon) + '</span>' +
         '<span class="recurso-cat-label">' + escapeHtml(c.label) + '</span>' +
         '<span class="recurso-cat-count">' + countTxt + '</span>' +
         '</button>';
     }
-    var cat = RECURSO_CATEGORIAS.find(function(c){ return c.id === AppState.recursosCategoria; });
+    var cat = CATS.find(function(c){ return c.id === AppState.recursosCategoria; });
     if(cat && !canAddHere && !tieneAlgo(cat.id)){ cat = null; }
     AppState.recursosCategoria = cat ? cat.id : '';
 
     var html = '';
     if(!cat){
       html += '<div class="panel-head"><div><h2>Recursos</h2>';
-      html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes, oraciones y misterios del Rosario para todo el campamento.</p></div></div>';
+      html += '<p class="mandos-sub">Citas bíblicas, textos, imágenes, oraciones y misterios del Rosario para todo el campamento.</p></div>';
+      if(isAdmin()){ html += '<div class="recursos-head-actions"><button class="btn ghost small" id="editCatsBtn" type="button">' + icon('pencil') + ' Editar categorías</button></div>'; }
+      html += '</div>';
       // Quien puede agregar ve todas las categorías (para cargar en una
       // vacía); el resto, solo las que tienen algo.
-      var cats = RECURSO_CATEGORIAS.filter(function(c){ return !c.parent && (canAddHere || tieneAlgo(c.id)); });
+      var cats = CATS.filter(function(c){ return !c.parent && (canAddHere || tieneAlgo(c.id)); });
       if(cats.length === 0){
         html += '<p class="empty">Todavía no hay recursos cargados.</p>';
       } else {
@@ -313,7 +462,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       if(grupo){
         html += '<button type="button" class="recursos-back" id="recursosBackBtn"' + (canAddHere ? ' data-grupo-drop=""' : '') + '>' + icon('chevron-left') + ' ' + escapeHtml(cat.label) + '</button>';
       } else {
-        var madre = cat.parent ? RECURSO_CATEGORIAS.find(function(c){ return c.id === cat.parent; }) : null;
+        var madre = cat.parent ? CATS.find(function(c){ return c.id === cat.parent; }) : null;
         html += '<button type="button" class="recursos-back" id="recursosBackBtn">' + icon('chevron-left') + ' ' + escapeHtml(madre ? madre.label : 'Recursos') + '</button>';
       }
       html += '<div class="panel-head"><div><h2>' + escapeHtml(grupo ? grupo.title : cat.label) + '</h2>';
@@ -354,7 +503,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
           html += '<p class="empty">' + (grupo ? 'Todavía no hay nada en este grupo.' : 'Todavía no hay nada en esta categoría.') + '</p>';
         }
       } else {
-        html += renderEntriesListHtml(lista, canAddHere, cat.icon);
+        html += renderEntriesListHtml(lista, canAddHere, /^img:/.test(cat.icon || '') ? 'shield' : (cat.icon || 'folder'));
       }
       html += '</div>';
       if(canAddHere){ html += renderForm('RESOURCES'); }
@@ -392,6 +541,8 @@ import { showConfirm, showAlert } from '../components/dialog.js';
         });
       };
     }
+    var editCats = document.getElementById('editCatsBtn');
+    if(editCats){ editCats.onclick = openCategoriasDialog; }
     var addGrupo = document.getElementById('addGrupoBtn');
     if(addGrupo){ addGrupo.onclick = function(){ openRecursoGrupoDialog(null); }; }
 
@@ -413,7 +564,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
         AppState.formCategoria = '';
         AppState.formGrupo = null;
         if(AppState.recursosGrupo){ AppState.recursosGrupo = ''; renderPanel(); return; }
-        var actual = RECURSO_CATEGORIAS.find(function(c){ return c.id === AppState.recursosCategoria; });
+        var actual = CATS.find(function(c){ return c.id === AppState.recursosCategoria; });
         AppState.recursosCategoria = (actual && actual.parent) || '';
         renderPanel();
       };

@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.05.3';
+  export var APP_VERSION = '2026.11.05.4';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -149,6 +149,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.05.4', date: '05/11/2026', items: [
+      'Recursos: los admins pueden editar las categorías (nombre, ícono, orden, meterlas dentro de otra), agregar nuevas y borrarlas.'
+    ]},
     { version: '2026.11.05.3', date: '05/11/2026', items: [
       'El campamento pasa a 7 días (se suspendió el día 8).',
       'Mensaje: al eliminar un día con entradas, se pueden pasar al día anterior en vez de borrarlas.'

@@ -8,8 +8,8 @@
 // y si es la entrada de bienvenida.
 
 import { AppState } from '../app-state.js';
-import { SECCIONES, DEPARTAMENTOS, RECURSO_CATEGORIAS } from '../config/constants.js';
-import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recursoGruposDe, recursoGrupoDe, mediodiaDe, isoDeFecha } from '../utils/helpers.js';
+import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
+import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recursoCategorias, recursoCategoriasOrdenadas, recursoGruposDe, recursoGrupoDe, mediodiaDe, isoDeFecha } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
@@ -173,9 +173,10 @@ import { attachEntryReorder } from './entry-reorder.js';
     if(day === 'RESOURCES'){
       var catVal = AppState.formCategoria || AppState.recursosCategoria || 'otros';
       html += '  <div class="form-row"><label>Categoría</label><select id="fCategoria">';
-      RECURSO_CATEGORIAS.forEach(function(c){
+      var cats = recursoCategorias(AppState.state);
+      recursoCategoriasOrdenadas(cats).forEach(function(c){
         // Subcategoría: "Vida espiritual › Oraciones" (29/10/2026).
-        var madre = c.parent ? RECURSO_CATEGORIAS.find(function(m){ return m.id === c.parent; }) : null;
+        var madre = c.parent ? cats.find(function(m){ return m.id === c.parent; }) : null;
         html += '<option value="' + c.id + '"' + (c.id === catVal ? ' selected' : '') + '>' + escapeHtml(madre ? madre.label + ' › ' + c.label : c.label) + '</option>';
       });
       html += '</select></div>';

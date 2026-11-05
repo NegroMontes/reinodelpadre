@@ -1,6 +1,7 @@
 // Utilidades chicas y sin estado, reusadas en toda la app: ids, normalización
 // de texto, escapado/linkify de HTML, y las tablas de etiquetas legibles
 // (roleLabel, posGrupoLabel).
+import { RECURSO_CATEGORIAS } from '../config/constants.js';
 
   // Orden de una entrada en su lista (27/10/2026): `order` si se la movió
   // arrastrando (o se insertó con el "+" entre dos), si no `createdAt`.
@@ -226,6 +227,25 @@
     }[posGrupo] || posGrupo;
   }
 
+
+  // Categorías de Recursos editables por el admin (05/11/2026): si
+  // `state.recursoCategorias` tiene algo, manda esa lista; si no, las de
+  // fábrica (RECURSO_CATEGORIAS). Cada una: {id, label, icon, parent?}.
+  export function recursoCategorias(state){
+    var l = state && state.recursoCategorias;
+    return (Array.isArray(l) && l.length) ? l : RECURSO_CATEGORIAS;
+  }
+
+  // Orden para listas: cada categoría seguida de sus subcategorías.
+  export function recursoCategoriasOrdenadas(cats){
+    var out = [];
+    cats.filter(function(c){ return !c.parent; }).forEach(function(m){
+      out.push(m);
+      cats.filter(function(c){ return c.parent === m.id; }).forEach(function(h){ out.push(h); });
+    });
+    cats.forEach(function(c){ if(out.indexOf(c) < 0) out.push(c); });
+    return out;
+  }
 
   // Categoría de una entrada de Recursos (27/10/2026) — sin `categoria`
   // guardada, la de bienvenida cae en "Para empezar" y el resto en "Otros".
