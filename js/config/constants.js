@@ -139,7 +139,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.05.1';
+  export var APP_VERSION = '2026.11.05.2';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -148,6 +148,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.05.2', date: '05/11/2026', items: [
+      'Recursos: opción «También en Departamentos» (admin) — la misma entrada se ve también en la pestaña Departamentos, sin copias.'
+    ]},
     { version: '2026.11.05.1', date: '05/11/2026', items: [
       'Publicación programada: una entrada oculta puede llevar fecha («Publicar sola el») y se publica sola ese día a las 12:00.',
       'Menú del avatar (admin): «Programar calendario de publicación» aplica las fechas del calendario del doc a las entradas ocultas de Recursos.'

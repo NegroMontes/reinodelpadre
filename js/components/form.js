@@ -136,7 +136,7 @@ import { attachEntryReorder } from './entry-reorder.js';
     AppState.formNewEntryId = null;
     AppState.formEntrySnapshot = null;
     AppState.formSecciones = []; AppState.formDeptos = []; AppState.formComandoGeneral = false; AppState.formSeccionComandoOnly = false;
-    AppState.formAnonimo = false; AppState.formOculta = false; AppState.formPublishDate = ''; AppState.formBienvenida = false;
+    AppState.formAnonimo = false; AppState.formOculta = false; AppState.formPublishDate = ''; AppState.formBienvenida = false; AppState.formTambienDeptos = false;
     AppState.formAmbitoOpen = false;
     AppState.formCategoria = '';
     AppState.formGrupo = null;
@@ -207,6 +207,9 @@ import { attachEntryReorder } from './entry-reorder.js';
     // sentido en Recursos; solo el admin la ve/toca (pedido del usuario,
     // 24/09/2026).
     if(day === 'RESOURCES' && isAdmin()){
+      // También en Departamentos (05/11/2026): la MISMA entrada (no una copia)
+      // aparece además en la pestaña Departamentos, para todos los que la ven.
+      html += '  <div class="signature-row switch-row"><label><input type="checkbox" class="switch" id="fTambienDeptos"' + (AppState.formTambienDeptos ? ' checked' : '') + '> También en Departamentos</label>' + helpTipHtml('Es la misma entrada: aparece en Recursos y en Departamentos. Editarla en un lado la cambia en los dos.') + '</div>';
       html += '  <div class="signature-row switch-row"><label><input type="checkbox" class="switch" id="fBienvenida"' + (AppState.formBienvenida ? ' checked' : '') + '> Entrada de bienvenida</label>' + helpTipHtml('Aparece arriba de todo en Inicio para quien todavía no la completó — comando y milicianos por igual.') + '</div>';
     }
     html += '  </div>';
@@ -334,6 +337,7 @@ import { attachEntryReorder } from './entry-reorder.js';
       var pubAt = mediodiaDe(AppState.formPublishDate);
       if(pubAt && AppState.formOculta){ entry.publishAt = pubAt; } else { delete entry.publishAt; }
       entry.bienvenida = bienvenida;
+      if(day === 'RESOURCES' && isAdmin()){ if(AppState.formTambienDeptos) entry.tambienDepartamentos = true; else delete entry.tambienDepartamentos; }
       if(categoria) entry.categoria = categoria;
       if(categoria){ if(grupo) entry.grupo = grupo; else delete entry.grupo; }
       // Si el espacio ya tiene su propio título (puesto desde la Fordoquera),
@@ -360,6 +364,7 @@ import { attachEntryReorder } from './entry-reorder.js';
       });
       var pubAtNew = mediodiaDe(AppState.formPublishDate);
       if(pubAtNew && AppState.formOculta){ AppState.state.entries[AppState.state.entries.length - 1].publishAt = pubAtNew; }
+      if(day === 'RESOURCES' && isAdmin() && AppState.formTambienDeptos){ AppState.state.entries[AppState.state.entries.length - 1].tambienDepartamentos = true; }
       if(categoria){ AppState.state.entries[AppState.state.entries.length - 1].categoria = categoria; }
       if(grupo){ AppState.state.entries[AppState.state.entries.length - 1].grupo = grupo; }
       if(newOrder != null){ AppState.state.entries[AppState.state.entries.length - 1].order = newOrder + (imp ? imp.index * 1e-6 : 0); }
@@ -587,6 +592,8 @@ import { attachEntryReorder } from './entry-reorder.js';
         if(publishDateInput.value && ocultaCheck && !ocultaCheck.checked){ ocultaCheck.checked = true; AppState.formOculta = true; }
       };
     }
+    var tambienDeptosCheck = document.getElementById('fTambienDeptos');
+    if(tambienDeptosCheck){ tambienDeptosCheck.onchange = function(){ AppState.formTambienDeptos = tambienDeptosCheck.checked; }; }
     var categoriaSelect = document.getElementById('fCategoria');
     if(categoriaSelect){
       categoriaSelect.onchange = function(){
@@ -757,10 +764,18 @@ import { attachEntryReorder } from './entry-reorder.js';
         AppState.formOculta = !!entry.oculta;
         AppState.formPublishDate = isoDeFecha(entry.publishAt);
         AppState.formBienvenida = !!entry.bienvenida;
+        AppState.formTambienDeptos = !!entry.tambienDepartamentos;
         AppState.formCategoria = entry.dayId === 'RESOURCES' ? recursoCategoriaDe(entry) : '';
         AppState.formGrupo = entry.dayId === 'RESOURCES' ? recursoGrupoDe(AppState.state, entry) : null;
         AppState.formTitleDraft = null;
         AppState.formOpen = true;
+        // Una entrada de Recursos que se ve también en Departamentos se edita
+        // en Recursos (ahí está su formulario con categoría/grupo).
+        if(entry.dayId === 'RESOURCES' && AppState.activeDayId !== 'RECURSOS'){
+          AppState.activeDayId = 'RECURSOS';
+          AppState.recursosCategoria = recursoCategoriaDe(entry);
+          AppState.recursosGrupo = recursoGrupoDe(AppState.state, entry) || '';
+        }
         renderPanel();
         document.getElementById('addForm').scrollIntoView({behavior:'smooth', block:'nearest'});
       };

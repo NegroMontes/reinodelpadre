@@ -28,6 +28,9 @@ import { showConfirm, showAlert } from '../components/dialog.js';
     // pedido del usuario), queda justo donde cae cualquier entrada nueva que
     // se agregue sin elegir una posición puntual.
     var allDeptoEntries = AppState.state.entries.filter(function(e){
+      // Entrada de Recursos marcada «También en Departamentos» (05/11/2026):
+      // la misma entrada, no una copia.
+      if(e.dayId === 'RESOURCES' && e.tambienDepartamentos) return canSeeEntry(e);
       if(e.dayId) return false;
       var scope = entryScope(e);
       return (scope.deptos.length > 0 || scope.comandoGeneral) && canSeeEntry(e);
@@ -38,7 +41,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
     });
     if(visibleDeptos.indexOf(AppState.activeDeptoFiltro) === -1){ AppState.activeDeptoFiltro = ''; }
 
-    var shown = AppState.activeDeptoFiltro ? allDeptoEntries.filter(function(e){ return entryScope(e).deptos.indexOf(AppState.activeDeptoFiltro) !== -1; }) : allDeptoEntries;
+    var shown = AppState.activeDeptoFiltro ? allDeptoEntries.filter(function(e){ return e.tambienDepartamentos || entryScope(e).deptos.indexOf(AppState.activeDeptoFiltro) !== -1; }) : allDeptoEntries;
     var canAddHere = isAdmin() || (isJefeSeccionEditing() && !!effectiveDepto());
 
     var html = '';
