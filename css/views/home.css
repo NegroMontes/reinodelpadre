@@ -977,8 +977,21 @@ a.user-menu-item{ text-decoration:none; display:block; }
 
 /* T17: obligatorias sin completar (Comando → Tablero) */
 .tablero-oblig{ margin-top:14px; }
-.oblig-grupo{ padding:8px 0 10px; border-top:1px solid var(--line); }
-.oblig-grupo h4{ margin:0 0 6px; font-size:14px; }
-.oblig-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
-.oblig-lista li{ display:flex; flex-direction:column; }
-.oblig-vacio{ padding:4px 0 12px; margin:0; }
+.oblig-vacio, .oblig-ayuda{ padding:0 0 10px; margin:0; }
+.oblig-grupo{ padding:12px 0; border-top:1px solid var(--line); }
+.oblig-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+.oblig-head .tablero-icon{ width:28px; height:28px; }
+.oblig-head .tablero-icon svg{ width:18px; height:18px; }
+.oblig-cnts{ display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; }
+.oblig-cnt{ font-size:12px; font-weight:600; padding:2px 8px; border-radius:999px; border:1px solid currentColor; }
+.cnt-debe{ color:var(--bordeaux); }
+.cnt-ok{ color:var(--teal); }
+.cnt-nd{ color:var(--ink-soft); }
+.oblig-lista{ list-style:none; margin:0 0 8px; padding:0; display:flex; flex-direction:column; gap:8px; }
+.oblig-lista li{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:8px 10px; border-radius:var(--radius-sm); background:var(--bg); }
+.oblig-nombre{ font-weight:600; }
+.oblig-tags{ display:flex; flex-wrap:wrap; gap:4px; }
+.oblig-linea{ margin:4px 0 0; font-size:13px; color:var(--ink-soft); }
+.oblig-label{ font-weight:600; }
+.oblig-lista:last-child{ margin-bottom:0; }
+[data-theme="dark"] .oblig-lista li{ background:var(--page-bg); }

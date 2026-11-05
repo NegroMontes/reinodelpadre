@@ -386,24 +386,37 @@ import { renderPanel } from '../main.js';
     var mandosIndex = buildMandosIndex(AppState.mandosData);
     var grupos = rol === 'admin' ? SECCIONES.concat(DEPARTAMENTOS, [COMANDO_CENTRAL]) : [miGrupoTablero(mandosIndex)];
     var totalFaltan = 0, cuerpo = '';
+    var nombre = function(u){ return escapeHtml(u.displayName || u.email || 'Sin nombre'); };
     grupos.forEach(function(g){
-      var filas = '', sinDato = 0, alDiaN = 0;
+      var deben = [], alDiaL = [], sinDatoL = [];
       miembrosDeGrupo(comando, g, mandosIndex).forEach(function(u){
         var ids = obligPendientesDe(u);
-        if(ids === null){ sinDato++; return; }
-        var titulos = ids.filter(function(id){ return vigentes[id]; }).map(function(id){ return vigentes[id].title || 'Sin título'; });
-        if(!titulos.length){ alDiaN++; return; }
-        totalFaltan++;
-        filas += '<li><strong>' + escapeHtml(u.displayName || u.email || 'Sin nombre') + '</strong>' +
-          '<span class="tablero-meta">' + titulos.map(escapeHtml).join(' · ') + '</span></li>';
+        if(ids === null){ sinDatoL.push(u); return; }
+        var faltan = ids.filter(function(id){ return vigentes[id]; }).map(function(id){ return vigentes[id]; });
+        if(faltan.length) deben.push({ u: u, faltan: faltan }); else alDiaL.push(u);
       });
-      if(!filas && !sinDato) return;
-      cuerpo += '<div class="oblig-grupo">' + (rol === 'admin' ? '<h4>' + escapeHtml(g) + '</h4>' : '') +
-        (filas ? '<ul class="oblig-lista">' + filas + '</ul>' : '') +
-        (alDiaN ? '<p class="tablero-meta">' + alDiaN + (alDiaN === 1 ? ' persona al día.' : ' personas al día.') + '</p>' : '') +
-        (sinDato ? '<p class="tablero-meta">' + sinDato + (sinDato === 1 ? ' persona sin datos todavía (no abrió' : ' personas sin datos todavía (no abrieron') + ' la página desde este cambio).</p>' : '') +
-        '</div>';
+      if(!deben.length && !alDiaL.length && !sinDatoL.length) return;
+      totalFaltan += deben.length;
+      var tipo = SECCIONES.indexOf(g) >= 0 ? 'seccion' : 'depto';
+      var cnt = function(n, txt, cls){ return n ? '<span class="oblig-cnt ' + cls + '">' + n + ' ' + txt + '</span>' : ''; };
+      var h = '<div class="oblig-grupo"><div class="oblig-head">' + comandoIconHtml({ grupo: g, tipo: tipo }) +
+        '<strong>' + escapeHtml(g) + '</strong><span class="oblig-cnts">' +
+        cnt(deben.length, deben.length === 1 ? 'debe' : 'deben', 'cnt-debe') +
+        cnt(alDiaL.length, 'al día', 'cnt-ok') + cnt(sinDatoL.length, 'sin datos', 'cnt-nd') + '</span></div>';
+      if(deben.length){
+        h += '<ul class="oblig-lista">';
+        deben.forEach(function(d){
+          h += '<li><span class="oblig-nombre">' + nombre(d.u) + '</span><span class="oblig-tags">' +
+            d.faltan.map(function(e){ return '<span class="tag tag-obligatoria">' + escapeHtml(e.title || 'Sin título') + '</span>'; }).join('') +
+            '</span></li>';
+        });
+        h += '</ul>';
+      }
+      if(alDiaL.length) h += '<p class="oblig-linea"><span class="oblig-label cnt-ok">Al día:</span> ' + alDiaL.map(nombre).join(', ') + '</p>';
+      if(sinDatoL.length) h += '<p class="oblig-linea"><span class="oblig-label cnt-nd">Sin datos todavía:</span> ' + sinDatoL.map(nombre).join(', ') + '</p>';
+      cuerpo += h + '</div>';
     });
+    if(cuerpo) cuerpo = '<p class="tablero-meta oblig-ayuda">«Sin datos» = no abrió la página desde que se cuenta esto.</p>' + cuerpo;
     if(!cuerpo) cuerpo = '<p class="tablero-meta">Todavía no se registró nadie.</p>';
     return '<details class="tablero-resto tablero-oblig"' + (AppState.tableroObligOpen ? ' open' : '') + '>' +
       '<summary>Obligatorias sin completar (' + totalFaltan + (totalFaltan === 1 ? ' persona' : ' personas') + ')</summary>' +
