@@ -31,7 +31,15 @@ import { showAlert } from '../components/dialog.js';
       html += '<p class="mandos-sub">Todavía no hay entradas con puntos.</p>';
     } else {
       html += '<p class="mandos-sub">' + r.puntos + ' de ' + puntosDisponibles() + ' puntos disponibles</p>';
-      html += '<div class="perfil-barra"><span style="width:' + Math.min(100, r.porcentaje) + '%"></span></div>';
+      // Barra: avance desde el rango actual hasta el siguiente (pedido del
+      // usuario, 05/11/2026). Llena si ya alcanzó el % y solo faltan obligatorias.
+      var avance = 100;
+      if(r.siguiente){
+        var pct = r.puntos / r.total * 100, desde = umbrales[r.rango - 1], hasta = umbrales[r.rango];
+        avance = hasta > desde ? Math.max(0, Math.min(100, (pct - desde) / (hasta - desde) * 100)) : 100;
+      }
+      html += '<div class="perfil-barra"><span style="width:' + Math.round(avance) + '%"></span></div>';
+      if(r.siguiente) html += '<p class="mandos-sub">Hacia «' + escapeHtml(r.siguiente.nombre) + '»: ' + Math.round(avance) + '%</p>';
     }
     html += '<ol class="perfil-rangos">';
     RANGOS.forEach(function(x, i){
