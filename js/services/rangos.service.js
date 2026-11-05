@@ -80,11 +80,17 @@ import { canSeeEntry } from './permissions.js';
     };
   }
 
-  // Entradas que cuentan para quien está mirando (respeta «Ver como»): las que
-  // ve, publicadas y no borradas. Info general no tiene entradas que contar.
+  // Entradas que cuentan para quien está mirando (respeta «Ver como»): las
+  // publicadas y también las programadas (con fecha) que va a ver cuando
+  // salgan — así el total es el camino entero y nadie llega a Heredero con
+  // las primeras entradas (pedido del usuario, 05/11/2026). Los borradores sin
+  // fecha no cuentan. Info general no tiene entradas que contar.
   export function entradasQueCuentan(){
     return (AppState.state.entries || []).filter(function(e){
-      return !e.deletedAt && !estaOculta(e) && e.dayId !== 'INFO_GENERAL' && canSeeEntry(e);
+      if(e.deletedAt || e.dayId === 'INFO_GENERAL') return false;
+      if(!estaOculta(e)) return canSeeEntry(e);
+      if(!e.publishAt) return false;
+      return canSeeEntry(Object.assign({}, e, { oculta: false }));
     });
   }
 
