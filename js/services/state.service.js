@@ -243,9 +243,23 @@ import { showConfirm } from '../components/dialog.js';
   export async function deleteDay(id){
     if(!canEditStructure()) return;
     if(AppState.state.days.length <= 1){ showStatus('Tiene que quedar al menos un día.'); return; }
-    if(!await showConfirm('¿Eliminar este día y todo su contenido?')) return;
+    if(!await showConfirm('¿Eliminar este día?')) return;
+    // Pasar el contenido a otro día (05/11/2026, al suspender el día 8): si
+    // el día tiene entradas, se ofrece moverlas al día anterior (o al
+    // siguiente, si es el primero) en vez de borrarlas.
+    var idx = AppState.state.days.findIndex(function(d){ return d.id === id; });
+    var destino = AppState.state.days[idx > 0 ? idx - 1 : idx + 1];
+    var propias = AppState.state.entries.filter(function(e){ return e.dayId === id && !e.deletedAt; });
+    var mover = false;
+    if(propias.length && destino){
+      mover = await showConfirm('Este día tiene ' + propias.length + ' entrada' + (propias.length === 1 ? '' : 's') + '. ¿Pasarlas a «' + (destino.label || 'el otro día') + '»?\n\nAceptar: se pasan. Cancelar: se borran con el día.');
+    }
     AppState.state.days = AppState.state.days.filter(function(d){ return d.id !== id; });
-    AppState.state.entries = AppState.state.entries.filter(function(e){ return e.dayId !== id; });
+    if(mover){
+      AppState.state.entries.forEach(function(e){ if(e.dayId === id){ e.dayId = destino.id; } });
+    } else {
+      AppState.state.entries = AppState.state.entries.filter(function(e){ return e.dayId !== id; });
+    }
     AppState.activeMensajeDayId = AppState.state.days.length ? AppState.state.days[0].id : null;
     save();
     render();

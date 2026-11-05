@@ -150,7 +150,8 @@
   // novedades, más viejo abajo.
   export var CHANGELOG = [
     { version: '2026.11.05.3', date: '05/11/2026', items: [
-      'El campamento pasa a 7 días (se suspendió el día 8).'
+      'El campamento pasa a 7 días (se suspendió el día 8).',
+      'Mensaje: al eliminar un día con entradas, se pueden pasar al día anterior en vez de borrarlas.'
     ]},
     { version: '2026.11.05.2', date: '05/11/2026', items: [
       'Recursos: opción «También en Departamentos» (admin) — la misma entrada se ve también en la pestaña Departamentos, sin copias.'
