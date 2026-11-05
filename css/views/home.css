@@ -972,3 +972,5 @@ a.user-menu-item{ text-decoration:none; display:block; }
 @media (max-width:760px){
   .tablero-mio{ top:72px; } /* debajo de la barra de pestañas fija del celular */
 }
+.perfil-aldia{ margin:10px 0 4px; font-size:15px; }
+.perfil-aldia strong{ color:var(--teal); }

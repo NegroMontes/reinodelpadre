@@ -8,7 +8,7 @@ import { DEPARTAMENTO_ICONS, CONSAGRADO_ICONS } from '../config/constants.js';
 import { escapeHtml, roleLabelScoped } from '../utils/helpers.js';
 import { cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { updateMyProfile } from '../services/auth.service.js';
-import { miRango, puntosDisponibles, rangoUmbrales, entradasQueCuentan, obligatoriaRangoDe } from '../services/rangos.service.js';
+import { miRango, puntosDisponibles, alDia, rangoUmbrales, entradasQueCuentan, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { icon } from '../utils/icons.js';
 import { showAlert } from '../components/dialog.js';
 
@@ -33,6 +33,7 @@ import { showAlert } from '../components/dialog.js';
       // «N de M» con las entradas ya visibles (antes N contaba también las
       // programadas que se completaron, y podía dar «16 de 3»).
       var disp = puntosDisponibles();
+      html += '<p class="perfil-aldia">Al día: <strong>' + alDia() + '%</strong></p>';
       html += '<div class="perfil-puntos"><span class="mandos-sub">' + disp.puntos + ' de ' + disp.total + ' puntos disponibles</span>';
       if(r.siguiente && r.siguiente.faltanPuntos) html += '<span class="mandos-sub">' + r.siguiente.faltanPuntos + (r.siguiente.faltanPuntos === 1 ? ' punto' : ' puntos') + ' hasta el siguiente rango</span>';
       html += '</div>';

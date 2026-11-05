@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.05.21';
+  export var APP_VERSION = '2026.11.05.22';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,10 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.05.22', date: '05/11/2026', items: [
+      'Tablero: el % de cada comando mide qué tan al día está con las entradas ya publicadas.',
+      'Perfil: muestra «Al día: N%».'
+    ]},
     { version: '2026.11.05.20', date: '05/11/2026', items: [
       'Tablero: podio con los 3 primeros, el resto en una tabla plegable y tu comando siempre arriba.',
       'Los de Formación suman para Formación; el total de cada comando sale de la resolución.'

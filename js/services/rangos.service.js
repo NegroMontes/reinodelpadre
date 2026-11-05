@@ -118,6 +118,13 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
     return r;
   }
 
+  // % «al día»: puntos hechos de las entradas ya publicadas (pedido del
+  // usuario, 05/11/2026: medir sobre el camino entero avanzaba muy lento).
+  export function alDia(){
+    var d = puntosDisponibles();
+    return d.total ? Math.round(d.puntos / d.total * 100) : 0;
+  }
+
   export function miRango(){
     return calcularRango(entradasQueCuentan(), AppState.myProgress, rangoUmbrales(AppState.state));
   }
@@ -132,9 +139,10 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
     var u = AppState.currentUser;
     if(!u || u.role === 'pendiente' || AppState.viewAsOverride || AppState.myLectorMode) return;
     if(AppState.firstSnapshot || !AppState.myProgressLoaded) return;
-    var mr = miRango(), r = mr.rango, av = mr.porcentaje;
-    // T14 E1 (05/11/2026): también el % de avance (`avance`, 0-100), para el
-    // tablero por comando (promedio de los miembros, Comando → Tablero).
+    var mr = miRango(), r = mr.rango, av = alDia();
+    // T14 (05/11/2026): también el % «al día» (`avance`, 0-100): puntos
+    // hechos sobre los de las entradas YA publicadas (no las programadas),
+    // para el Tablero por comando. El rango sigue sobre el camino entero.
     var clave = r + '|' + av;
     if((r === u.rango && av === u.avance) || clave === guardando) return;
     guardando = clave;
