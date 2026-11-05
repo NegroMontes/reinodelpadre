@@ -8,7 +8,7 @@ import { DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, RANGOS } from '../config/constant
 import { escapeHtml, roleLabelScoped } from '../utils/helpers.js';
 import { cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { updateMyProfile } from '../services/auth.service.js';
-import { miRango, rangoNombres, rangoUmbrales } from '../services/rangos.service.js';
+import { miRango, puntosDisponibles, rangoNombres, rangoUmbrales } from '../services/rangos.service.js';
 import { icon } from '../utils/icons.js';
 import { showAlert } from '../components/dialog.js';
 
@@ -30,7 +30,7 @@ import { showAlert } from '../components/dialog.js';
     if(!r.total){
       html += '<p class="mandos-sub">Todavía no hay entradas con puntos.</p>';
     } else {
-      html += '<p class="mandos-sub">' + r.puntos + ' de ' + r.total + ' puntos disponibles</p>';
+      html += '<p class="mandos-sub">' + r.puntos + ' de ' + puntosDisponibles() + ' puntos disponibles</p>';
       html += '<div class="perfil-barra"><span style="width:' + Math.min(100, r.porcentaje) + '%"></span></div>';
     }
     html += '<ol class="perfil-rangos">';

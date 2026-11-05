@@ -105,6 +105,14 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
     });
   }
 
+  // Puntos de las entradas que ya se ven (sin las programadas): el «M» de
+  // «N de M puntos disponibles» del Perfil (pedido del usuario, 05/11/2026).
+  // El rango se sigue calculando sobre el camino entero (miRango()).
+  export function puntosDisponibles(){
+    return entradasQueCuentan().filter(function(e){ return !estaOculta(e); })
+      .reduce(function(t, e){ return t + puntosDe(e); }, 0);
+  }
+
   export function miRango(){
     return calcularRango(entradasQueCuentan(), AppState.myProgress, rangoUmbrales(AppState.state));
   }
