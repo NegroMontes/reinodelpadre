@@ -1,6 +1,7 @@
 // Rangos «en hijos» — T13 E2 (05/11/2026): cálculo de puntos y rango.
-// - Puntos por entrada: `entry.puntos` (el admin lo pone; sin valor = 1; 0 =
-//   no suma ni cuenta para el porcentaje).
+// - Puntos por entrada: `entry.puntos` (0 a 10, lo pone el admin; sin valor
+//   o 0 = no suma ni cuenta para el porcentaje — cambiado el 05/11/2026: no
+//   todas las entradas tienen puntaje).
 // - Rango por porcentaje: puntos juntados / puntos de las entradas con puntaje
 //   que la persona puede hacer. Umbrales en `state.rangos.umbrales` (4
 //   números, para los rangos 2..5), si no los de `RANGOS`.
@@ -15,7 +16,7 @@ import { canSeeEntry } from './permissions.js';
 
   export function puntosDe(entry){
     var p = Number(entry && entry.puntos);
-    return (entry && entry.puntos != null && entry.puntos !== '' && isFinite(p)) ? Math.max(0, p) : 1;
+    return (entry && entry.puntos != null && entry.puntos !== '' && isFinite(p)) ? Math.max(0, p) : 0;
   }
 
   export function obligatoriaRangoDe(entry){

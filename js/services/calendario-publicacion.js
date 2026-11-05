@@ -66,3 +66,40 @@ export function aplicarPlan(p){
   p.plan.forEach(function(x){ x.entry.publishAt = x.at; x.entry.oculta = true; });
   save();
 }
+
+// Puntos según el calendario (T13, 05/11/2026, escala 0-10 elegida por el
+// usuario): suman las que salen después del 13/11, más «¿Qué es una
+// entrada?» y «Repaso del mensaje»; el resto de los recursos queda en 0.
+function puntosPara(title){
+  var t = norm(title);
+  var dia = /\bdia\s*(\d)\b/.exec(t);
+  if(dia){ return DIAS[dia[1]] ? 10 : 0; }
+  if(/perfil|estilo|signos|revista|protocolo/.test(t)) return 5;
+  if(/quiz|marcha|carpa|que es una entrada|repaso del mensaje/.test(t)) return 3;
+  return 0;
+}
+
+// Solo entradas de Recursos sin puntos puestos a mano.
+export function planPuntos(){
+  var plan = [];
+  (AppState.state.entries || []).forEach(function(e){
+    if(e.deletedAt || e.dayId !== 'RESOURCES' || e.puntos != null) return;
+    var title = e.title || (e.espacio && e.espacio.title) || '(sin título)';
+    plan.push({ entry: e, title: title, puntos: puntosPara(title) });
+  });
+  plan.sort(function(a, b){ return b.puntos - a.puntos || a.title.localeCompare(b.title); });
+  return plan;
+}
+
+export function resumenPuntos(plan){
+  var conPts = plan.filter(function(x){ return x.puntos > 0; });
+  var lineas = conPts.map(function(x){ return '• ' + x.title + ': ' + x.puntos; });
+  var ceros = plan.length - conPts.length;
+  if(ceros) lineas.push('\nEl resto (' + ceros + ' entradas) queda en 0.');
+  return lineas.join('\n');
+}
+
+export function aplicarPuntos(plan){
+  plan.forEach(function(x){ x.entry.puntos = x.puntos; });
+  save();
+}

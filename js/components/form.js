@@ -218,7 +218,7 @@ import { attachEntryReorder } from './entry-reorder.js';
     // Rangos (T13 E2, 05/11/2026): puntos de la entrada y si es obligatoria
     // para llegar a un rango — solo admin.
     if(isAdmin() && day !== 'INFO_GENERAL'){
-      html += '  <div class="form-row rango-row"><label for="fPuntos">Puntos</label><input type="number" id="fPuntos" min="0" step="1" inputmode="numeric" placeholder="1" value="' + escapeHtml(AppState.formPuntos || '') + '">' + helpTipHtml('Lo que suma al completarla. Vacío = 1. Con 0 no suma ni cuenta para el porcentaje del rango.') + '</div>';
+      html += '  <div class="form-row rango-row"><label for="fPuntos">Puntos</label><input type="number" id="fPuntos" min="0" max="10" step="1" inputmode="numeric" placeholder="0" value="' + escapeHtml(AppState.formPuntos || '') + '">' + helpTipHtml('De 0 a 10: lo que suma al completarla. Vacío o 0 = no suma ni cuenta para el porcentaje del rango.') + '</div>';
       html += '  <div class="form-row rango-row"><label for="fObligRango">Obligatoria para llegar a</label><select id="fObligRango"><option value="">(No es obligatoria)</option>';
       RANGOS.slice(1).forEach(function(r){
         html += '<option value="' + r.n + '"' + (String(r.n) === String(AppState.formObligRango) ? ' selected' : '') + '>' + r.n + ' · ' + escapeHtml(r.nombre) + '</option>';
@@ -253,7 +253,7 @@ import { attachEntryReorder } from './entry-reorder.js';
   function aplicarRango(entry){
     var p = String(AppState.formPuntos == null ? '' : AppState.formPuntos).trim();
     var n = Math.floor(Number(p));
-    if(p !== '' && isFinite(n) && n >= 0) entry.puntos = n; else delete entry.puntos;
+    if(p !== '' && isFinite(n) && n >= 0) entry.puntos = Math.min(10, n); else delete entry.puntos;
     var o = Number(AppState.formObligRango);
     if(o >= 2 && o <= RANGOS.length) entry.obligatoriaRango = o; else delete entry.obligatoriaRango;
   }

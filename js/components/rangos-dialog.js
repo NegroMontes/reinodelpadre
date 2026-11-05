@@ -8,6 +8,7 @@ import { realIsAdmin } from '../services/permissions.js';
 import { save } from '../services/state.service.js';
 import { rangoUmbrales, miRango, entradasQueCuentan, puntosDe, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { render } from '../main.js';
+import { showAlert, showConfirm } from './dialog.js';
 
   export function openRangosDialog(){
     if(!realIsAdmin()) return;
@@ -38,6 +39,7 @@ import { render } from '../main.js';
       '  <p class="mandos-sub" style="margin:12px 0 0">' + entradas.length + ' entradas cuentan para vos: ' + conPuntaje + ' con puntaje, ' + obligatorias + ' obligatoria' + (obligatorias === 1 ? '' : 's') + '.</p>' +
       '  <p style="margin:6px 0 0">' + prueba + '</p>' +
       '  <div class="app-dialog-actions" style="margin-top:16px">' +
+      '    <button type="button" class="btn ghost small" id="rangoCalendarioBtn">Puntos según el calendario</button>' +
       '    <button type="button" class="btn ghost small" id="rangoDefaultBtn">Valores de fábrica</button>' +
       '    <button type="button" class="btn ghost small" id="rangoCancelBtn">Cancelar</button>' +
       '    <button type="button" class="btn small" id="rangoSaveBtn">Guardar</button>' +
@@ -49,6 +51,16 @@ import { render } from '../main.js';
     document.addEventListener('keydown', onKey);
     overlay.onclick = function(e){ if(e.target === overlay) close(); };
     overlay.querySelector('#rangoCancelBtn').onclick = close;
+    overlay.querySelector('#rangoCalendarioBtn').onclick = async function(){
+      var mod = await import('../services/calendario-publicacion.js');
+      var plan = mod.planPuntos();
+      close();
+      if(!plan.length){ await showAlert('Todas las entradas de Recursos ya tienen puntos puestos.'); return; }
+      if(!(await showConfirm('Puntos para las entradas de Recursos que todavía no tienen (las que ya tienen no se tocan):\n\n' + mod.resumenPuntos(plan) + '\n\n¿Aplicarlos?'))) return;
+      mod.aplicarPuntos(plan);
+      render();
+      await showAlert('Listo. Cada tarjeta muestra sus puntos (solo vos los ves).');
+    };
     overlay.querySelector('#rangoDefaultBtn').onclick = function(){
       overlay.querySelectorAll('.rango-umbral').forEach(function(inp, i){ inp.value = RANGOS[i + 1].umbral; });
     };

@@ -161,7 +161,7 @@
   // novedades, más viejo abajo.
   export var CHANGELOG = [
     { version: '2026.11.05.5', date: '05/11/2026', items: [
-      'Rangos: cada entrada puede valer puntos (o 0) y ser obligatoria para llegar a un rango. Los admins ajustan los porcentajes de cada rango.'
+      'Rangos: cada entrada puede valer de 0 a 10 puntos y ser obligatoria para llegar a un rango. Los admins ajustan los porcentajes de cada rango y pueden poner los puntos según el calendario de publicación.'
     ]},
     { version: '2026.11.05.4', date: '05/11/2026', items: [
       'Recursos: los admins pueden editar las categorías (nombre, ícono, orden, meterlas dentro de otra), agregar nuevas y borrarlas.'
