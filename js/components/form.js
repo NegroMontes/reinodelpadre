@@ -12,6 +12,7 @@ import { SECCIONES, DEPARTAMENTOS, RANGOS } from '../config/constants.js';
 import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recursoCategorias, recursoCategoriasOrdenadas, recursoGruposDe, recursoGrupoDe, mediodiaDe, isoDeFecha } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
+import { rangoNombre } from '../services/rangos.service.js';
 import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { openFordoqueraEditor, openFordoqueraViewer, openFordoqueraTraer, embeddableUrlForUpload } from './fordoquera-embed.js';
@@ -221,7 +222,7 @@ import { attachEntryReorder } from './entry-reorder.js';
       html += '  <div class="form-row rango-row"><label for="fPuntos">Puntos</label><input type="number" id="fPuntos" min="0" max="10" step="1" inputmode="numeric" placeholder="0" value="' + escapeHtml(AppState.formPuntos || '') + '">' + helpTipHtml('De 0 a 10: lo que suma al completarla. Vacío o 0 = no suma ni cuenta para el porcentaje del rango.') + '</div>';
       html += '  <div class="form-row rango-row"><label for="fObligRango">Obligatoria para llegar a</label><select id="fObligRango"><option value="">(No es obligatoria)</option>';
       RANGOS.slice(1).forEach(function(r){
-        html += '<option value="' + r.n + '"' + (String(r.n) === String(AppState.formObligRango) ? ' selected' : '') + '>' + r.n + ' · ' + escapeHtml(r.nombre) + '</option>';
+        html += '<option value="' + r.n + '"' + (String(r.n) === String(AppState.formObligRango) ? ' selected' : '') + '>' + r.n + ' · ' + escapeHtml(rangoNombre(r.n)) + '</option>';
       });
       html += '</select>' + helpTipHtml('Aunque tenga el porcentaje, nadie sube a ese rango (ni a los de arriba) sin completarla.') + '</div>';
     }

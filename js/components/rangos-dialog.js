@@ -6,21 +6,22 @@ import { RANGOS } from '../config/constants.js';
 import { escapeHtml } from '../utils/helpers.js';
 import { realIsAdmin } from '../services/permissions.js';
 import { save } from '../services/state.service.js';
-import { rangoUmbrales, miRango, entradasQueCuentan, puntosDe, obligatoriaRangoDe } from '../services/rangos.service.js';
+import { rangoUmbrales, rangoNombres, miRango, entradasQueCuentan, puntosDe, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { render } from '../main.js';
 import { showAlert, showConfirm } from './dialog.js';
 
   export function openRangosDialog(){
     if(!realIsAdmin()) return;
     var u = rangoUmbrales(AppState.state);
+    var nombres = rangoNombres(AppState.state);
     var r = miRango();
     var entradas = entradasQueCuentan();
     var conPuntaje = entradas.filter(function(e){ return puntosDe(e) > 0; }).length;
     var obligatorias = entradas.filter(function(e){ return obligatoriaRangoDe(e); }).length;
     var filas = RANGOS.map(function(rg, i){
       var campo = i === 0 ? '<span class="mandos-sub">desde el inicio</span>'
-        : '<span class="rango-pct"><input type="number" class="rango-umbral" min="0" max="100" step="1" value="' + u[i - 1] + '" aria-label="Porcentaje para ' + escapeHtml(rg.nombre) + '">%</span>';
-      return '<div class="rango-fila"><span>' + rg.n + ' · ' + escapeHtml(rg.nombre) + '</span><span>' + campo + '</span></div>';
+        : '<span class="rango-pct"><input type="number" class="rango-umbral" min="0" max="100" step="1" value="' + u[i - 1] + '" aria-label="Porcentaje para el rango ' + rg.n + '">%</span>';
+      return '<div class="rango-fila"><span class="rango-nombre-wrap">' + rg.n + ' · <input type="text" class="rango-nombre" maxlength="40" value="' + escapeHtml(nombres[i]) + '" placeholder="' + escapeHtml(rg.nombre) + '" aria-label="Nombre del rango ' + rg.n + '"></span><span>' + campo + '</span></div>';
     }).join('');
     var sig = r.siguiente;
     var prueba = 'Tus puntos: <strong>' + r.puntos + ' de ' + r.total + '</strong> (' + r.porcentaje + '%) → <strong>' + escapeHtml(r.nombre) + '</strong>.';
@@ -33,9 +34,9 @@ import { showAlert, showConfirm } from './dialog.js';
     overlay.innerHTML =
       '<div class="app-dialog-box info-general-dialog" role="dialog" aria-modal="true">' +
       '  <h3 style="margin:0 0 6px">Rangos y puntos</h3>' +
-      '  <p class="mandos-sub" style="margin:0 0 12px">Porcentaje de los puntos (de las entradas que cada uno puede hacer) para llegar a cada rango. Los puntos y las obligatorias se ponen en cada entrada (Editar).</p>' +
+      '  <p class="mandos-sub" style="margin:0 0 12px">Nombre de cada rango y porcentaje de los puntos (de las entradas que cada uno puede hacer) para llegar a cada rango. Los puntos y las obligatorias se ponen en cada entrada (Editar).</p>' +
       '  <div class="rango-tabla">' + filas + '</div>' +
-      '  <button type="button" class="rango-link" id="rangoDefaultBtn">Volver a 20 / 40 / 60 / 80</button>' +
+      '  <button type="button" class="rango-link" id="rangoDefaultBtn">Volver a los nombres y porcentajes de fábrica</button>' +
       '  <p class="mandos-sub recurso-dialog-error" id="rangoError" hidden>Cada porcentaje tiene que ser de 0 a 100 y no menor que el anterior.</p>' +
       '  <p class="mandos-sub" style="margin:12px 0 0">' + entradas.length + ' entradas cuentan para vos (publicadas y programadas): ' + conPuntaje + ' con puntaje, ' + obligatorias + ' obligatoria' + (obligatorias === 1 ? '' : 's') + '.</p>' +
       '  <p style="margin:6px 0 0">' + prueba + '</p>' +
@@ -63,12 +64,14 @@ import { showAlert, showConfirm } from './dialog.js';
     };
     overlay.querySelector('#rangoDefaultBtn').onclick = function(){
       overlay.querySelectorAll('.rango-umbral').forEach(function(inp, i){ inp.value = RANGOS[i + 1].umbral; });
+      overlay.querySelectorAll('.rango-nombre').forEach(function(inp, i){ inp.value = RANGOS[i].nombre; });
     };
     overlay.querySelector('#rangoSaveBtn').onclick = function(){
       var vals = Array.prototype.map.call(overlay.querySelectorAll('.rango-umbral'), function(inp){ return Number(inp.value); });
       var ok = vals.every(function(x, i){ return inp100(x) && (i === 0 || x >= vals[i - 1]); });
       if(!ok){ overlay.querySelector('#rangoError').hidden = false; return; }
-      AppState.state.rangos = Object.assign({}, AppState.state.rangos || {}, { umbrales: vals });
+      var noms = Array.prototype.map.call(overlay.querySelectorAll('.rango-nombre'), function(inp, i){ return inp.value.trim() || RANGOS[i].nombre; });
+      AppState.state.rangos = Object.assign({}, AppState.state.rangos || {}, { umbrales: vals, nombres: noms });
       save();
       close();
       render();

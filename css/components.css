@@ -1482,6 +1482,9 @@ a.recurso-cat{ text-decoration:none; }
 /* Rangos y puntos (T13 E2, 05/11/2026) */
 .rango-tabla{display:flex;flex-direction:column;gap:6px}
 .rango-fila{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.rango-nombre-wrap{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.rango-fila input.rango-nombre{flex:1;min-width:0}
+.rango-fila>span:last-child{flex:none;width:96px;text-align:right}
 .rango-pct{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .rango-fila input.rango-umbral{width:64px;min-width:0;text-align:right}
 .rango-link{display:block;background:none;border:0;padding:0;margin-top:10px;color:var(--teal);font:inherit;font-size:.9rem;text-decoration:underline;cursor:pointer;text-align:left}

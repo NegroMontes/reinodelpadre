@@ -33,9 +33,18 @@ import { canSeeEntry } from './permissions.js';
     return ok ? u.slice() : def;
   }
 
+  // Nombres de los rangos: los que puso el admin (`state.rangos.nombres`, 05/11/2026)
+  // o los de fábrica (`RANGOS`).
+  export function rangoNombres(state){
+    var n = state && state.rangos && state.rangos.nombres;
+    return RANGOS.map(function(r, i){
+      var v = Array.isArray(n) && typeof n[i] === 'string' ? n[i].trim() : '';
+      return v || r.nombre;
+    });
+  }
+
   export function rangoNombre(n){
-    var r = RANGOS.find(function(x){ return x.n === n; });
-    return r ? r.nombre : '';
+    return (n >= 1 && n <= RANGOS.length) ? rangoNombres(AppState.state)[n - 1] : '';
   }
 
   // Cálculo puro: `entradas` = las que la persona puede hacer, `progreso` =
