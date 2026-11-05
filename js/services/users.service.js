@@ -23,11 +23,11 @@ import { showAlert } from '../components/dialog.js';
       AppState.usersList = list;
       if(!AppState.currentUser) return;
       if(AppState.currentUser.role === 'admin'){
-        if(AppState.activeDayId === 'USERS'){ render(); }
+        if(AppState.activeDayId === 'USERS' || (AppState.activeDayId === 'MANDOS' && AppState.mandosActiveSubTab === 'tablero')){ render(); }
         // El badge de "pendiente" en el sidebar se actualiza en vivo aunque el
         // admin esté mirando otra pestaña — mismo patrón que el badge de Comentarios.
         else { renderDayRail(); }
-      } else if(AppState.activeDayId === 'MANDOS' && AppState.mandosActiveSubTab === 'micomando'){
+      } else if(AppState.activeDayId === 'MANDOS' && (AppState.mandosActiveSubTab === 'micomando' || AppState.mandosActiveSubTab === 'tablero')){
         render();
       }
     });

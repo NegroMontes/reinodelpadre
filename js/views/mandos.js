@@ -5,10 +5,11 @@
 // vivo de quien ya se registró, con foto/actividad favorita/ruca — ver
 // canSeeMiComandoSubtab() en services/permissions.js).
 
-import { rangoGuardadoDe, rangoNombre } from '../services/rangos.service.js';
+import { rangoGuardadoDe, rangoNombre, avanceGuardadoDe } from '../services/rangos.service.js';
 import { AppState } from '../app-state.js';
+import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_SVG_ICON } from '../config/constants.js';
 import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
-import { userBadgeInnerHtml } from '../utils/badge-icons.js';
+import { userBadgeInnerHtml, sectionShieldHtml } from '../utils/badge-icons.js';
 import { icon } from '../utils/icons.js';
 import { canSeeMiComandoSubtab, effectiveRole, effectiveSeccion, effectiveDepto, lectorModeActive } from '../services/permissions.js';
 import { buildMandosIndex, findMandoByName } from '../utils/mandos-matcher.js';
@@ -256,9 +257,108 @@ import { renderPanel } from '../main.js';
   }
 
 
+  // Tablero por comando — T14 (05/11/2026): promedio del % de avance
+  // (`users/{uid}.avance`, lo guarda el dispositivo de cada uno) de cada
+  // sección/departamento. Miembros: mismos que Mi comando (sin milicianos ni
+  // pendientes), pero Formación se lleva a TODOS los suyos (jefe y subjefes
+  // `esFormacion`): no suman para la sección que acompañan (pedido del
+  // usuario). Total = la cantidad de nombres de ese comando en la resolución
+  // (`mandos/data`, sin capellanes), o los registrados si son más; quien no
+  // se registró o no tiene avance cuenta como 0% en el promedio.
+  function grupoTableroDe(u, mandosIndex){
+    return esFormacionMember(u, mandosIndex) ? 'Formación' : comandoGrupoDe(u, mandosIndex);
+  }
+
+  function totalesResolucion(mandosIndex){
+    var t = {};
+    mandosIndex.forEach(function(e){
+      var b = e.bucket, g = b.seccion || b.depto;
+      if(!g || b.type === 'capellan') return;
+      t[g] = (t[g] || 0) + 1;
+    });
+    return t;
+  }
+
+  export function tableroComandos(){
+    var comando = (AppState.usersList || []).filter(function(u){ return !isMilicianoUser(u) && u.role !== 'pendiente'; });
+    var mandosIndex = buildMandosIndex(AppState.mandosData);
+    var totRes = totalesResolucion(mandosIndex);
+    var filas = SECCIONES.concat(DEPARTAMENTOS).map(function(g){
+      var miembros = comando.filter(function(u){ return grupoTableroDe(u, mandosIndex) === g; });
+      var vals = miembros.map(avanceGuardadoDe).filter(function(v){ return v !== null; });
+      var total = Math.max(totRes[g] || 0, miembros.length);
+      var suma = vals.reduce(function(x, y){ return x + y; }, 0);
+      return { grupo: g, tipo: SECCIONES.indexOf(g) >= 0 ? 'seccion' : 'depto', total: total, conDatos: vals.length,
+        promedio: total ? Math.round(suma / total) : 0 };
+    }).sort(function(x, y){ return (y.promedio - x.promedio) || (y.conDatos - x.conDatos); });
+    // Posición: empatados comparten el puesto.
+    filas.forEach(function(f, i){ f.pos = (i && f.promedio === filas[i - 1].promedio) ? filas[i - 1].pos : i + 1; });
+    return filas;
+  }
+
+  // El comando propio para la tarjeta fija: Formación si es de Formación.
+  function miGrupoTablero(mandosIndex){
+    var cu = AppState.currentUser;
+    if(cu && esFormacionMember(cu, mandosIndex)) return 'Formación';
+    return miGrupoActual(mandosIndex);
+  }
+
+  function comandoIconHtml(f){
+    var inner = f.tipo === 'seccion' ? sectionShieldHtml(f.grupo) : icon(DEPARTAMENTO_SVG_ICON[f.grupo] || 'users');
+    return '<span class="tablero-icon tablero-icon-' + f.tipo + '">' + inner + '</span>';
+  }
+
+  function metaTxt(f){ return f.conDatos + ' de ' + f.total + ' con avance'; }
+
+  function renderTableroHtml(){
+    var filas = tableroComandos();
+    var mandosIndex = buildMandosIndex(AppState.mandosData);
+    var mio = miGrupoTablero(mandosIndex);
+    var mia = filas.filter(function(f){ return f.grupo === mio; })[0];
+    var html = '';
+
+    if(mia){
+      html += '<div class="tablero-mio">' + comandoIconHtml(mia) +
+        '<div class="tablero-mio-info"><span class="tablero-mio-label">Tu comando</span>' +
+        '<strong>' + escapeHtml(mia.grupo) + '</strong><span class="tablero-meta">' + metaTxt(mia) + '</span></div>' +
+        '<div class="tablero-mio-nums"><span class="tablero-mio-pos">' + mia.pos + '°</span>' +
+        '<span class="tablero-mio-pct">' + mia.promedio + '%</span></div></div>';
+    }
+    html += '<p class="mandos-sub">Promedio del avance de cada comando en su camino formativo (quien todavía no avanzó cuenta como 0%).</p>';
+
+    // Podio: 2° · 1° · 3° (en celular, 1° · 2° · 3°).
+    var top = filas.slice(0, 3);
+    html += '<div class="tablero-podio">';
+    [1, 0, 2].forEach(function(i){
+      var f = top[i];
+      if(!f) return;
+      html += '<div class="podio-col podio-' + (i + 1) + (f.grupo === mio ? ' es-mio' : '') + '">' +
+        comandoIconHtml(f) +
+        '<span class="podio-nombre">' + escapeHtml(f.grupo) + '</span>' +
+        '<span class="podio-pct">' + f.promedio + '%</span>' +
+        '<span class="tablero-meta">' + metaTxt(f) + '</span>' +
+        '<div class="podio-base"><span>' + f.pos + '°</span></div></div>';
+    });
+    html += '</div>';
+
+    var resto = filas.slice(3);
+    if(resto.length){
+      html += '<details class="tablero-resto"' + (AppState.tableroRestoOpen ? ' open' : '') + '>' +
+        '<summary>Resto del ranking (' + resto.length + ')</summary><table class="tablero-tabla"><tbody>';
+      resto.forEach(function(f){
+        html += '<tr' + (f.grupo === mio ? ' class="es-mio"' : '') + '><td class="tt-pos">' + f.pos + '°</td>' +
+          '<td><div class="tt-nombre">' + comandoIconHtml(f) + '<span>' + escapeHtml(f.grupo) + '<small class="tablero-meta">' + metaTxt(f) + '</small></span></div></td>' +
+          '<td class="tt-barra"><div class="perfil-barra"><span style="width:' + f.promedio + '%"></span></div></td>' +
+          '<td class="tt-pct">' + f.promedio + '%</td></tr>';
+      });
+      html += '</tbody></table></details>';
+    }
+    return html;
+  }
+
   export function renderMandosPanel(){
     var showMiComando = canSeeMiComandoSubtab();
-    if(AppState.mandosActiveSubTab === 'micomando' && !showMiComando){ AppState.mandosActiveSubTab = 'mandos'; }
+    if((AppState.mandosActiveSubTab === 'micomando' || AppState.mandosActiveSubTab === 'tablero') && !showMiComando){ AppState.mandosActiveSubTab = 'mandos'; }
 
     var html = '';
     html += '<div class="panel-head"><div><h2>Comando</h2>';
@@ -266,18 +366,24 @@ import { renderPanel } from '../main.js';
 
     if(showMiComando){
       html += '<div class="users-subtabs">';
-      html += '  <button type="button" class="day-pill' + (AppState.mandosActiveSubTab !== 'micomando' ? ' active' : '') + '" data-mandos-subtab="mandos">Cuadro de mandos</button>';
-      html += '  <button type="button" class="day-pill' + (AppState.mandosActiveSubTab === 'micomando' ? ' active' : '') + '" data-mandos-subtab="micomando">Mi comando</button>';
+      var st = AppState.mandosActiveSubTab;
+      html += '  <button type="button" class="day-pill' + (st !== 'micomando' && st !== 'tablero' ? ' active' : '') + '" data-mandos-subtab="mandos">Cuadro de mandos</button>';
+      html += '  <button type="button" class="day-pill' + (st === 'micomando' ? ' active' : '') + '" data-mandos-subtab="micomando">Mi comando</button>';
+      html += '  <button type="button" class="day-pill' + (st === 'tablero' ? ' active' : '') + '" data-mandos-subtab="tablero">Tablero</button>';
       html += '</div>';
     }
 
-    html += (AppState.mandosActiveSubTab === 'micomando' && showMiComando) ? renderMiComandoHtml() : renderCuadroDeMandosHtml();
+    if(showMiComando && AppState.mandosActiveSubTab === 'micomando') html += renderMiComandoHtml();
+    else if(showMiComando && AppState.mandosActiveSubTab === 'tablero') html += renderTableroHtml();
+    else html += renderCuadroDeMandosHtml();
 
     return html;
   }
 
 
   export function attachMandosEvents(){
+    var resto = document.querySelector('.tablero-resto');
+    if(resto) resto.addEventListener('toggle', function(){ AppState.tableroRestoOpen = resto.open; });
     document.querySelectorAll('[data-mandos-subtab]').forEach(function(btn){
       btn.onclick = function(){
         AppState.mandosActiveSubTab = btn.getAttribute('data-mandos-subtab');

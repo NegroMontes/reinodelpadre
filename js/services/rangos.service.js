@@ -132,10 +132,13 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
     var u = AppState.currentUser;
     if(!u || u.role === 'pendiente' || AppState.viewAsOverride || AppState.myLectorMode) return;
     if(AppState.firstSnapshot || !AppState.myProgressLoaded) return;
-    var r = miRango().rango;
-    if(r === u.rango || r === guardando) return;
-    guardando = r;
-    setDoc(doc(db, 'users', u.uid), { rango: r }, { merge: true })
+    var mr = miRango(), r = mr.rango, av = mr.porcentaje;
+    // T14 E1 (05/11/2026): también el % de avance (`avance`, 0-100), para el
+    // tablero por comando (promedio de los miembros, Comando → Tablero).
+    var clave = r + '|' + av;
+    if((r === u.rango && av === u.avance) || clave === guardando) return;
+    guardando = clave;
+    setDoc(doc(db, 'users', u.uid), { rango: r, avance: av }, { merge: true })
       .catch(function(e){ console.error('No se pudo guardar tu rango:', e); })
       .finally(function(){ guardando = null; });
   }
@@ -144,4 +147,10 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
   export function rangoGuardadoDe(u){
     var n = Number(u && u.rango);
     return (n >= 1 && n <= RANGOS.length) ? n : 0;
+  }
+
+  // % de avance guardado de otra persona (T14 E1). null = todavía no lo guardó.
+  export function avanceGuardadoDe(u){
+    var n = Number(u && u.avance);
+    return (u && u.avance != null && isFinite(n)) ? Math.max(0, Math.min(100, n)) : null;
   }
