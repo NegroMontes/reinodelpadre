@@ -324,7 +324,6 @@ import { renderPanel } from '../main.js';
         '<div class="tablero-mio-nums"><span class="tablero-mio-pos">' + mia.pos + '°</span>' +
         '<span class="tablero-mio-pct">' + mia.promedio + '%</span></div></div>';
     }
-    html += '<p class="mandos-sub">Promedio del avance de cada comando en su camino formativo (quien todavía no avanzó cuenta como 0%).</p>';
 
     // Podio: 2° · 1° · 3° (en celular, 1° · 2° · 3°).
     var top = filas.slice(0, 3);
