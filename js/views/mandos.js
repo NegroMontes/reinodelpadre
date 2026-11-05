@@ -387,20 +387,21 @@ import { renderPanel } from '../main.js';
     var grupos = rol === 'admin' ? SECCIONES.concat(DEPARTAMENTOS, [COMANDO_CENTRAL]) : [miGrupoTablero(mandosIndex)];
     var totalFaltan = 0, cuerpo = '';
     grupos.forEach(function(g){
-      var filas = '', sinDato = 0;
+      var filas = '', sinDato = 0, alDiaN = 0;
       miembrosDeGrupo(comando, g, mandosIndex).forEach(function(u){
         var ids = obligPendientesDe(u);
         if(ids === null){ sinDato++; return; }
         var titulos = ids.filter(function(id){ return vigentes[id]; }).map(function(id){ return vigentes[id].title || 'Sin título'; });
-        if(!titulos.length) return;
+        if(!titulos.length){ alDiaN++; return; }
         totalFaltan++;
         filas += '<li><strong>' + escapeHtml(u.displayName || u.email || 'Sin nombre') + '</strong>' +
           '<span class="tablero-meta">' + titulos.map(escapeHtml).join(' · ') + '</span></li>';
       });
       if(!filas && !sinDato) return;
       cuerpo += '<div class="oblig-grupo">' + (rol === 'admin' ? '<h4>' + escapeHtml(g) + '</h4>' : '') +
-        (filas ? '<ul class="oblig-lista">' + filas + '</ul>' : '<p class="tablero-meta">Todos al día.</p>') +
-        (sinDato ? '<p class="tablero-meta">' + sinDato + (sinDato === 1 ? ' persona todavía no abrió' : ' personas todavía no abrieron') + ' la página desde que se cuenta esto.</p>' : '') +
+        (filas ? '<ul class="oblig-lista">' + filas + '</ul>' : '') +
+        (alDiaN ? '<p class="tablero-meta">' + alDiaN + (alDiaN === 1 ? ' persona al día.' : ' personas al día.') + '</p>' : '') +
+        (sinDato ? '<p class="tablero-meta">' + sinDato + (sinDato === 1 ? ' persona sin datos todavía (no abrió' : ' personas sin datos todavía (no abrieron') + ' la página desde este cambio).</p>' : '') +
         '</div>';
     });
     if(!cuerpo) cuerpo = '<p class="tablero-meta">Todavía no se registró nadie.</p>';
@@ -427,7 +428,7 @@ import { renderPanel } from '../main.js';
     }
 
     if(showMiComando && AppState.mandosActiveSubTab === 'micomando') html += renderMiComandoHtml();
-    else if(showMiComando && AppState.mandosActiveSubTab === 'tablero') html += renderTableroHtml() + renderObligatoriasHtml();
+    else if(showMiComando && AppState.mandosActiveSubTab === 'tablero') html += renderObligatoriasHtml() + renderTableroHtml();
     else html += renderCuadroDeMandosHtml();
 
     return html;
