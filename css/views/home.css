@@ -893,8 +893,9 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .perfil-card .user-menu-profile-form{ padding:0; }
 .perfil-barra{ height:8px; border-radius:999px; background:var(--line); overflow:hidden; margin:6px 0 12px; }
 .perfil-barra span{ display:block; height:100%; background:var(--teal); border-radius:999px; }
-.perfil-rangos{ list-style:none; margin:0 0 10px; padding:0; display:flex; flex-direction:column; gap:4px; }
-.perfil-rangos li{ display:flex; justify-content:space-between; gap:8px; padding:6px 10px; border-radius:var(--radius-sm); border:1px solid var(--line); opacity:.6; }
-.perfil-rangos li.hecho{ opacity:1; }
-.perfil-rangos li.actual{ opacity:1; border-color:var(--teal); box-shadow:inset 3px 0 0 var(--teal); }
-.perfil-obligatorias{ margin:4px 0 0; padding-left:18px; font-size:13px; }
+.perfil-barra-roja span{ background:var(--bordeaux); }
+.perfil-obligatorias-titulo{ margin:12px 0 4px; font-weight:600; }
+.perfil-obligatorias{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; font-size:13px; }
+.perfil-obligatorias li{ display:flex; align-items:center; gap:8px; }
+.perfil-tilde{ flex:0 0 auto; width:18px; height:18px; border-radius:50%; border:1.5px solid var(--line); display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.perfil-obligatorias li.hecha .perfil-tilde{ background:var(--teal); border-color:var(--teal); color:var(--card-bg); }

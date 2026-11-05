@@ -4,11 +4,11 @@
 // (T13 E3).
 
 import { AppState } from '../app-state.js';
-import { DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, RANGOS } from '../config/constants.js';
+import { DEPARTAMENTO_ICONS, CONSAGRADO_ICONS } from '../config/constants.js';
 import { escapeHtml, roleLabelScoped } from '../utils/helpers.js';
 import { cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { updateMyProfile } from '../services/auth.service.js';
-import { miRango, puntosDisponibles, rangoNombres, rangoUmbrales } from '../services/rangos.service.js';
+import { miRango, puntosDisponibles, rangoUmbrales, entradasQueCuentan, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { icon } from '../utils/icons.js';
 import { showAlert } from '../components/dialog.js';
 
@@ -22,8 +22,8 @@ import { showAlert } from '../components/dialog.js';
 
   function rangoCardHtml(){
     var r = miRango();
-    var nombres = rangoNombres(AppState.state);
     var umbrales = [0].concat(rangoUmbrales(AppState.state));
+    var obligatorias = [], hecha = function(){ return false; };
     var html = '<div class="home-card perfil-card">';
     html += '<h3>Tu rango</h3>';
     html += '<span class="rango-chip">' + icon('star') + ' ' + escapeHtml(r.nombre) + '</span>';
@@ -38,24 +38,23 @@ import { showAlert } from '../components/dialog.js';
         var pct = r.puntos / r.total * 100, desde = umbrales[r.rango - 1], hasta = umbrales[r.rango];
         avance = hasta > desde ? Math.max(0, Math.min(100, (pct - desde) / (hasta - desde) * 100)) : 100;
       }
-      html += '<div class="perfil-barra"><span style="width:' + Math.round(avance) + '%"></span></div>';
-      if(r.siguiente) html += '<p class="mandos-sub">Hacia «' + escapeHtml(r.siguiente.nombre) + '»: ' + Math.round(avance) + '%</p>';
+      // Obligatorias del siguiente rango, con tilde si están hechas.
+      obligatorias = r.siguiente ? entradasQueCuentan().filter(function(e){ return obligatoriaRangoDe(e) === r.siguiente.rango; }) : [];
+      hecha = function(e){ return !!(AppState.myProgress[e.id] && AppState.myProgress[e.id].completedAt); };
+      var faltaObligatoria = obligatorias.some(function(e){ return !hecha(e); });
+      // Llena pero sin las obligatorias: roja.
+      var roja = avance >= 100 && faltaObligatoria;
+      html += '<div class="perfil-barra' + (roja ? ' perfil-barra-roja' : '') + '"><span style="width:' + Math.round(avance) + '%"></span></div>';
+      if(r.siguiente) html += '<p class="mandos-sub">Hacia el siguiente rango: ' + Math.round(avance) + '%' + (roja ? ' — faltan entradas obligatorias' : '') + '</p>';
     }
-    html += '<ol class="perfil-rangos">';
-    RANGOS.forEach(function(x, i){
-      var cls = x.n < r.rango ? 'hecho' : (x.n === r.rango ? 'actual' : '');
-      html += '<li class="' + cls + '"><strong>' + escapeHtml(nombres[i]) + '</strong><span class="mandos-sub">' + (i ? umbrales[i] + '%' : 'Inicio') + '</span></li>';
-    });
-    html += '</ol>';
     if(r.siguiente){
-      var falta = [];
-      if(r.siguiente.faltanPuntos) falta.push(r.siguiente.faltanPuntos + ' puntos');
-      var obs = r.siguiente.obligatoriasPendientes;
-      if(obs.length) falta.push(obs.length + (obs.length === 1 ? ' entrada obligatoria' : ' entradas obligatorias'));
-      if(falta.length) html += '<p class="mandos-sub">Para llegar a «' + escapeHtml(r.siguiente.nombre) + '» falta: ' + falta.join(' y ') + '.</p>';
-      if(obs.length){
+      if(obligatorias && obligatorias.length){
+        html += '<p class="mandos-sub perfil-obligatorias-titulo">Entradas obligatorias</p>';
         html += '<ul class="perfil-obligatorias">';
-        obs.forEach(function(e){ html += '<li>' + escapeHtml(e.title || '(sin título)') + '</li>'; });
+        obligatorias.forEach(function(e){
+          var ok = hecha(e);
+          html += '<li class="' + (ok ? 'hecha' : '') + '"><span class="perfil-tilde">' + (ok ? '✓' : '') + '</span>' + escapeHtml(e.title || '(sin título)') + '</li>';
+        });
         html += '</ul>';
       }
     } else if(r.total){
