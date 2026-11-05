@@ -109,8 +109,13 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
   // «N de M puntos disponibles» del Perfil (pedido del usuario, 05/11/2026).
   // El rango se sigue calculando sobre el camino entero (miRango()).
   export function puntosDisponibles(){
-    return entradasQueCuentan().filter(function(e){ return !estaOculta(e); })
-      .reduce(function(t, e){ return t + puntosDe(e); }, 0);
+    var r = { puntos: 0, total: 0 };
+    entradasQueCuentan().filter(function(e){ return !estaOculta(e); }).forEach(function(e){
+      var p = puntosDe(e);
+      r.total += p;
+      if(AppState.myProgress[e.id] && AppState.myProgress[e.id].completedAt) r.puntos += p;
+    });
+    return r;
   }
 
   export function miRango(){

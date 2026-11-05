@@ -30,7 +30,12 @@ import { showAlert } from '../components/dialog.js';
     if(!r.total){
       html += '<p class="mandos-sub">Todavía no hay entradas con puntos.</p>';
     } else {
-      html += '<p class="mandos-sub">' + r.puntos + ' de ' + puntosDisponibles() + ' puntos disponibles</p>';
+      // «N de M» con las entradas ya visibles (antes N contaba también las
+      // programadas que se completaron, y podía dar «16 de 3»).
+      var disp = puntosDisponibles();
+      html += '<div class="perfil-puntos"><span class="mandos-sub">' + disp.puntos + ' de ' + disp.total + ' puntos disponibles</span>';
+      if(r.siguiente && r.siguiente.faltanPuntos) html += '<span class="mandos-sub">' + r.siguiente.faltanPuntos + (r.siguiente.faltanPuntos === 1 ? ' punto' : ' puntos') + ' hasta el siguiente rango</span>';
+      html += '</div>';
       // Barra: avance desde el rango actual hasta el siguiente (pedido del
       // usuario, 05/11/2026). Llena si ya alcanzó el % y solo faltan obligatorias.
       var avance = 100;
