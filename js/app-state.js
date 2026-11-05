@@ -143,6 +143,7 @@ export const AppState = {
   secuencialCompletionsSubs: {}, // entryId -> función de unsubscribe
   viewAsOverride: null, // null | { role, seccion, depto }
   myLectorMode: false,
+  myProgressLoaded: false,
   countdownInterval: null,
   pendienteGameTimer: null,
   pendienteGameScore: 0,

@@ -108,6 +108,7 @@ import { render } from '../main.js';
         if(data.entryId && data.uid === AppState.currentUser.uid) mine[data.entryId] = data;
       });
       AppState.myProgress = mine;
+      AppState.myProgressLoaded = true;
       scheduleRender();
     }, function(err){
       console.error('No se pudo suscribir a tu avance:', err);
@@ -119,6 +120,7 @@ import { render } from '../main.js';
     Object.keys(AppState.progressSubs).forEach(function(id){ AppState.progressSubs[id](); });
     AppState.progressSubs = {};
     AppState.myProgress = {};
+    AppState.myProgressLoaded = false;
   }
 
 

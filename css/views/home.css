@@ -869,3 +869,28 @@ a.user-menu-item{ text-decoration:none; display:block; }
 @media (max-width:600px){
   .info-general-row{ grid-template-columns:1fr; gap:2px; }
 }
+
+/* Rango «en hijos» (T13 E3, 05/11/2026): en el menú del avatar y en Mi comando. */
+.user-menu-rango{
+    padding:0 6px 10px;
+    margin-bottom:6px;
+    border-bottom:1px solid var(--menu-divider);
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+.rango-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    align-self:flex-start;
+    padding:2px 9px;
+    border-radius:999px;
+    background:var(--teal);
+    color:var(--card-bg);
+    font-size:12.5px;
+    font-weight:600;
+  }
+.rango-chip svg{ width:13px; height:13px; }
+.rango-chip-sm{ font-size:11px; padding:1px 7px; margin-top:3px; }
+.rango-chip-sm svg{ width:11px; height:11px; }

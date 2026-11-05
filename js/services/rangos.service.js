@@ -13,6 +13,8 @@ import { AppState } from '../app-state.js';
 import { RANGOS } from '../config/constants.js';
 import { estaOculta } from '../utils/helpers.js';
 import { canSeeEntry } from './permissions.js';
+import { db } from '../config/firebase.js';
+import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   export function puntosDe(entry){
     var p = Number(entry && entry.puntos);
@@ -105,4 +107,28 @@ import { canSeeEntry } from './permissions.js';
 
   export function miRango(){
     return calcularRango(entradasQueCuentan(), AppState.myProgress, rangoUmbrales(AppState.state));
+  }
+
+  // Rango guardado en el perfil (T13 E3, 05/11/2026): el de otros no se puede
+  // calcular acá (las reglas de `entryProgress` solo dejan leer lo propio),
+  // así que cada uno guarda el suyo en `users/{uid}.rango` y los demás lo leen
+  // de ahí (Mi comando, Usuarios). Solo con los permisos reales: nunca con
+  // «Ver como» ni en Modo Lector (cambian qué entradas cuentan).
+  var guardando = null;
+  export function sincronizarMiRango(){
+    var u = AppState.currentUser;
+    if(!u || u.role === 'pendiente' || AppState.viewAsOverride || AppState.myLectorMode) return;
+    if(AppState.firstSnapshot || !AppState.myProgressLoaded) return;
+    var r = miRango().rango;
+    if(r === u.rango || r === guardando) return;
+    guardando = r;
+    setDoc(doc(db, 'users', u.uid), { rango: r }, { merge: true })
+      .catch(function(e){ console.error('No se pudo guardar tu rango:', e); })
+      .finally(function(){ guardando = null; });
+  }
+
+  // Rango de otra persona (lo que guardó su propio dispositivo). 0 = todavía no.
+  export function rangoGuardadoDe(u){
+    var n = Number(u && u.rango);
+    return (n >= 1 && n <= RANGOS.length) ? n : 0;
   }

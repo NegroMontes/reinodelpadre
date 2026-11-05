@@ -13,6 +13,7 @@ import { icon } from '../utils/icons.js';
 import { isInstalledApp, promptInstall } from '../utils/install-prompt.js';
 import { showAlert, showConfirm } from './dialog.js';
 import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
+import { miRango } from '../services/rangos.service.js';
 
   export function viewAsScopeOptionsHtml(role, current){
     var html = '';
@@ -196,9 +197,29 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
     return html;
   }
 
+  // Rango propio (T13 E3, 05/11/2026): nombre, % y qué falta para el próximo.
+  function miRangoHtml(){
+    if(!AppState.currentUser || AppState.currentUser.role === 'pendiente') return '';
+    var r = miRango();
+    if(!r.total) return '';
+    var html = '<div class="user-menu-rango">';
+    html += '<span class="rango-chip">' + icon('star') + ' ' + escapeHtml(r.nombre) + '</span>';
+    html += '<span class="mandos-sub">' + r.puntos + ' de ' + r.total + ' puntos (' + r.porcentaje + '%)</span>';
+    if(r.siguiente){
+      var falta = [];
+      if(r.siguiente.faltanPuntos) falta.push(r.siguiente.faltanPuntos + ' puntos');
+      var ob = r.siguiente.obligatoriasPendientes.length;
+      if(ob) falta.push(ob + (ob === 1 ? ' entrada obligatoria' : ' entradas obligatorias'));
+      if(falta.length) html += '<span class="mandos-sub">Para «' + escapeHtml(r.siguiente.nombre) + '»: ' + falta.join(' y ') + '</span>';
+    }
+    html += '</div>';
+    return html;
+  }
+
   function renderUserMenuPanelHtml(){
     var html = '<div class="user-menu-panel" id="userMenuPanel">';
     html += '  <div class="user-menu-header"><strong>' + escapeHtml(AppState.currentUser.displayName) + '</strong><span class="mandos-sub">' + escapeHtml(roleLabelScoped(AppState.currentUser)) + '</span></div>';
+    html += miRangoHtml();
     if(AppState.userMenuEditingProfile){
       var draft = AppState.userProfileDraft || { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta', cupulaIcon: AppState.currentUser.cupulaIcon || '', consagradoIconChoice: AppState.currentUser.consagradoIconChoice || '' };
       html += '  <div class="user-menu-profile-form">';
@@ -293,7 +314,6 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
       if(realIsAdmin()){
         html += '  <button class="user-menu-item" id="userMenuImportLibroBtn" type="button">' + icon('book-open') + ' Importar libros de la Fordoquera</button>';
         html += '  <input type="file" id="userMenuImportLibroFile" accept=".json,application/json" hidden>';
-        html += '  <button class="user-menu-item" id="userMenuCalendarioBtn" type="button">' + icon('clock') + ' Programar calendario de publicación</button>';
         html += '  <button class="user-menu-item" id="userMenuRangosBtn" type="button">' + icon('star') + ' Rangos y puntos</button>';
       }
       html += '  <button class="user-menu-item user-menu-item-danger" id="userMenuSignOutBtn" type="button">' + icon('log-out') + ' Cerrar sesión</button>';
@@ -398,28 +418,12 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
         }
       };
     }
-    // Calendario de publicación (05/11/2026): programa las entradas ocultas
-    // de Recursos según la pestaña "Calendario de publicaciones" del doc.
     var rangosBtn = document.getElementById('userMenuRangosBtn');
     if(rangosBtn){
       rangosBtn.onclick = async function(){
         AppState.userMenuOpen = false;
         renderAuthBar();
         (await import('./rangos-dialog.js')).openRangosDialog();
-      };
-    }
-    var calendarioBtn = document.getElementById('userMenuCalendarioBtn');
-    if(calendarioBtn){
-      calendarioBtn.onclick = async function(){
-        AppState.userMenuOpen = false;
-        renderAuthBar();
-        var mod = await import('../services/calendario-publicacion.js');
-        var p = mod.planCalendario();
-        if(!p.plan.length){ await showAlert('No hay entradas ocultas en Recursos para programar.'); return; }
-        if(!(await showConfirm('Se van a programar ' + p.plan.length + ' entradas ocultas de Recursos (se publican solas ese día al mediodía):\n\n' + mod.resumenPlan(p) + '\n\n¿Programarlas?'))) return;
-        mod.aplicarPlan(p);
-        render();
-        await showAlert('Listo: ' + p.plan.length + ' entradas programadas. En cada tarjeta dice «Se publica el …».');
       };
     }
     var menuSignOutBtn = document.getElementById('userMenuSignOutBtn');

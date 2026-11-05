@@ -27,6 +27,7 @@ import { saveNovedadesSeenAt, saveUsersSeenAt, saveTheme } from './utils/storage
 import { encodeHash, decodeHash } from './utils/hash-router.js';
 import { icon } from './utils/icons.js';
 import { startVersionWatch, stopVersionWatch } from './services/version-check.service.js';
+import { sincronizarMiRango } from './services/rangos.service.js';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -827,6 +828,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       // en el estado pedido), así que llamarlas en cada render() es seguro.
       if(AppState.currentUser && AppState.currentUser.role === 'admin'){ startVersionWatch(); }
       else { stopVersionWatch(); }
+      sincronizarMiRango();
       renderAuthBar();
       renderFeedbackWidget();
       var gated = renderGate();

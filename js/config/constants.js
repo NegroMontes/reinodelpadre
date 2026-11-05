@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.05.6';
+  export var APP_VERSION = '2026.11.05.7';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,10 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.05.7', date: '05/11/2026', items: [
+      'Rangos: cada uno ve su rango en el menú del avatar, y el de los demás en Mi comando.',
+      'Se sacó el botón «Programar calendario de publicación».'
+    ]},
     { version: '2026.11.05.6', date: '05/11/2026', items: [
       'Rangos: los admins pueden cambiarles el nombre.'
     ]},

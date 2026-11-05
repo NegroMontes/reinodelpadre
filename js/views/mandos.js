@@ -5,6 +5,7 @@
 // vivo de quien ya se registró, con foto/actividad favorita/ruca — ver
 // canSeeMiComandoSubtab() en services/permissions.js).
 
+import { rangoGuardadoDe, rangoNombre } from '../services/rangos.service.js';
 import { AppState } from '../app-state.js';
 import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
 import { userBadgeInnerHtml } from '../utils/badge-icons.js';
@@ -164,6 +165,8 @@ import { renderPanel } from '../main.js';
     html += '    <strong>' + escapeHtml(u.displayName || u.email) + '</strong>';
     html += '    <span class="mandos-sub">' + escapeHtml(miComandoRoleLabel(u)) + (' · ' + escapeHtml(u.seccion || u.depto || grupo || '')) + '</span>';
     if(u.rucaFundacion){ html += '    <span class="mandos-sub">' + escapeHtml(u.rucaFundacion) + '</span>'; }
+    var rg = rangoGuardadoDe(u);
+    if(rg){ html += '    <span class="rango-chip rango-chip-sm" title="Rango">' + icon('star') + ' ' + escapeHtml(rangoNombre(rg)) + '</span>'; }
     html += '  </div>';
     html += '</div>';
     return html;

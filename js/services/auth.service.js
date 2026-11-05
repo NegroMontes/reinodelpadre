@@ -56,7 +56,7 @@ import { render } from '../main.js';
       if(snap.exists()){
         var data = snap.data();
         AppState.pendingFbUser = null;
-        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, comentaDiseno: !!data.comentaDiseno, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta', cupulaIcon: data.cupulaIcon || '', consagradoIconChoice: data.consagradoIconChoice || '' };
+        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, comentaDiseno: !!data.comentaDiseno, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta', cupulaIcon: data.cupulaIcon || '', consagradoIconChoice: data.consagradoIconChoice || '', rango: data.rango || 0 };
         // `photoURL` nunca se guardaba en el perfil de Firestore — solo
         // vivía en memoria (`AppState.currentUser.photoURL`, sacado del
         // objeto de Auth en vivo), así que cualquier OTRA persona que
