@@ -907,7 +907,7 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .perfil-obligatorias li.hecha .perfil-tilde{ background:var(--teal); border-color:var(--teal); color:var(--card-bg); }
 
 /* T20 (05/11/2026): carrusel «Para sumar puntos» en Inicio, debajo de la cuenta regresiva. */
-.home-pendientes{ margin:16px 0; }
+.home-pendientes{ margin:0 0 16px; }
 .home-pendientes-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .home-pendientes-nav{ display:flex; gap:6px; }
 .home-pendientes-arrow{ width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:var(--card-bg); color:var(--ink); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; }

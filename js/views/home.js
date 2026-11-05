@@ -167,6 +167,8 @@ import { openFordoqueraViewer } from '../components/fordoquera-embed.js';
     html += '<p class="mandos-sub">Campamento Nacional "Reino del Padre" · MDZ 2027</p></div></div>';
 
     html += renderWelcomeSection();
+    // T20: carrusel después de la bienvenida y antes de la cuenta regresiva (pedido del usuario, 05/11/2026).
+    html += renderPendientesSection();
 
     html += '<div class="home-grid">';
 
@@ -195,8 +197,6 @@ import { openFordoqueraViewer } from '../components/fordoquera-embed.js';
 
     html += '</div>'; // .home-grid
 
-    // T20: carrusel debajo de la cuenta regresiva (pedido del usuario, 05/11/2026).
-    html += renderPendientesSection();
 
     var ejes = computeEjesSummary();
     if(ejes.length){
