@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.05.15';
+  export var APP_VERSION = '2026.11.05.16';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.05.16', date: '05/11/2026', items: [
+      'Inicio: «Para sumar puntos», las entradas con puntos y las obligatorias que te faltan.'
+    ]},
     { version: '2026.11.05.15', date: '05/11/2026', items: [
       'Rango: pastilla con borde, sin estrella, con un color para cada rango.'
     ]},

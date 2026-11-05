@@ -4,12 +4,14 @@
 
 import { AppState } from '../app-state.js';
 import { CAMP_DURATION_DAYS } from '../config/constants.js';
-import { escapeHtml, linkify } from '../utils/helpers.js';
+import { escapeHtml, linkify, estaOculta } from '../utils/helpers.js';
 import { canEditStructure, canSeeEntry, canCreateInfoGeneral } from '../services/permissions.js';
 import { save } from '../services/state.service.js';
 import { renderEntry } from '../components/entry.js';
 import { showStatus, renderPanel } from '../main.js';
 import { icon } from '../utils/icons.js';
+import { miRango, entradasQueCuentan, puntosDe, obligatoriaRangoDe } from '../services/rangos.service.js';
+import { openFordoqueraViewer } from '../components/fordoquera-embed.js';
 
   export function stopCountdownTicker(){
     if(AppState.countdownInterval){ clearInterval(AppState.countdownInterval); AppState.countdownInterval = null; }
@@ -120,6 +122,45 @@ import { icon } from '../utils/icons.js';
   }
 
 
+  // T20 (05/11/2026): entradas ya publicadas que suman puntos o son
+  // obligatorias para el próximo rango, que la persona todavía no completó.
+  // Obligatorias primero. Tocar una la abre en la Fordoquera.
+  function lugarDe(e){
+    if(e.dayId === 'RESOURCES') return 'Recursos';
+    var d = (AppState.state.days || []).find(function(x){ return x.id === e.dayId; });
+    return d ? (d.label || d.title || d.name || '') : '';
+  }
+
+  export function renderPendientesSection(){
+    var r = miRango();
+    var hecha = function(e){ return !!(AppState.myProgress[e.id] && AppState.myProgress[e.id].completedAt); };
+    var obligIds = {};
+    if(r.siguiente) r.siguiente.obligatoriasPendientes.forEach(function(e){ obligIds[e.id] = true; });
+    var items = entradasQueCuentan().filter(function(e){
+      return !estaOculta(e) && !hecha(e) && (puntosDe(e) > 0 || obligIds[e.id]);
+    });
+    if(!items.length) return '';
+    items.sort(function(a, b){ return (obligIds[b.id] ? 1 : 0) - (obligIds[a.id] ? 1 : 0) || puntosDe(b) - puntosDe(a); });
+    var html = '<div class="home-pendientes">';
+    html += '<div class="home-pendientes-head"><h3 class="mandos-group-title">Para sumar puntos</h3>';
+    html += '<div class="home-pendientes-nav"><button type="button" class="home-pendientes-arrow" data-carrusel="-1" aria-label="Anterior">' + icon('chevron-left') + '</button>';
+    html += '<button type="button" class="home-pendientes-arrow" data-carrusel="1" aria-label="Siguiente">' + icon('chevron-right') + '</button></div></div>';
+    html += '<div class="home-pendientes-track" id="pendientesTrack">';
+    items.forEach(function(e){
+      var p = puntosDe(e), lugar = lugarDe(e);
+      html += '<button type="button" class="home-pendiente" data-pendiente-id="' + escapeHtml(e.id) + '">';
+      if(lugar) html += '<small class="mandos-sub">' + escapeHtml(lugar) + '</small>';
+      html += '<span class="home-pendiente-title">' + escapeHtml(e.title || '(sin título)') + '</span>';
+      html += '<span class="home-pendiente-tags">';
+      if(obligIds[e.id]) html += '<span class="tag tag-obligatoria">Obligatoria</span>';
+      if(p) html += '<span class="badge-neutral">★ ' + p + ' pts</span>';
+      html += '</span></button>';
+    });
+    html += '</div></div>';
+    return html;
+  }
+
+
   export function renderHomePanel(){
     var html = '';
     html += '<div class="panel-head"><div><h2>Inicio</h2>';
@@ -153,6 +194,9 @@ import { icon } from '../utils/icons.js';
     }
 
     html += '</div>'; // .home-grid
+
+    // T20: carrusel debajo de la cuenta regresiva (pedido del usuario, 05/11/2026).
+    html += renderPendientesSection();
 
     var ejes = computeEjesSummary();
     if(ejes.length){
@@ -328,6 +372,15 @@ import { icon } from '../utils/icons.js';
     if(gearBtn){ gearBtn.onclick = openCampStartDialog; }
     var igBtn = document.getElementById('infoGeneralEditBtn');
     if(igBtn){ igBtn.onclick = openInfoGeneralDialog; }
+    document.querySelectorAll('[data-pendiente-id]').forEach(function(b){
+      b.onclick = function(){ openFordoqueraViewer(b.getAttribute('data-pendiente-id')); };
+    });
+    var track = document.getElementById('pendientesTrack');
+    document.querySelectorAll('[data-carrusel]').forEach(function(b){
+      b.onclick = function(){
+        if(track) track.scrollBy({ left: Number(b.getAttribute('data-carrusel')) * track.clientWidth * 0.8, behavior: 'smooth' });
+      };
+    });
   }
 
 
