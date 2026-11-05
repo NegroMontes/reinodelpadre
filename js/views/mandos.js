@@ -5,10 +5,10 @@
 // vivo de quien ya se registró, con foto/actividad favorita/ruca — ver
 // canSeeMiComandoSubtab() en services/permissions.js).
 
-import { rangoGuardadoDe, rangoNombre, avanceGuardadoDe } from '../services/rangos.service.js';
+import { rangoGuardadoDe, rangoNombre, avanceGuardadoDe, obligPendientesDe, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_SVG_ICON } from '../config/constants.js';
-import { escapeHtml, roleLabel, activityIcon } from '../utils/helpers.js';
+import { escapeHtml, roleLabel, activityIcon, estaOculta } from '../utils/helpers.js';
 import { userBadgeInnerHtml, sectionShieldHtml } from '../utils/badge-icons.js';
 import { icon } from '../utils/icons.js';
 import { canSeeMiComandoSubtab, effectiveRole, effectiveSeccion, effectiveDepto, lectorModeActive } from '../services/permissions.js';
@@ -355,6 +355,56 @@ import { renderPanel } from '../main.js';
     return html;
   }
 
+  // T17 (05/11/2026): quién no completó las obligatorias ya publicadas.
+  // Cada uno guarda las suyas en `users/{uid}.obligPendientes` (ver
+  // rangos.service.js). El jefe de sección/depto ve a los de su comando
+  // (mismos que Mi comando; Formación = todos los suyos); el admin, todos.
+  function obligatoriasVigentes(){
+    var m = {};
+    (AppState.state.entries || []).forEach(function(e){
+      if(!e.deletedAt && !estaOculta(e) && obligatoriaRangoDe(e)) m[e.id] = e;
+    });
+    return m;
+  }
+
+  function miembrosDeGrupo(comando, g, mandosIndex){
+    return comando.filter(function(u){
+      return g === 'Formación' ? esFormacionMember(u, mandosIndex) : comandoGrupoDe(u, mandosIndex) === g;
+    });
+  }
+
+  function renderObligatoriasHtml(){
+    var rol = effectiveRole();
+    if(rol !== 'admin' && rol !== 'jefe_seccion') return '';
+    var vigentes = obligatoriasVigentes();
+    if(!Object.keys(vigentes).length) return '';
+    var comando = (AppState.usersList || []).filter(function(u){ return !isMilicianoUser(u) && u.role !== 'pendiente'; });
+    var mandosIndex = buildMandosIndex(AppState.mandosData);
+    var grupos = rol === 'admin' ? SECCIONES.concat(DEPARTAMENTOS, [COMANDO_CENTRAL]) : [miGrupoTablero(mandosIndex)];
+    var totalFaltan = 0, cuerpo = '';
+    grupos.forEach(function(g){
+      var filas = '', sinDato = 0;
+      miembrosDeGrupo(comando, g, mandosIndex).forEach(function(u){
+        var ids = obligPendientesDe(u);
+        if(ids === null){ sinDato++; return; }
+        var titulos = ids.filter(function(id){ return vigentes[id]; }).map(function(id){ return vigentes[id].title || 'Sin título'; });
+        if(!titulos.length) return;
+        totalFaltan++;
+        filas += '<li><strong>' + escapeHtml(u.displayName || u.email || 'Sin nombre') + '</strong>' +
+          '<span class="tablero-meta">' + titulos.map(escapeHtml).join(' · ') + '</span></li>';
+      });
+      if(!filas && !sinDato) return;
+      cuerpo += '<div class="oblig-grupo">' + (rol === 'admin' ? '<h4>' + escapeHtml(g) + '</h4>' : '') +
+        (filas ? '<ul class="oblig-lista">' + filas + '</ul>' : '<p class="tablero-meta">Todos al día.</p>') +
+        (sinDato ? '<p class="tablero-meta">' + sinDato + (sinDato === 1 ? ' persona todavía no abrió' : ' personas todavía no abrieron') + ' la página desde que se cuenta esto.</p>' : '') +
+        '</div>';
+    });
+    if(!cuerpo) cuerpo = '<p class="tablero-meta">Todavía no se registró nadie.</p>';
+    return '<details class="tablero-resto tablero-oblig"' + (AppState.tableroObligOpen ? ' open' : '') + '>' +
+      '<summary>Obligatorias sin completar (' + totalFaltan + (totalFaltan === 1 ? ' persona' : ' personas') + ')</summary>' +
+      cuerpo + '</details>';
+  }
+
   export function renderMandosPanel(){
     var showMiComando = canSeeMiComandoSubtab();
     if((AppState.mandosActiveSubTab === 'micomando' || AppState.mandosActiveSubTab === 'tablero') && !showMiComando){ AppState.mandosActiveSubTab = 'mandos'; }
@@ -373,7 +423,7 @@ import { renderPanel } from '../main.js';
     }
 
     if(showMiComando && AppState.mandosActiveSubTab === 'micomando') html += renderMiComandoHtml();
-    else if(showMiComando && AppState.mandosActiveSubTab === 'tablero') html += renderTableroHtml();
+    else if(showMiComando && AppState.mandosActiveSubTab === 'tablero') html += renderTableroHtml() + renderObligatoriasHtml();
     else html += renderCuadroDeMandosHtml();
 
     return html;
@@ -381,8 +431,10 @@ import { renderPanel } from '../main.js';
 
 
   export function attachMandosEvents(){
-    var resto = document.querySelector('.tablero-resto');
+    var resto = document.querySelector('.tablero-resto:not(.tablero-oblig)');
     if(resto) resto.addEventListener('toggle', function(){ AppState.tableroRestoOpen = resto.open; });
+    var oblig = document.querySelector('.tablero-oblig');
+    if(oblig) oblig.addEventListener('toggle', function(){ AppState.tableroObligOpen = oblig.open; });
     document.querySelectorAll('[data-mandos-subtab]').forEach(function(btn){
       btn.onclick = function(){
         AppState.mandosActiveSubTab = btn.getAttribute('data-mandos-subtab');

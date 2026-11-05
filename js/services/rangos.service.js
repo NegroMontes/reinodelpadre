@@ -125,6 +125,16 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
     return d.total ? Math.round(d.puntos / d.total * 100) : 0;
   }
 
+  // T17 (05/11/2026): ids de las obligatorias YA publicadas que la persona
+  // ve y todavía no completó (cualquier rango). Se guarda en el perfil para
+  // que su jefe lo vea en Comando → Tablero.
+  export function misObligatoriasPendientes(){
+    return entradasQueCuentan().filter(function(e){
+      return !estaOculta(e) && obligatoriaRangoDe(e) &&
+        !(AppState.myProgress[e.id] && AppState.myProgress[e.id].completedAt);
+    }).map(function(e){ return e.id; }).sort();
+  }
+
   export function miRango(){
     return calcularRango(entradasQueCuentan(), AppState.myProgress, rangoUmbrales(AppState.state));
   }
@@ -143,10 +153,12 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
     // T14 (05/11/2026): también el % «al día» (`avance`, 0-100): puntos
     // hechos sobre los de las entradas YA publicadas (no las programadas),
     // para el Tablero por comando. El rango sigue sobre el camino entero.
-    var clave = r + '|' + av;
-    if((r === u.rango && av === u.avance) || clave === guardando) return;
+    var op = misObligatoriasPendientes();
+    var clave = r + '|' + av + '|' + op.join(',');
+    var opGuardadas = Array.isArray(u.obligPendientes) ? u.obligPendientes.join(',') : null;
+    if((r === u.rango && av === u.avance && op.join(',') === opGuardadas) || clave === guardando) return;
     guardando = clave;
-    setDoc(doc(db, 'users', u.uid), { rango: r, avance: av }, { merge: true })
+    setDoc(doc(db, 'users', u.uid), { rango: r, avance: av, obligPendientes: op }, { merge: true })
       .catch(function(e){ console.error('No se pudo guardar tu rango:', e); })
       .finally(function(){ guardando = null; });
   }
@@ -161,4 +173,9 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
   export function avanceGuardadoDe(u){
     var n = Number(u && u.avance);
     return (u && u.avance != null && isFinite(n)) ? Math.max(0, Math.min(100, n)) : null;
+  }
+
+  // Obligatorias pendientes guardadas de otra persona (T17). null = todavía no.
+  export function obligPendientesDe(u){
+    return (u && Array.isArray(u.obligPendientes)) ? u.obligPendientes : null;
   }

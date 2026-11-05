@@ -974,3 +974,10 @@ a.user-menu-item{ text-decoration:none; display:block; }
 }
 .perfil-aldia{ margin:10px 0 4px; font-size:15px; }
 .perfil-aldia strong{ color:var(--teal); }
+
+/* T17: obligatorias sin completar (Comando → Tablero) */
+.tablero-oblig{ margin-top:14px; }
+.oblig-grupo{ padding:8px 0 10px; border-top:1px solid var(--line); }
+.oblig-grupo h4{ margin:0 0 6px; font-size:14px; }
+.oblig-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.oblig-lista li{ display:flex; flex-direction:column; }
