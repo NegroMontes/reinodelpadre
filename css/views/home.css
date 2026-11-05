@@ -981,3 +981,4 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .oblig-grupo h4{ margin:0 0 6px; font-size:14px; }
 .oblig-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
 .oblig-lista li{ display:flex; flex-direction:column; }
+.oblig-vacio{ padding:4px 0 12px; margin:0; }

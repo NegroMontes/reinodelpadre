@@ -377,7 +377,11 @@ import { renderPanel } from '../main.js';
     var rol = effectiveRole();
     if(rol !== 'admin' && rol !== 'jefe_seccion') return '';
     var vigentes = obligatoriasVigentes();
-    if(!Object.keys(vigentes).length) return '';
+    if(!Object.keys(vigentes).length){
+      return '<details class="tablero-resto tablero-oblig"' + (AppState.tableroObligOpen ? ' open' : '') + '>' +
+        '<summary>Obligatorias sin completar</summary>' +
+        '<p class="tablero-meta oblig-vacio">Todavía no hay entradas obligatorias publicadas.</p></details>';
+    }
     var comando = (AppState.usersList || []).filter(function(u){ return !isMilicianoUser(u) && u.role !== 'pendiente'; });
     var mandosIndex = buildMandosIndex(AppState.mandosData);
     var grupos = rol === 'admin' ? SECCIONES.concat(DEPARTAMENTOS, [COMANDO_CENTRAL]) : [miGrupoTablero(mandosIndex)];
