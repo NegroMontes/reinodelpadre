@@ -30,7 +30,7 @@ import { showAlert } from '../components/dialog.js';
     if(!r.total){
       html += '<p class="mandos-sub">Todavía no hay entradas con puntos.</p>';
     } else {
-      html += '<p class="mandos-sub">' + r.puntos + ' de ' + r.total + ' puntos (' + r.porcentaje + '%)</p>';
+      html += '<p class="mandos-sub">' + r.puntos + ' de ' + r.total + ' puntos disponibles</p>';
       html += '<div class="perfil-barra"><span style="width:' + Math.min(100, r.porcentaje) + '%"></span></div>';
     }
     html += '<ol class="perfil-rangos">';
