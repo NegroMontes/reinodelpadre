@@ -50,7 +50,7 @@ import { showAlert } from '../components/dialog.js';
       // Llena pero sin las obligatorias: roja.
       var roja = avance >= 100 && faltaObligatoria;
       html += '<div class="perfil-barra' + (roja ? ' perfil-barra-roja' : '') + '"><span style="width:' + Math.round(avance) + '%"></span></div>';
-      if(r.siguiente) html += '<p class="mandos-sub">Hacia el siguiente rango: ' + Math.round(avance) + '%' + (roja ? ' — faltan entradas obligatorias' : '') + '</p>';
+      if(roja) html += '<p class="mandos-sub">Faltan entradas obligatorias.</p>';
     }
     if(r.siguiente){
       if(obligatorias && obligatorias.length){
