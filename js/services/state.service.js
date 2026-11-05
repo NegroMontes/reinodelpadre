@@ -31,7 +31,8 @@ import { showConfirm } from '../components/dialog.js';
 
   export function defaultData(){
     var d = [];
-    for(var i=0;i<8;i++){ d.push(uid()); }
+    // 7 días: el día 8 se suspendió (05/11/2026, decisión del usuario).
+    for(var i=0;i<7;i++){ d.push(uid()); }
 
     var days = [
       { id:d[0], label:'Día 1', date:'', ejeCorto:'Eje 1 · Ser hijos',
@@ -53,9 +54,6 @@ import { showConfirm } from '../components/dialog.js';
         citaTexto:'Yo soy el pan vivo bajado del cielo. El que coma de este pan vivirá eternamente, y el pan que yo daré es mi carne para la vida del mundo. [...] El que come mi carne y bebe mi sangre permanece en mí y yo en él.',
         citaRef:'Juan 6, 51-58' },
       { id:d[6], label:'Día 7', date:'', ejeCorto:'Eje 3 · Anuncio del Reino',
-        citaTexto:'Todos los que son conducidos por el Espíritu de Dios son hijos de Dios. [...] El mismo Espíritu se une a nuestro espíritu para dar testimonio de que somos hijos de Dios. Y si somos hijos, también somos herederos: herederos de Dios y coherederos con Cristo.',
-        citaRef:'Romanos 8, 14-17' },
-      { id:d[7], label:'Día 8', date:'', ejeCorto:'Eje 3 · Anuncio del Reino',
         citaTexto:'Todos los que son conducidos por el Espíritu de Dios son hijos de Dios. [...] El mismo Espíritu se une a nuestro espíritu para dar testimonio de que somos hijos de Dios. Y si somos hijos, también somos herederos: herederos de Dios y coherederos con Cristo.',
         citaRef:'Romanos 8, 14-17' }
     ];
@@ -100,15 +98,7 @@ import { showConfirm } from '../components/dialog.js';
         'En este campamento no queremos transmitir la repetida idea de "volver a contar lo que hemos escuchado", sino que queremos ir más profundo: quien anuncia y hace presente el Reino es el Espíritu de Dios. El anuncio del Reino no nace principalmente de una iniciativa humana ni de un esfuerzo individual: nace de la acción del Espíritu Santo en aquellos que se saben hijos de Dios. El mismo Espíritu que nos hace clamar «¡Abba, Padre!» es quien nos impulsa y nos capacita para llevar el Reino a la realidad concreta en la que vivimos.\n\n'+
         'Lo que debemos hacer, una vez custodiada la presencia de Dios en el corazón, es ser dóciles a la acción del Espíritu Santo, que irá disponiendo lo necesario para el anuncio del Evangelio.\n\n'+
         'Es importante transmitir que el "ir y anunciar la Buena Noticia" no debe ser vivido como un deber de estado por ser hijos y herederos. Por el contrario, como consecuencia de saberse hijos amados por Dios, el miliciano encarnará el Reino de Dios: un Reino que se despliega ya en el presente, comenzando en el corazón de cada uno y proyectándose sobre la ciudad, ámbito de evangelización del joven.\n\n'+
-        'Aquí pueden emplearse las parábolas del Reino, que revelan con más profundidad cómo es ese Reino que estamos llamados a encarnar.' },
-
-      { id: uid(), dayId: d[7], type:'texto', title:'Implementación por ámbitos', author:'FORDOC', authorGrupo:'FORDOC', seccion:'', createdAt: Date.now(), body:
-        'Segunda jornada del tercer eje: bajamos el anuncio del Reino por la acción del Espíritu Santo a la implementación concreta, por ámbitos de la persona:\n\n'+
-        'Espiritual — motivar en el miliciano a iniciar un modo de vincularse con Dios filial, basado más en la presencia, cercanía y confianza con el Padre que en un conductismo.\n\n'+
-        'Intelectual — enseñar al miliciano, a partir de la Revelación, cómo Dios se muestra como Padre.\n\n'+
-        'Volitivo — aprovechar el campamento como escuela de virtud en los hábitos: cuidar el orden, las cosas, la belleza y limpieza del lugar, el cuidado del cuerpo (aseo, buen descanso, el alimento).\n\n'+
-        'Emocional — propiciar los espacios para que el miliciano pueda, reflexionando y rezando, vincularse afectivamente a Dios como Padre e hijo.\n\n'+
-        'Social-relacional — disponer espacios y dinámicas que fomenten la amistad miliciana.' }
+        'Aquí pueden emplearse las parábolas del Reino, que revelan con más profundidad cómo es ese Reino que estamos llamados a encarnar.' }
     ];
 
     return { days: days, entries: entries, campStart: '' };

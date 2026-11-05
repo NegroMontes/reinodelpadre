@@ -12,7 +12,8 @@
   // campanario simple que avisa de contenido agregado en los últimos N días.
   export var NOVEDADES_WINDOW_DAYS = 3;
 
-  export var CAMP_DURATION_DAYS = 8;
+  // 7 días: el día 8 se suspendió (05/11/2026).
+  export var CAMP_DURATION_DAYS = 7;
 
   // Ícono por departamento (09/10/2026, pedido del usuario) — pensado para
   // el badge chico del avatar de usuario (ver header.js). Quien tiene un
@@ -139,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.05.2';
+  export var APP_VERSION = '2026.11.05.3';
 
   // Historial para el comando, en español simple — NO es el changelog
   // técnico interno (eso vive en CLAUDE_HISTORY.md, con nombres de archivo/
@@ -148,6 +149,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.05.3', date: '05/11/2026', items: [
+      'El campamento pasa a 7 días (se suspendió el día 8).'
+    ]},
     { version: '2026.11.05.2', date: '05/11/2026', items: [
       'Recursos: opción «También en Departamentos» (admin) — la misma entrada se ve también en la pestaña Departamentos, sin copias.'
     ]},

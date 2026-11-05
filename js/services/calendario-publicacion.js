@@ -11,7 +11,7 @@ function norm(s){
   return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-// Mensaje día N (Camino formativo) — el día 8 no está en el calendario.
+// Mensaje día N (Camino formativo) — el día 8 se suspendió (05/11/2026).
 var DIAS = { 1:'2026-11-18', 2:'2026-11-25', 3:'2026-12-02', 4:'2026-12-09', 5:'2026-12-16', 6:'2026-12-23', 7:'2026-12-30' };
 var RESTO = '2026-11-13';
 
