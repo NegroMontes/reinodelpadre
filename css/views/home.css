@@ -872,20 +872,24 @@ a.user-menu-item{ text-decoration:none; display:block; }
 
 /* Rango «en hijos» (T13 E3, 05/11/2026): en el menú del avatar y en Mi comando. */
 .rango-chip{
+    --rango-c: var(--teal);
     display:inline-flex;
     align-items:center;
-    gap:4px;
     align-self:flex-start;
-    padding:2px 9px;
+    padding:2px 10px;
     border-radius:999px;
-    background:var(--teal);
-    color:var(--card-bg);
+    border:1.5px solid var(--rango-c);
+    color:color-mix(in srgb, var(--rango-c) 75%, var(--ink));
     font-size:12.5px;
     font-weight:600;
   }
-.rango-chip svg{ width:13px; height:13px; }
-.rango-chip-sm{ font-size:11px; padding:1px 7px; margin-top:3px; }
-.rango-chip-sm svg{ width:11px; height:11px; }
+.rango-chip-sm{ font-size:11px; padding:1px 8px; margin-top:3px; }
+/* Un color por rango (05/11/2026, pedido del usuario). */
+.rango-1{ --rango-c: var(--sage); }
+.rango-2{ --rango-c: var(--teal); }
+.rango-3{ --rango-c: var(--amber); }
+.rango-4{ --rango-c: var(--gold); }
+.rango-5{ --rango-c: var(--bordeaux); }
 
 /* Perfil como pestaña (05/11/2026). */
 .perfil-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; align-items:start; }

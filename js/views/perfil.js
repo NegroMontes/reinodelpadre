@@ -26,7 +26,7 @@ import { showAlert } from '../components/dialog.js';
     var obligatorias = [], hecha = function(){ return false; };
     var html = '<div class="home-card perfil-card">';
     html += '<h3>Tu rango</h3>';
-    html += '<span class="rango-chip">' + icon('star') + ' ' + escapeHtml(r.nombre) + '</span>';
+    html += '<span class="rango-chip rango-' + r.rango + '">' + escapeHtml(r.nombre) + '</span>';
     if(!r.total){
       html += '<p class="mandos-sub">Todavía no hay entradas con puntos.</p>';
     } else {

@@ -166,7 +166,7 @@ import { renderPanel } from '../main.js';
     html += '    <span class="mandos-sub">' + escapeHtml(miComandoRoleLabel(u)) + (' · ' + escapeHtml(u.seccion || u.depto || grupo || '')) + '</span>';
     if(u.rucaFundacion){ html += '    <span class="mandos-sub">' + escapeHtml(u.rucaFundacion) + '</span>'; }
     var rg = rangoGuardadoDe(u);
-    if(rg){ html += '    <span class="rango-chip rango-chip-sm" title="Rango">' + icon('star') + ' ' + escapeHtml(rangoNombre(rg)) + '</span>'; }
+    if(rg){ html += '    <span class="rango-chip rango-chip-sm rango-' + rg + '" title="Rango">' + escapeHtml(rangoNombre(rg)) + '</span>'; }
     html += '  </div>';
     html += '</div>';
     return html;
