@@ -36,7 +36,6 @@ import { showAlert, showConfirm } from './dialog.js';
       '  <h3 style="margin:0 0 6px">Rangos y puntos</h3>' +
       '  <p class="mandos-sub" style="margin:0 0 12px">Nombre de cada rango y porcentaje de los puntos (de las entradas que cada uno puede hacer) para llegar a cada rango. Los puntos y las obligatorias se ponen en cada entrada (Editar).</p>' +
       '  <div class="rango-tabla">' + filas + '</div>' +
-      '  <button type="button" class="rango-link" id="rangoDefaultBtn">Volver a los nombres y porcentajes de fábrica</button>' +
       '  <p class="mandos-sub recurso-dialog-error" id="rangoError" hidden>Cada porcentaje tiene que ser de 0 a 100 y no menor que el anterior.</p>' +
       '  <p class="mandos-sub" style="margin:12px 0 0">' + entradas.length + ' entradas cuentan para vos (publicadas y programadas): ' + conPuntaje + ' con puntaje, ' + obligatorias + ' obligatoria' + (obligatorias === 1 ? '' : 's') + '.</p>' +
       '  <p style="margin:6px 0 0">' + prueba + '</p>' +
@@ -61,10 +60,6 @@ import { showAlert, showConfirm } from './dialog.js';
       mod.aplicarPuntos(plan);
       render();
       await showAlert('Listo. Cada tarjeta muestra sus puntos (solo vos los ves).');
-    };
-    overlay.querySelector('#rangoDefaultBtn').onclick = function(){
-      overlay.querySelectorAll('.rango-umbral').forEach(function(inp, i){ inp.value = RANGOS[i + 1].umbral; });
-      overlay.querySelectorAll('.rango-nombre').forEach(function(inp, i){ inp.value = RANGOS[i].nombre; });
     };
     overlay.querySelector('#rangoSaveBtn').onclick = function(){
       var vals = Array.prototype.map.call(overlay.querySelectorAll('.rango-umbral'), function(inp){ return Number(inp.value); });
