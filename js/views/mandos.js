@@ -11,10 +11,11 @@ import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_SVG_ICON } from '../config/const
 import { escapeHtml, roleLabel, activityIcon, estaOculta } from '../utils/helpers.js';
 import { userBadgeInnerHtml, sectionShieldHtml } from '../utils/badge-icons.js';
 import { icon } from '../utils/icons.js';
-import { canSeeMiComandoSubtab, effectiveRole, effectiveSeccion, effectiveDepto, lectorModeActive } from '../services/permissions.js';
+import { canSeeMiComandoSubtab, realIsAdmin, effectiveRole, effectiveSeccion, effectiveDepto, lectorModeActive } from '../services/permissions.js';
 import { buildMandosIndex, findMandoByName } from '../utils/mandos-matcher.js';
 import { isMilicianoUser } from './users.js';
 import { renderPanel } from '../main.js';
+import { showAlert, showConfirm } from '../components/dialog.js';
 
   var COMANDO_CENTRAL = 'Comando central';
 
@@ -91,6 +92,13 @@ import { renderPanel } from '../main.js';
         : '<p class="loading-inline"><span class="loading-spinner"></span>Cargando…</p>';
     }
 
+    if(realIsAdmin()){
+      html += '<div class="mandos-admin-bar">' +
+        '<button type="button" class="btn ghost small" id="mandosDescargarBtn">' + icon('download') + ' Descargar (.json)</button>' +
+        '<button type="button" class="btn ghost small" id="mandosSubirBtn">Actualizar desde .json</button>' +
+        '<button type="button" class="btn ghost small" id="mandosAnteriorBtn">Volver a la versión anterior</button>' +
+        '<input type="file" id="mandosSubirFile" accept=".json,application/json" hidden></div>';
+    }
     html += '<div class="mandos-cupula">';
     html += mandoCard('Jefe de Campamento', MANDOS.jefeCampamento);
     html += mandoCard('Asesor de la actividad', MANDOS.asesor);
@@ -477,10 +485,55 @@ import { renderPanel } from '../main.js';
         renderPanel();
       };
     });
+    attachMandosAdmin();
     document.querySelectorAll('[data-mandos-subtab]').forEach(function(btn){
       btn.onclick = function(){
         AppState.mandosActiveSubTab = btn.getAttribute('data-mandos-subtab');
         renderPanel();
       };
     });
+  }
+
+
+  // Actualizar el cuadro de mandos (admin) — ver services/mandos-update.service.js.
+  async function previsualizarYGuardar(obj, titulo){
+    var mod = await import('../services/mandos-update.service.js');
+    var v = mod.validarMandos(obj);
+    if(v.errores.length){ await showAlert('No se puede usar este archivo:\n\n• ' + v.errores.join('\n• ')); return; }
+    var r = mod.compararMandos(AppState.mandosData, v.data);
+    var msg = titulo + '\n\n' + (v.avisos.length ? '⚠️ ' + v.avisos.join('\n⚠️ ') + '\n\n' : '') + mod.resumenTxt(r) +
+      '\n\nSe guarda una copia del cuadro actual para poder volver atrás. ¿Guardar?';
+    if(!(await showConfirm(msg))) return;
+    try{
+      var res = await mod.guardarMandos(v.data, r);
+      await showAlert('Cuadro de mandos actualizado.' + (res.perfiles ? ' Perfiles acomodados: ' + res.perfiles + '.' : '') +
+        (res.fallas ? ' No se pudieron acomodar ' + res.fallas + ' (ver consola).' : '') +
+        ((r.aMano.length || r.yaNoFiguran.length) ? '\n\nQuedan personas para acomodar a mano en Usuarios.' : ''));
+    }catch(e){
+      console.error(e);
+      showAlert('No se pudo guardar: ' + e.message);
+    }
+  }
+
+  function attachMandosAdmin(){
+    var bajar = document.getElementById('mandosDescargarBtn');
+    if(!bajar) return;
+    bajar.onclick = async function(){ (await import('../services/mandos-update.service.js')).descargarMandos(); };
+    var file = document.getElementById('mandosSubirFile');
+    document.getElementById('mandosSubirBtn').onclick = function(){ file.click(); };
+    file.onchange = async function(){
+      var f = file.files[0]; file.value = '';
+      if(!f) return;
+      var obj;
+      try{ obj = JSON.parse(await f.text()); }
+      catch(e){ showAlert('El archivo no es un .json válido.'); return; }
+      previsualizarYGuardar(obj, 'Cambios del cuadro de mandos:');
+    };
+    document.getElementById('mandosAnteriorBtn').onclick = async function(){
+      var mod = await import('../services/mandos-update.service.js');
+      var ant;
+      try{ ant = await mod.leerAnterior(); }catch(e){ showAlert('No se pudo leer la versión anterior: ' + e.message); return; }
+      if(!ant || !ant.data){ showAlert('Todavía no hay una versión anterior guardada.'); return; }
+      previsualizarYGuardar(ant.data, 'Volver a la versión del ' + new Date(ant.guardadoEn).toLocaleString('es-AR') + ':');
+    };
   }

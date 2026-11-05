@@ -997,3 +997,7 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .oblig-label{ font-weight:600; }
 .oblig-lista:last-child{ margin-bottom:0; }
 [data-theme="dark"] .oblig-lista li{ background:var(--page-bg); }
+
+/* Actualizar el cuadro de mandos (admin) */
+.mandos-admin-bar{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 16px; }
+.mandos-admin-bar .btn svg{ width:16px; height:16px; vertical-align:-3px; }
