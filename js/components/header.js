@@ -13,7 +13,6 @@ import { icon } from '../utils/icons.js';
 import { isInstalledApp, promptInstall } from '../utils/install-prompt.js';
 import { showAlert, showConfirm } from './dialog.js';
 import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
-import { miRango } from '../services/rangos.service.js';
 
   export function viewAsScopeOptionsHtml(role, current){
     var html = '';
@@ -197,70 +196,9 @@ import { miRango } from '../services/rangos.service.js';
     return html;
   }
 
-  // Rango propio (T13 E3, 05/11/2026): nombre, % y qué falta para el próximo.
-  function miRangoHtml(){
-    if(!AppState.currentUser || AppState.currentUser.role === 'pendiente') return '';
-    var r = miRango();
-    if(!r.total) return '';
-    var html = '<div class="user-menu-rango">';
-    html += '<span class="rango-chip">' + icon('star') + ' ' + escapeHtml(r.nombre) + '</span>';
-    html += '<span class="mandos-sub">' + r.puntos + ' de ' + r.total + ' puntos (' + r.porcentaje + '%)</span>';
-    if(r.siguiente){
-      var falta = [];
-      if(r.siguiente.faltanPuntos) falta.push(r.siguiente.faltanPuntos + ' puntos');
-      var ob = r.siguiente.obligatoriasPendientes.length;
-      if(ob) falta.push(ob + (ob === 1 ? ' entrada obligatoria' : ' entradas obligatorias'));
-      if(falta.length) html += '<span class="mandos-sub">Para «' + escapeHtml(r.siguiente.nombre) + '»: ' + falta.join(' y ') + '</span>';
-    }
-    html += '</div>';
-    return html;
-  }
-
   function renderUserMenuPanelHtml(){
     var html = '<div class="user-menu-panel" id="userMenuPanel">';
     html += '  <div class="user-menu-header"><strong>' + escapeHtml(AppState.currentUser.displayName) + '</strong><span class="mandos-sub">' + escapeHtml(roleLabelScoped(AppState.currentUser)) + '</span></div>';
-    html += miRangoHtml();
-    if(AppState.userMenuEditingProfile){
-      var draft = AppState.userProfileDraft || { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta', cupulaIcon: AppState.currentUser.cupulaIcon || '', consagradoIconChoice: AppState.currentUser.consagradoIconChoice || '' };
-      html += '  <div class="user-menu-profile-form">';
-      html += '    <label>Actividad favorita<input id="userProfileActividadInput" type="text" value="' + escapeHtml(draft.actividadFavorita) + '" placeholder="Ej: Jugar al fútbol"></label>';
-      html += '    <label>Ruca / Fundación de origen<input id="userProfileRucaInput" type="text" value="' + escapeHtml(draft.rucaFundacion) + '" placeholder="Ej: Ruca Chapelco"></label>';
-      // Solo tiene sentido para quien tiene un depto propio — una sección no
-      // elige nada, siempre usa su propio escudo (ver rightBadgeHtml()).
-      if(AppState.currentUser.depto){
-        var deptoIcon = DEPARTAMENTO_ICONS[AppState.currentUser.depto] || '';
-        html += '    <label>Ícono de tu depto en el avatar'
-          + '<select id="userProfileDeptoIconSelect">'
-          + '  <option value="fasta"' + (draft.deptoIconChoice !== 'depto' ? ' selected' : '') + '>Escudo de FASTA (genérico)</option>'
-          + '  <option value="depto"' + (draft.deptoIconChoice === 'depto' ? ' selected' : '') + '>' + deptoIcon + ' Ícono de ' + escapeHtml(AppState.currentUser.depto) + '</option>'
-          + '</select></label>';
-      }
-      // Sin sección ni depto (admin/comando central, 09/10/2026: "yo no
-      // tengo ninguno") — a diferencia de sección (automático) o depto (2
-      // opciones fijas), acá hay que elegir uno de una lista chica.
-      if(!AppState.currentUser.seccion && !AppState.currentUser.depto){
-        html += '    <label>Tu ícono en el avatar<select id="userProfileCupulaIconSelect">';
-        if(!draft.cupulaIcon){ html += '  <option value="" selected disabled>Elegí uno…</option>'; }
-        html += cupulaIconOptionsHtml(draft.cupulaIcon);
-        html += '</select></label>';
-      }
-      // Un consagrado por default muestra el escudo de su sección (como
-      // cualquiera de esa sección) — acá puede optar por un ícono propio
-      // (cruz/pan) que lo distinga como consagrado en su lugar.
-      if(AppState.currentUser.role === 'consagrado'){
-        html += '    <label>Tu ícono en el avatar<select id="userProfileConsagradoIconSelect">';
-        html += '  <option value=""' + (!draft.consagradoIconChoice ? ' selected' : '') + '>Escudo de tu sección (default)</option>';
-        CONSAGRADO_ICONS.forEach(function(o){
-          html += '  <option value="' + o.value + '"' + (draft.consagradoIconChoice === o.value ? ' selected' : '') + '>' + o.emoji + ' ' + escapeHtml(o.label) + '</option>';
-        });
-        html += '</select></label>';
-      }
-      html += '    <div class="user-menu-profile-actions">';
-      html += '      <button id="userProfileCancelBtn" class="btn neutral small" type="button">Cancelar</button>';
-      html += '      <button id="userProfileSaveBtn" class="btn small" type="button">Guardar</button>';
-      html += '    </div>';
-      html += '  </div>';
-    } else {
       // "Ver como" (solo admin) — vivía como dos <select> sueltos en la
       // topbar; se movió acá adentro, pedido del usuario (15/10/2026): "los
       // desplegables siempre dentro del botón de usuario". El rol se elige
@@ -336,7 +274,6 @@ import { miRango } from '../services/rangos.service.js';
         }
         html += '  </div>';
       }
-    }
     html += '</div>';
     return html;
   }
@@ -347,16 +284,19 @@ import { miRango } from '../services/rangos.service.js';
       avatarBtn.onclick = function(e){
         e.stopPropagation(); // no lo agarre el listener de "click afuera cierra" de Novedades
         AppState.userMenuOpen = !AppState.userMenuOpen;
-        if(!AppState.userMenuOpen){ AppState.userMenuEditingProfile = false; AppState.userProfileDraft = null; AppState.changelogOpen = false; }
+        if(!AppState.userMenuOpen){ AppState.changelogOpen = false; }
         renderAuthBar();
       };
     }
     var profileBtn = document.getElementById('userMenuProfileBtn');
     if(profileBtn){
+      // Perfil como una pestaña más (05/11/2026, pedido del usuario): datos + rango.
       profileBtn.onclick = function(){
-        AppState.userMenuEditingProfile = true;
-        AppState.userProfileDraft = { actividadFavorita: AppState.currentUser.actividadFavorita || '', rucaFundacion: AppState.currentUser.rucaFundacion || '', deptoIconChoice: AppState.currentUser.deptoIconChoice || 'fasta', cupulaIcon: AppState.currentUser.cupulaIcon || '', consagradoIconChoice: AppState.currentUser.consagradoIconChoice || '' };
-        renderAuthBar();
+        AppState.userMenuOpen = false;
+        AppState.userProfileDraft = null;
+        AppState.activeDayId = 'PERFIL';
+        AppState.formOpen = false;
+        render();
       };
     }
     var installBtn = document.getElementById('userMenuInstallBtn');
@@ -479,38 +419,6 @@ import { miRango } from '../services/rangos.service.js';
       };
     }
 
-    var actInput = document.getElementById('userProfileActividadInput');
-    if(actInput){ actInput.oninput = function(){ AppState.userProfileDraft.actividadFavorita = actInput.value; }; }
-    var rucaInput = document.getElementById('userProfileRucaInput');
-    if(rucaInput){ rucaInput.oninput = function(){ AppState.userProfileDraft.rucaFundacion = rucaInput.value; }; }
-    var deptoIconSelect = document.getElementById('userProfileDeptoIconSelect');
-    if(deptoIconSelect){ deptoIconSelect.onchange = function(){ AppState.userProfileDraft.deptoIconChoice = deptoIconSelect.value; }; }
-    var cupulaIconSelect = document.getElementById('userProfileCupulaIconSelect');
-    if(cupulaIconSelect){ cupulaIconSelect.onchange = function(){ AppState.userProfileDraft.cupulaIcon = cupulaIconSelect.value; }; }
-    var consagradoIconSelect = document.getElementById('userProfileConsagradoIconSelect');
-    if(consagradoIconSelect){ consagradoIconSelect.onchange = function(){ AppState.userProfileDraft.consagradoIconChoice = consagradoIconSelect.value; }; }
-
-    var saveBtn = document.getElementById('userProfileSaveBtn');
-    if(saveBtn){
-      saveBtn.onclick = function(){
-        updateMyProfile(AppState.userProfileDraft);
-        AppState.userMenuEditingProfile = false;
-        AppState.userProfileDraft = null;
-        // El propio onSnapshot de watchProfile() va a refrescar currentUser
-        // (actividadFavorita/rucaFundacion ya guardados) y disparar un
-        // render solo en cuanto el write resuelva — este render de acá es
-        // solo para cerrar el formulario de inmediato, sin esperarlo.
-        renderAuthBar();
-      };
-    }
-    var cancelBtn = document.getElementById('userProfileCancelBtn');
-    if(cancelBtn){
-      cancelBtn.onclick = function(){
-        AppState.userMenuEditingProfile = false;
-        AppState.userProfileDraft = null;
-        renderAuthBar();
-      };
-    }
   }
 
 

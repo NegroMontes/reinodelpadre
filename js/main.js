@@ -28,6 +28,7 @@ import { encodeHash, decodeHash } from './utils/hash-router.js';
 import { icon } from './utils/icons.js';
 import { startVersionWatch, stopVersionWatch } from './services/version-check.service.js';
 import { sincronizarMiRango } from './services/rangos.service.js';
+import { renderPerfilPanel, attachPerfilEvents } from './views/perfil.js';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -587,6 +588,11 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       attachPapeleraPanelEvents();
       return;
     }
+    if(AppState.activeDayId === 'PERFIL'){
+      panel.innerHTML = renderPerfilPanel();
+      attachPerfilEvents();
+      return;
+    }
     if(AppState.activeDayId === 'MANDOS'){
       panel.innerHTML = renderMandosPanel();
       attachMandosEvents();
@@ -750,6 +756,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     if(AppState.activeDayId === 'DEPARTAMENTOS') return 'Departamentos';
     if(AppState.activeDayId === 'MANDOS') return 'Comando — ' + (AppState.mandosActiveSubTab === 'micomando' ? 'Mi comando' : 'Cuadro de mandos');
     if(AppState.activeDayId === 'USERS') return 'Usuarios';
+    if(AppState.activeDayId === 'PERFIL') return 'Perfil';
     if(AppState.activeDayId === 'FEEDBACK') return 'Comentarios';
     if(AppState.activeDayId === 'PAPELERA') return 'Papelera';
     return 'la página';
