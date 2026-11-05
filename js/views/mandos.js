@@ -373,36 +373,52 @@ import { renderPanel } from '../main.js';
     });
   }
 
+  // Nombres de la resolución (sin capellanes) de un comando que todavía no
+  // tienen cuenta: ningún usuario registrado matchea su nombre.
+  function sinLoguearseDe(g, mandosIndex){
+    var logueados = {};
+    (AppState.usersList || []).forEach(function(u){
+      var f = findMandoByName(u.displayName || '', mandosIndex);
+      if(f) logueados[f.norm] = true;
+    });
+    var vistos = {};
+    return mandosIndex.filter(function(e){
+      var b = e.bucket;
+      if(b.type === 'capellan' || logueados[e.norm] || vistos[e.norm]) return false;
+      if((b.seccion || b.depto || COMANDO_CENTRAL) !== g) return false;
+      vistos[e.norm] = true;
+      return true;
+    }).map(function(e){ return e.name; });
+  }
+
   function renderObligatoriasHtml(){
     var rol = effectiveRole();
     if(rol !== 'admin' && rol !== 'jefe_seccion') return '';
     var vigentes = obligatoriasVigentes();
-    if(!Object.keys(vigentes).length){
-      return '<details class="tablero-resto tablero-oblig"' + (AppState.tableroObligOpen ? ' open' : '') + '>' +
-        '<summary>Obligatorias sin completar</summary>' +
-        '<p class="tablero-meta oblig-vacio">Todavía no hay entradas obligatorias publicadas.</p></details>';
-    }
+    var sinObligs = !Object.keys(vigentes).length;
     var comando = (AppState.usersList || []).filter(function(u){ return !isMilicianoUser(u) && u.role !== 'pendiente'; });
     var mandosIndex = buildMandosIndex(AppState.mandosData);
     var grupos = rol === 'admin' ? SECCIONES.concat(DEPARTAMENTOS, [COMANDO_CENTRAL]) : [miGrupoTablero(mandosIndex)];
     var totalFaltan = 0, cuerpo = '';
     var nombre = function(u){ return escapeHtml(u.displayName || u.email || 'Sin nombre'); };
     grupos.forEach(function(g){
-      var deben = [], alDiaL = [], sinDatoL = [];
+      var deben = [], alDiaL = [], sinLogL = sinLoguearseDe(g, mandosIndex);
       miembrosDeGrupo(comando, g, mandosIndex).forEach(function(u){
         var ids = obligPendientesDe(u);
-        if(ids === null){ sinDatoL.push(u); return; }
+        if(ids === null) return;
         var faltan = ids.filter(function(id){ return vigentes[id]; }).map(function(id){ return vigentes[id]; });
         if(faltan.length) deben.push({ u: u, faltan: faltan }); else alDiaL.push(u);
       });
-      if(!deben.length && !alDiaL.length && !sinDatoL.length) return;
+      if(!deben.length && !alDiaL.length && !sinLogL.length) return;
       totalFaltan += deben.length;
       var tipo = SECCIONES.indexOf(g) >= 0 ? 'seccion' : 'depto';
       var cnt = function(n, txt, cls){ return n ? '<span class="oblig-cnt ' + cls + '">' + n + ' ' + txt + '</span>' : ''; };
       var h = '<div class="oblig-grupo"><div class="oblig-head">' + comandoIconHtml({ grupo: g, tipo: tipo }) +
         '<strong>' + escapeHtml(g) + '</strong><span class="oblig-cnts">' +
         cnt(deben.length, deben.length === 1 ? 'debe' : 'deben', 'cnt-debe') +
-        cnt(alDiaL.length, 'al día', 'cnt-ok') + cnt(sinDatoL.length, 'sin datos', 'cnt-nd') + '</span></div>';
+        cnt(alDiaL.length, 'al día', 'cnt-ok') +
+        (sinLogL.length ? '<button type="button" class="oblig-cnt cnt-nd oblig-cnt-btn" data-sinlog="' + escapeHtml(g) + '" aria-expanded="' + (AppState.tableroSinLogOpen === g) + '">' + sinLogL.length + ' sin loguearse</button>' : '') +
+        '</span></div>';
       if(deben.length){
         h += '<ul class="oblig-lista">';
         deben.forEach(function(d){
@@ -413,11 +429,12 @@ import { renderPanel } from '../main.js';
         h += '</ul>';
       }
       if(alDiaL.length) h += '<p class="oblig-linea"><span class="oblig-label cnt-ok">Al día:</span> ' + alDiaL.map(nombre).join(', ') + '</p>';
-      if(sinDatoL.length) h += '<p class="oblig-linea"><span class="oblig-label cnt-nd">Sin datos todavía:</span> ' + sinDatoL.map(nombre).join(', ') + '</p>';
+      if(sinLogL.length && AppState.tableroSinLogOpen === g) h += '<p class="oblig-linea"><span class="oblig-label cnt-nd">Sin loguearse:</span> ' + sinLogL.map(escapeHtml).join(', ') + '</p>';
       cuerpo += h + '</div>';
     });
-    if(cuerpo) cuerpo = '<p class="tablero-meta oblig-ayuda">«Sin datos» = no abrió la página desde que se cuenta esto.</p>' + cuerpo;
+    if(cuerpo) cuerpo = '<p class="tablero-meta oblig-ayuda">«Sin loguearse» = está en la resolución pero todavía no creó su cuenta. Tocalo para ver quiénes.</p>' + cuerpo;
     if(!cuerpo) cuerpo = '<p class="tablero-meta">Todavía no se registró nadie.</p>';
+    if(sinObligs) cuerpo = '<p class="tablero-meta oblig-vacio">Todavía no hay entradas obligatorias publicadas.</p>' + cuerpo;
     return '<details class="tablero-resto tablero-oblig"' + (AppState.tableroObligOpen ? ' open' : '') + '>' +
       '<summary>Obligatorias sin completar (' + totalFaltan + (totalFaltan === 1 ? ' persona' : ' personas') + ')</summary>' +
       cuerpo + '</details>';
@@ -453,6 +470,13 @@ import { renderPanel } from '../main.js';
     if(resto) resto.addEventListener('toggle', function(){ AppState.tableroRestoOpen = resto.open; });
     var oblig = document.querySelector('.tablero-oblig');
     if(oblig) oblig.addEventListener('toggle', function(){ AppState.tableroObligOpen = oblig.open; });
+    document.querySelectorAll('[data-sinlog]').forEach(function(btn){
+      btn.onclick = function(){
+        var g = btn.getAttribute('data-sinlog');
+        AppState.tableroSinLogOpen = AppState.tableroSinLogOpen === g ? '' : g;
+        renderPanel();
+      };
+    });
     document.querySelectorAll('[data-mandos-subtab]').forEach(function(btn){
       btn.onclick = function(){
         AppState.mandosActiveSubTab = btn.getAttribute('data-mandos-subtab');

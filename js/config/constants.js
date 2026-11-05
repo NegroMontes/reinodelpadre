@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.05.26';
+  export var APP_VERSION = '2026.11.05.27';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.05.27', date: '05/11/2026', items: [
+      'Tablero → Obligatorias: «N sin loguearse» muestra cuántos de la resolución faltan crear su cuenta; tocándolo, quiénes.'
+    ]},
     { version: '2026.11.05.23', date: '05/11/2026', items: [
       'Tablero: los jefes ven quién de su comando no completó las entradas obligatorias (el admin, todos).'
     ]},

@@ -15,7 +15,7 @@ import { normalizeName } from './helpers.js';
     function add(name, bucket){
       if(!name) return;
       var norm = normalizeName(name);
-      idx.push({ norm: norm, tokens: norm.split(' ').filter(Boolean), bucket: bucket });
+      idx.push({ name: name, norm: norm, tokens: norm.split(' ').filter(Boolean), bucket: bucket });
     }
 
     if(!mandos) return idx;
