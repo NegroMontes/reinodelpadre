@@ -381,7 +381,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       '<linearGradient id="mapaG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="mapa-g2a"/><stop offset="1" class="mapa-g2b"/></linearGradient>' +
       '<radialGradient id="mapaLuz"><stop offset="0" class="mapa-luz-a"/><stop offset="1" class="mapa-luz-b"/></radialGradient>' +
       '<radialGradient id="mapaNiebla"><stop offset="0" class="mapa-niebla-a"/><stop offset=".6" class="mapa-niebla-m"/><stop offset="1" class="mapa-niebla-b"/></radialGradient></defs>' +
-      '<ellipse cx="505" cy="345" rx="150" ry="85" fill="url(#mapaNiebla)"/>' +
+      '<ellipse cx="85" cy="150" rx="150" ry="100" fill="url(#mapaNiebla)"/>' +
       '<circle cx="545" cy="100" r="100" fill="url(#mapaLuz)"/>' +
       '<path fill="url(#mapaG1)" d="M0 235 C 50 205, 85 150, 140 168 S 225 105, 290 145 S 375 85, 440 118 S 535 55, 600 92 L600 400 L0 400 Z"/>' +
       '<path fill="url(#mapaG2)" d="M0 318 C 75 280, 145 302, 215 272 S 355 228, 430 258 S 535 215, 600 238 L600 400 L0 400 Z"/>' +
@@ -416,7 +416,8 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     if(lejos.length) html += mapaGrupoHtml(lejos, mio, 'data-zona="extranjeros"');
     html += '<div class="mapa-pop" role="dialog" hidden></div></div>';
     // Referencia numerada (solo en celular, donde las etiquetas no entran).
-    html += '<ol class="mapa-leyenda">' + MAPA_ESTACIONES.map(function(e){ return '<li>' + escapeHtml(e.label) + '</li>'; }).join('') + '</ol></section>';
+    html += '<ol class="mapa-leyenda">' + MAPA_ESTACIONES.map(function(e){ return '<li>' + escapeHtml(e.label) + '</li>'; }).join('') +
+      '<li class="mapa-leyenda-zona">Pueblos extranjeros (sin avance)</li></ol></section>';
     return html;
   }
 
@@ -462,9 +463,10 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       el.style.left = (pt.x / 600 * 100) + '%';
       el.style.top = (pt.y / 400 * 100) + '%';
     });
-    // Desvío: nace en La Encrucijada (25%) y baja hacia pueblos extranjeros.
+    // Desvío: nace en La Encrucijada (25%) y se va a la izquierda, a pueblos
+    // extranjeros (del lado opuesto a la casa del Padre).
     var p0 = camino.getPointAtLength(L * .25);
-    var dDesvio = 'M' + p0.x.toFixed(1) + ' ' + p0.y.toFixed(1) + ' C ' + (p0.x + 70).toFixed(1) + ' ' + (p0.y + 10).toFixed(1) + ', 380 365, 470 338';
+    var dDesvio = 'M' + p0.x.toFixed(1) + ' ' + p0.y.toFixed(1) + ' C ' + (p0.x - 70).toFixed(1) + ' ' + (p0.y + 15).toFixed(1) + ', 70 270, 88 190';
     lienzo.querySelectorAll('path.mapa-desvio').forEach(function(d){ d.setAttribute('d', dDesvio); });
     var pop = lienzo.querySelector('.mapa-pop');
     lienzo.querySelectorAll('.mapa-grupo').forEach(function(g){

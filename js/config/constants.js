@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.06.7';
+  export var APP_VERSION = '2026.11.06.8';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.06.8', date: '06/11/2026', items: [
+      'Mapa del Tablero: Pueblos extranjeros pasa a la izquierda, del lado opuesto a la casa del Padre.'
+    ]},
     { version: '2026.11.06.7', date: '06/11/2026', items: [
       'Mapa del Tablero: desvío desde La Encrucijada a «Pueblos extranjeros», donde esperan los comandos que todavía no arrancaron (0%).'
     ]},
