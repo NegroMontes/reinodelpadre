@@ -320,6 +320,85 @@ import { showAlert, showConfirm } from '../components/dialog.js';
   function metaTxt(f){ return f.conDatos + ' de ' + f.total + ' con avance'; }
   function metaHtml(f, tag){ return isAdmin() ? '<' + tag + ' class="tablero-meta">' + metaTxt(f) + '</' + tag + '>' : ''; }
 
+  // T14 E3 (06/11/2026): mapa del hijo pródigo (Lc 15). Cada comando va
+  // sobre el camino según su promedio: 0% = entre los chanchos, 100% = la
+  // casa del Padre. El SVG fija el camino; los escudos y las estaciones son
+  // HTML encima, ubicados al abrir con getPointAtLength() (ver
+  // ubicarMapa()). Los que están cerca (≤4 puntos) se agrupan en un racimo.
+  var MAPA_CAMINO = 'M115 340 C 200 375, 270 300, 205 245 S 140 125, 285 145 S 430 270, 470 190 S 470 110, 515 95';
+  var MAPA_ESTACIONES = [
+    { pct: 0, label: 'Entre los chanchos', lado: 'abajo' },
+    { pct: 25, label: 'Entra en sí mismo', lado: 'der' },
+    { pct: 50, label: 'Se levanta y vuelve', lado: 'arriba' },
+    { pct: 75, label: 'El Padre lo abraza', lado: 'abajo' },
+    { pct: 100, label: 'La casa del Padre', lado: 'izq' }
+  ];
+
+  function renderMapaHtml(filas, mio){
+    var html = '<section class="tablero-mapa"><h3>El camino de vuelta</h3>' +
+      '<p class="tablero-meta">De los chanchos a la casa del Padre (Lucas 15, 11-32). Cada comando avanza según su promedio.</p>' +
+      '<div class="mapa-lienzo">' +
+      '<svg viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true">' +
+      '<polygon class="mapa-monte" points="300,400 420,230 470,280 560,150 600,200 600,400"/>' +
+      '<polygon class="mapa-monte mapa-monte-2" points="0,400 0,250 70,180 150,290 210,240 300,400"/>' +
+      '<path class="mapa-camino-base" d="' + MAPA_CAMINO + '"/>' +
+      '<path class="mapa-camino" d="' + MAPA_CAMINO + '"/>' +
+      '</svg>' +
+      '<span class="mapa-deco" style="left:8%;top:91%">🐖</span>' +
+      '<span class="mapa-deco" style="left:94%;top:13%">🏡</span>';
+    MAPA_ESTACIONES.forEach(function(e){
+      html += '<div class="mapa-estacion mapa-lado-' + e.lado + '" data-pct="' + e.pct + '">' +
+        '<span class="mapa-punto"></span>' +
+        '<span class="mapa-label">' + escapeHtml(e.label) + '</span></div>';
+    });
+    // Racimos: comandos a ≤4 puntos del primero del racimo.
+    var orden = filas.slice().sort(function(a, b){ return a.promedio - b.promedio; });
+    var racimos = [];
+    orden.forEach(function(f){
+      var r = racimos[racimos.length - 1];
+      if(r && f.promedio - r[0].promedio <= 4) r.push(f); else racimos.push([f]);
+    });
+    racimos.forEach(function(r){
+      var pct = Math.round(r.reduce(function(x, f){ return x + f.promedio; }, 0) / r.length);
+      var porFila = 4;
+      r.forEach(function(f, i){
+        var fila = Math.floor(i / porFila), col = i % porFila;
+        var enFila = Math.min(porFila, r.length - fila * porFila);
+        var dx = (col - (enFila - 1) / 2), dy = -fila;
+        var txt = f.grupo + ' · ' + f.pos + '° · ' + f.promedio + '%';
+        html += '<button type="button" class="mapa-comando' + (f.grupo === mio ? ' es-mio' : '') + '" data-pct="' + pct + '" data-dx="' + dx + '" data-dy="' + dy + '"' +
+          ' data-mapa-info="' + escapeHtml(txt) + '" title="' + escapeHtml(txt) + '" aria-label="' + escapeHtml(txt) + '">' + comandoIconHtml(f) + '</button>';
+      });
+    });
+    html += '</div><p class="mapa-info" aria-live="polite">Tocá un escudo para ver qué comando es.</p></section>';
+    return html;
+  }
+
+  function ubicarMapa(){
+    var lienzo = document.querySelector('.mapa-lienzo');
+    if(!lienzo) return;
+    var camino = lienzo.querySelector('path.mapa-camino');
+    if(!camino || !camino.getTotalLength) return;
+    var L = camino.getTotalLength();
+    lienzo.querySelectorAll('[data-pct]').forEach(function(el){
+      var pt = camino.getPointAtLength(L * Math.max(0, Math.min(100, +el.getAttribute('data-pct'))) / 100);
+      el.style.left = (pt.x / 600 * 100) + '%';
+      el.style.top = (pt.y / 400 * 100) + '%';
+      if(el.hasAttribute('data-dx')){
+        el.style.setProperty('--dx', el.getAttribute('data-dx'));
+        el.style.setProperty('--dy', el.getAttribute('data-dy'));
+      }
+    });
+    var info = document.querySelector('.mapa-info');
+    lienzo.querySelectorAll('[data-mapa-info]').forEach(function(btn){
+      btn.onclick = function(){
+        lienzo.querySelectorAll('.mapa-comando.activo').forEach(function(b){ b.classList.remove('activo'); });
+        btn.classList.add('activo');
+        if(info) info.textContent = btn.getAttribute('data-mapa-info');
+      };
+    });
+  }
+
   function renderTableroHtml(){
     var filas = tableroComandos();
     var mandosIndex = buildMandosIndex(AppState.mandosData);
@@ -334,6 +413,8 @@ import { showAlert, showConfirm } from '../components/dialog.js';
         '<div class="tablero-mio-nums"><span class="tablero-mio-pos">' + mia.pos + '°</span>' +
         '<span class="tablero-mio-pct">' + mia.promedio + '%</span></div></div>';
     }
+
+    html += renderMapaHtml(filas, mio);
 
     // Podio: 2° · 1° · 3° (en celular, 1° · 2° · 3°).
     var top = filas.slice(0, 3);
@@ -488,6 +569,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       };
     });
     attachMandosAdmin();
+    ubicarMapa();
     document.querySelectorAll('[data-mandos-subtab]').forEach(function(btn){
       btn.onclick = function(){
         AppState.mandosActiveSubTab = btn.getAttribute('data-mandos-subtab');

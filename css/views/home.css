@@ -1001,3 +1001,39 @@ a.user-menu-item{ text-decoration:none; display:block; }
 /* Actualizar el cuadro de mandos (admin) */
 .mandos-admin-bar{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 16px; }
 .mandos-admin-bar .btn svg{ width:16px; height:16px; vertical-align:-3px; }
+
+/* T14 E3 (06/11/2026): mapa del hijo pródigo (Comando → Tablero). */
+.tablero-mapa{ margin:14px 0; padding:14px 16px 10px; background:var(--card-bg); border:1px solid var(--line); border-radius:var(--radius); }
+.tablero-mapa h3{ margin:0 0 2px; }
+.tablero-mapa > .tablero-meta{ margin:0 0 8px; }
+.mapa-lienzo{ position:relative; width:100%; aspect-ratio:3/2; max-height:460px; margin:0 auto; }
+.mapa-lienzo svg{ position:absolute; inset:0; width:100%; height:100%; }
+.mapa-monte{ fill:var(--bg); }
+.mapa-monte-2{ fill:var(--bg-alt); opacity:.6; }
+.mapa-camino-base{ fill:none; stroke:var(--line); stroke-width:16; stroke-linecap:round; }
+.mapa-camino{ fill:none; stroke:var(--amber); stroke-width:3; stroke-dasharray:2 9; stroke-linecap:round; }
+.mapa-estacion, .mapa-comando{ position:absolute; transform:translate(-50%, -50%); }
+.mapa-estacion{ display:flex; flex-direction:column; align-items:center; pointer-events:none; z-index:3; }
+.mapa-punto{ width:12px; height:12px; border-radius:50%; background:var(--sage); border:2px solid var(--card-bg); }
+.mapa-deco{ position:absolute; transform:translate(-50%, -50%); font-size:34px; line-height:1; pointer-events:none; }
+.mapa-label{ position:absolute; white-space:nowrap; font-size:12px; font-weight:600; color:var(--ink-soft); background:var(--card-bg); box-shadow:var(--shadow-sm); padding:1px 6px; border-radius:999px; }
+.mapa-lado-abajo .mapa-label{ top:calc(100% + 4px); }
+.mapa-lado-arriba .mapa-label{ bottom:calc(100% + 4px); }
+.mapa-lado-izq .mapa-label{ right:calc(100% + 6px); top:50%; transform:translateY(-50%); }
+.mapa-lado-der .mapa-label{ left:calc(100% + 6px); top:50%; transform:translateY(-50%); }
+.mapa-comando{ --tam:38px; --dx:0; --dy:0; z-index:2; width:var(--tam); height:var(--tam); padding:2px; border-radius:50%; cursor:pointer;
+  background:var(--card-bg); border:2px solid var(--line); box-shadow:var(--shadow-sm);
+  transform:translate(calc(-50% + var(--dx) * (var(--tam) + 2px)), calc(-50% + var(--dy) * (var(--tam) + 2px))); }
+.mapa-comando .tablero-icon{ width:100%; height:100%; }
+.mapa-comando .tablero-icon svg{ width:60%; height:60%; }
+.mapa-comando.es-mio{ border-color:var(--teal); border-width:3px; z-index:4; }
+.mapa-comando.activo{ border-color:var(--bordeaux); z-index:5; }
+.mapa-estacion[data-pct="0"] .mapa-label{ top:calc(100% + 18px); }
+.mapa-estacion[data-pct="0"] .mapa-punto, .mapa-estacion[data-pct="100"] .mapa-punto{ visibility:hidden; }
+.mapa-info{ margin:6px 0 0; text-align:center; font-size:14px; font-weight:600; min-height:1.4em; }
+@media (max-width:600px){
+  .mapa-comando{ --tam:28px; }
+  .mapa-estacion[data-pct="0"] .mapa-label{ top:calc(100% + 12px); }
+  .mapa-label{ font-size:10px; }
+  .mapa-deco{ font-size:24px; }
+}
