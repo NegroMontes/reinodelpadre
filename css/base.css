@@ -19,6 +19,16 @@
     --page-bg: #F4F6F8;        /* fondo general — gris suave en vez de blanco puro, menos fatiga visual (19/10/2026) */
     --card-bg: #FFFFFF;        /* tarjetas de contenido (entradas, home, mandos) — blancas para resaltar sobre --page-bg */
     --sidebar-bg: #E6EDF1;     /* panel lateral — gris azulado apenas más oscuro que --page-bg */
+    /* Ilustraciones del mapa del Tablero (06/11/2026): tonos tierra propios,
+       rellenos claros con trazo oscuro en los dos temas (en oscuro se leen
+       como «calcomanía» sobre el fondo). */
+    --il-piel: #F6C9D3;
+    --il-piel-borde: #B62D4B;
+    --il-barro: #A58262;
+    --il-barro-osc: #7E5E43;
+    --il-madera: #B07C4F;
+    --il-pared: #F3E6D3;
+    --il-trazo: #3E5260;
 
     /* Sistema de forma/profundidad (06/10/2026) — nunca cambia de color, solo
        redondea/da volumen, inspirado en la estética de "Encuentros" (tarjetas
@@ -63,6 +73,13 @@
       --page-bg: #1B2A35;
       --card-bg: #0F1B24;
       --sidebar-bg: #16242E;
+      --il-piel: #F2B6C4;
+      --il-piel-borde: #8E2440;
+      --il-barro: #9A7656;
+      --il-barro-osc: #6E523B;
+      --il-madera: #C08D5E;
+      --il-pared: #EADCC6;
+      --il-trazo: #22323D;
     }
   }
   :root[data-theme="dark"]{
@@ -84,6 +101,13 @@
     --page-bg: #1B2A35;
     --card-bg: #0F1B24;
     --sidebar-bg: #16242E;
+    --il-piel: #F2B6C4;
+    --il-piel-borde: #8E2440;
+    --il-barro: #9A7656;
+    --il-barro-osc: #6E523B;
+    --il-madera: #C08D5E;
+    --il-pared: #EADCC6;
+    --il-trazo: #22323D;
   }
 
 html,body{margin:0;padding:0;}

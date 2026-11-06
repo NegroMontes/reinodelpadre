@@ -325,7 +325,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
   // casa del Padre. El SVG fija el camino; los escudos y las estaciones son
   // HTML encima, ubicados al abrir con getPointAtLength() (ver
   // ubicarMapa()). Los que están cerca (≤4 puntos) se agrupan en un racimo.
-  var MAPA_CAMINO = 'M115 340 C 200 375, 270 300, 205 245 S 140 125, 285 145 S 430 270, 470 190 S 470 110, 515 95';
+  var MAPA_CAMINO = 'M150 342 C 220 372, 275 300, 205 245 S 140 125, 285 145 S 430 270, 470 190 S 470 110, 515 95';
   var MAPA_ESTACIONES = [
     { pct: 0, label: 'El valle de los cerdos', lado: 'abajo' },
     { pct: 25, label: 'La encrucijada', lado: 'der' },
@@ -336,15 +336,22 @@ import { showAlert, showConfirm } from '../components/dialog.js';
 
   // Ilustraciones del mapa (06/11/2026): trazo redondeado como los íconos
   // Lucide de la página, con relleno suave; colores por variables CSS.
-  var MAPA_SVG_CHANCHO = '<svg viewBox="0 0 64 64" aria-hidden="true">' +
-    '<ellipse class="mc-barro" cx="32" cy="56" rx="26" ry="4.5"/>' +
-    '<path class="mc-cuerpo" d="M14 34c0-9 8-15 19-15s19 6 19 15-8 14-19 14-19-5-19-14z"/>' +
-    '<path class="mc-linea" d="M20 46v7M27 47v7M40 47v7M46 46v7"/>' +
-    '<path class="mc-cuerpo" d="M44 21l4-7 3 9"/>' +
-    '<ellipse class="mc-hocico" cx="53" cy="33" rx="5" ry="6"/>' +
-    '<path class="mc-linea" d="M52 31v1M54.5 31v1"/>' +
-    '<circle class="mc-ojo" cx="45" cy="27" r="1.6"/>' +
-    '<path class="mc-linea" d="M14 31c-4 0-6-2-5-4s4-1 3 1"/></svg>';
+  // Porqueriza: cerco de madera, barro y un chancho embarrado.
+  var MAPA_SVG_CHANCHO = '<svg viewBox="0 0 120 72" aria-hidden="true">' +
+    '<path class="mc-madera" d="M8 22h6v34H8zM30 20h6v36h-6zM84 20h6v36h-6zM106 22h6v34h-6z"/>' +
+    '<path class="mc-tabla" d="M6 30h108M6 42h108"/>' +
+    '<path class="mc-barro" d="M4 60c2-7 14-9 26-8s20-5 32-4 24-2 34 2 22 4 20 10-14 9-40 9-50 1-64-1-10-3-8-8z"/>' +
+    '<ellipse class="mc-barro-osc" cx="24" cy="62" rx="9" ry="2.5"/>' +
+    '<ellipse class="mc-barro-osc" cx="96" cy="63" rx="8" ry="2.2"/>' +
+    '<path class="mc-cuerpo" d="M40 49c0-9 8-14 19-14s19 5 19 14-8 9-19 9-19-2-19-9z"/>' +
+    '<path class="mc-cuerpo" d="M72 34l3-6 3 7"/>' +
+    '<circle class="mc-cuerpo" cx="77" cy="43" r="9"/>' +
+    '<ellipse class="mc-hocico" cx="86" cy="45" rx="4" ry="5"/>' +
+    '<path class="mc-piel-linea" d="M85.2 43.5v1M87.4 43.5v1M40 45c-4 0-6-2-5-4s4-1 3 1"/>' +
+    '<circle class="mc-ojo" cx="78" cy="40" r="1.5"/>' +
+    '<path class="mc-salpicon" d="M46 53c3-2 6-1 8 1-2 2-6 2-8-1zM62 55c2-1 5-1 6 1-2 1-4 1-6-1z"/>' +
+    '<circle class="mc-barro-osc" cx="58" cy="45" r="1.6"/><circle class="mc-barro-osc" cx="50" cy="48" r="1.2"/>' +
+    '</svg>';
   var MAPA_SVG_CASA = '<svg viewBox="0 0 64 64" aria-hidden="true">' +
     '<path class="mc-techo" d="M6 30L32 8l26 22"/>' +
     '<path class="mc-pared" d="M12 26v30h40V26"/>' +
@@ -352,11 +359,11 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     '<path class="mc-puerta" d="M27 56V42a5 5 0 0 1 10 0v14"/>' +
     '<rect class="mc-ventana" x="17" y="33" width="7" height="7" rx="1.5"/>' +
     '<rect class="mc-ventana" x="40" y="33" width="7" height="7" rx="1.5"/>' +
-    '<path class="mc-linea" d="M4 56h56"/></svg>';
+    '<path class="mc-suelo" d="M4 56h56"/></svg>';
 
   function renderMapaHtml(filas, mio){
     var html = '<section class="tablero-mapa"><h3>El camino de vuelta</h3>' +
-      '<p class="tablero-meta">De los chanchos a la casa del Padre (Lucas 15, 11-32). Cada comando avanza según su promedio.</p>' +
+      '<p class="tablero-meta">Del valle de los cerdos a la casa del Padre (Lucas 15, 11-32). Cada comando avanza según su promedio.</p>' +
       '<div class="mapa-lienzo">' +
       '<svg viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true"><defs>' +
       '<linearGradient id="mapaG1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="mapa-g1a"/><stop offset="1" class="mapa-g1b"/></linearGradient>' +
