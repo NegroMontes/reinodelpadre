@@ -1018,6 +1018,20 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .mapa-punto{ width:14px; height:14px; border-radius:50%; background:var(--bg); border:3px solid var(--ink); }
 .mapa-deco{ position:absolute; transform:translate(-50%, -50%); width:56px; height:56px; z-index:2; }
 .mapa-deco svg{ width:100%; height:100%; overflow:visible; }
+.mapa-niebla-a{ stop-color:var(--il-niebla); stop-opacity:.55; } .mapa-niebla-m{ stop-color:var(--il-niebla); stop-opacity:.3; } .mapa-niebla-b{ stop-color:var(--il-niebla); stop-opacity:0; }
+.mapa-desvio{ fill:none; stroke-linecap:round; }
+.mapa-desvio-borde{ stroke:var(--il-niebla); stroke-opacity:.75; stroke-width:13; }
+.mapa-desvio-centro{ stroke:var(--bg); stroke-width:7; stroke-dasharray:10 6; }
+.mapa-extranjeros{ left:86%; top:84%; width:110px; height:66px; z-index:1; }
+.mx-suelo{ fill:var(--il-arido); stroke:none; }
+.mx-grieta, .mx-arbol, .mx-choza, .mx-techo{ fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+.mx-grieta{ stroke:var(--il-niebla); }
+.mx-arbol, .mx-choza{ stroke:var(--il-niebla); }
+.mx-techo{ stroke:var(--il-niebla); stroke-dasharray:6 3; }
+.mapa-zona-label{ position:absolute; left:86%; top:96%; transform:translate(-50%, -50%); z-index:3; white-space:nowrap; font-size:12px; font-weight:600; font-style:italic;
+  color:var(--ink-soft); background:var(--card-bg); border:1px dashed var(--il-niebla); padding:1px 8px; border-radius:999px; }
+.mapa-grupo[data-zona="extranjeros"]{ left:84%; top:74%; }
+.mapa-grupo[data-zona="extranjeros"] .mapa-av:not(.es-mio){ filter:grayscale(.7); opacity:.85; }
 .mapa-chancho{ left:9%; top:87%; width:100px; height:60px; }
 .mapa-casa{ left:94%; top:14%; }
 .mapa-deco [class^="mc-"]{ stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
@@ -1093,6 +1107,8 @@ a.user-menu-item{ text-decoration:none; display:block; }
   .mapa-label{ font-size:10px; }
   .mapa-deco{ width:36px; height:36px; }
   .mapa-chancho{ width:62px; height:37px; left:10%; }
+  .mapa-extranjeros{ width:70px; height:42px; }
+  .mapa-zona-label{ font-size:10px; }
   .mapa-label{ padding:2px; }
   .mapa-label-txt{ display:none; }
   .mapa-label b{ width:18px; height:18px; font-size:11px; }

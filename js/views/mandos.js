@@ -325,7 +325,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
   // casa del Padre. El SVG fija el camino; los escudos y las estaciones son
   // HTML encima, ubicados al abrir con getPointAtLength() (ver
   // ubicarMapa()). Los que están cerca (≤4 puntos) se agrupan en un racimo.
-  var MAPA_CAMINO = 'M150 342 C 220 372, 275 300, 205 245 S 140 125, 285 145 S 430 270, 470 190 S 470 110, 515 95';
+  var MAPA_CAMINO = 'M150 345 C 225 352, 255 300, 212 250 S 140 125, 285 145 S 430 270, 470 190 S 470 110, 515 95';
   var MAPA_ESTACIONES = [
     { pct: 0, label: 'El valle de los cerdos', lado: 'abajo' },
     { pct: 25, label: 'La encrucijada', lado: 'der' },
@@ -361,31 +361,49 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     '<rect class="mc-ventana" x="40" y="33" width="7" height="7" rx="1.5"/>' +
     '<path class="mc-suelo" d="M4 56h56"/></svg>';
 
+  // Pueblos extranjeros: tierra árida, árboles secos y una choza caída.
+  var MAPA_SVG_EXTRANJEROS = '<svg viewBox="0 0 120 72" aria-hidden="true">' +
+    '<path class="mx-suelo" d="M2 62c14-5 30-6 48-4s40 1 68-3v15H2z"/>' +
+    '<path class="mx-grieta" d="M20 66l6-3 4 3M64 64l5-3 3 2 4-2M96 63l4 2"/>' +
+    '<path class="mx-arbol" d="M18 60V34M18 46l-8-7M18 40l7-8M18 52l6-4M25 32l3-4M10 39l-3-3"/>' +
+    '<path class="mx-arbol" d="M102 59V40M102 50l6-6M102 46l-6-5M108 44l2-4"/>' +
+    '<path class="mx-choza" d="M44 60V44l13-11 14 10v17"/>' +
+    '<path class="mx-techo" d="M40 46l17-15 9 7M60 36l13 11"/>' +
+    '<path class="mx-grieta" d="M53 60v-8h6v8M64 50l3 3"/>' +
+    '</svg>';
+
   function renderMapaHtml(filas, mio){
     var html = '<section class="tablero-mapa"><h3>El camino de vuelta</h3>' +
-      '<p class="tablero-meta">Del valle de los cerdos a la casa del Padre (Lucas 15, 11-32). Cada comando avanza según su promedio.</p>' +
+      '<p class="tablero-meta">Del valle de los cerdos a la casa del Padre (Lucas 15, 11-32). Cada comando avanza según su promedio; los que todavía no arrancaron andan por pueblos extranjeros.</p>' +
       '<div class="mapa-lienzo">' +
       '<svg viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true"><defs>' +
       '<linearGradient id="mapaG1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="mapa-g1a"/><stop offset="1" class="mapa-g1b"/></linearGradient>' +
       '<linearGradient id="mapaG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="mapa-g2a"/><stop offset="1" class="mapa-g2b"/></linearGradient>' +
-      '<radialGradient id="mapaLuz"><stop offset="0" class="mapa-luz-a"/><stop offset="1" class="mapa-luz-b"/></radialGradient></defs>' +
+      '<radialGradient id="mapaLuz"><stop offset="0" class="mapa-luz-a"/><stop offset="1" class="mapa-luz-b"/></radialGradient>' +
+      '<radialGradient id="mapaNiebla"><stop offset="0" class="mapa-niebla-a"/><stop offset=".6" class="mapa-niebla-m"/><stop offset="1" class="mapa-niebla-b"/></radialGradient></defs>' +
+      '<ellipse cx="505" cy="345" rx="150" ry="85" fill="url(#mapaNiebla)"/>' +
       '<circle cx="545" cy="100" r="100" fill="url(#mapaLuz)"/>' +
       '<path fill="url(#mapaG1)" d="M0 235 C 50 205, 85 150, 140 168 S 225 105, 290 145 S 375 85, 440 118 S 535 55, 600 92 L600 400 L0 400 Z"/>' +
       '<path fill="url(#mapaG2)" d="M0 318 C 75 280, 145 302, 215 272 S 355 228, 430 258 S 535 215, 600 238 L600 400 L0 400 Z"/>' +
+      '<path class="mapa-desvio-borde mapa-desvio"/>' +
+      '<path class="mapa-desvio-centro mapa-desvio"/>' +
       '<path class="mapa-sendero-borde" d="' + MAPA_CAMINO + '"/>' +
       '<path class="mapa-sendero mapa-camino" d="' + MAPA_CAMINO + '"/>' +
       '</svg>' +
       '<span class="mapa-deco mapa-chancho" title="El valle de los cerdos">' + MAPA_SVG_CHANCHO + '</span>' +
-      '<span class="mapa-deco mapa-casa" title="La casa del Padre">' + MAPA_SVG_CASA + '</span>';
+      '<span class="mapa-deco mapa-casa" title="La casa del Padre">' + MAPA_SVG_CASA + '</span>' +
+      '<span class="mapa-deco mapa-extranjeros" title="Pueblos extranjeros">' + MAPA_SVG_EXTRANJEROS + '</span>' +
+      '<span class="mapa-zona-label">Pueblos extranjeros</span>';
     MAPA_ESTACIONES.forEach(function(e, i){
       html += '<div class="mapa-estacion mapa-lado-' + e.lado + '" data-pct="' + e.pct + '">' +
         '<span class="mapa-punto"></span>' +
         '<span class="mapa-label"><b>' + (i + 1) + '</b><span class="mapa-label-txt">' + escapeHtml(e.label) + '</span></span></div>';
     });
-    // Racimos: comandos a ≤4 puntos del primero del racimo. Cada racimo es
-    // una «pila» (hasta 3 escudos superpuestos + «+N»); al tocarla, un
-    // globito con nombre, puesto y % de cada uno.
-    var orden = filas.slice().sort(function(a, b){ return a.promedio - b.promedio; });
+    // Pueblos extranjeros (Lc 15, 13): los comandos en 0% (nadie avanzó
+    // todavía) esperan ahí, en el desvío de La Encrucijada; con el primer
+    // punto pasan al camino. El resto, en racimos a ≤4 puntos del primero.
+    var lejos = filas.filter(function(f){ return !f.promedio; });
+    var orden = filas.filter(function(f){ return f.promedio; }).sort(function(a, b){ return a.promedio - b.promedio; });
     var racimos = [];
     orden.forEach(function(f){
       var r = racimos[racimos.length - 1];
@@ -393,29 +411,36 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     });
     racimos.forEach(function(r){
       var pct = Math.round(r.reduce(function(x, f){ return x + f.promedio; }, 0) / r.length);
-      r.sort(function(x, y){ return (y.grupo === mio) - (x.grupo === mio) || x.pos - y.pos; });
-      var esMio = r.some(function(f){ return f.grupo === mio; });
-      var nombres = r.map(function(f){ return f.grupo + ' ' + f.pos + '° ' + f.promedio + '%'; }).join(', ');
-      var visibles = r.slice(0, 3), extra = r.length - visibles.length;
-      html += '<div class="mapa-grupo' + (esMio ? ' es-mio' : '') + '" data-pct="' + pct + '">' +
-        (esMio ? '<span class="mapa-tuyo">Tu comando</span>' : '') +
-        '<button type="button" class="mapa-pila" aria-haspopup="dialog" aria-label="' + escapeHtml(nombres) + '">';
-      visibles.forEach(function(f){
-        html += '<span class="mapa-av' + (f.grupo === mio ? ' es-mio' : '') + '">' + comandoIconHtml(f) + '</span>';
-      });
-      if(extra) html += '<span class="mapa-mas">+' + extra + '</span>';
-      html += '</button><div class="mapa-pop-content" hidden>';
-      r.forEach(function(f){
-        html += '<div class="mapa-pop-fila' + (f.grupo === mio ? ' es-mio' : '') + '">' + comandoIconHtml(f) +
-          '<span class="mapa-pop-nombre">' + escapeHtml(f.grupo) + (f.grupo === mio ? ' <small>(tu comando)</small>' : '') + '</span>' +
-          '<span class="mapa-pop-pos">' + f.pos + '°</span><span class="mapa-pop-pct">' + f.promedio + '%</span></div>';
-      });
-      html += '</div></div>';
+      html += mapaGrupoHtml(r, mio, 'data-pct="' + pct + '"');
     });
+    if(lejos.length) html += mapaGrupoHtml(lejos, mio, 'data-zona="extranjeros"');
     html += '<div class="mapa-pop" role="dialog" hidden></div></div>';
     // Referencia numerada (solo en celular, donde las etiquetas no entran).
     html += '<ol class="mapa-leyenda">' + MAPA_ESTACIONES.map(function(e){ return '<li>' + escapeHtml(e.label) + '</li>'; }).join('') + '</ol></section>';
     return html;
+  }
+
+  // Una «pila» (hasta 3 escudos superpuestos + «+N»); al tocarla, un
+  // globito con nombre, puesto y % de cada uno.
+  function mapaGrupoHtml(r, mio, attrs){
+    r = r.slice().sort(function(x, y){ return (y.grupo === mio) - (x.grupo === mio) || x.pos - y.pos; });
+    var esMio = r.some(function(f){ return f.grupo === mio; });
+    var nombres = r.map(function(f){ return f.grupo + ' ' + f.pos + '° ' + f.promedio + '%'; }).join(', ');
+    var visibles = r.slice(0, 3), extra = r.length - visibles.length;
+    var html = '<div class="mapa-grupo' + (esMio ? ' es-mio' : '') + '" ' + attrs + '>' +
+      (esMio ? '<span class="mapa-tuyo">Tu comando</span>' : '') +
+      '<button type="button" class="mapa-pila" aria-haspopup="dialog" aria-label="' + escapeHtml(nombres) + '">';
+    visibles.forEach(function(f){
+      html += '<span class="mapa-av' + (f.grupo === mio ? ' es-mio' : '') + '">' + comandoIconHtml(f) + '</span>';
+    });
+    if(extra) html += '<span class="mapa-mas">+' + extra + '</span>';
+    html += '</button><div class="mapa-pop-content" hidden>';
+    r.forEach(function(f){
+      html += '<div class="mapa-pop-fila' + (f.grupo === mio ? ' es-mio' : '') + '">' + comandoIconHtml(f) +
+        '<span class="mapa-pop-nombre">' + escapeHtml(f.grupo) + (f.grupo === mio ? ' <small>(tu comando)</small>' : '') + '</span>' +
+        '<span class="mapa-pop-pos">' + f.pos + '°</span><span class="mapa-pop-pct">' + f.promedio + '%</span></div>';
+    });
+    return html + '</div></div>';
   }
 
   function cerrarMapaPop(){
@@ -437,6 +462,10 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       el.style.left = (pt.x / 600 * 100) + '%';
       el.style.top = (pt.y / 400 * 100) + '%';
     });
+    // Desvío: nace en La Encrucijada (25%) y baja hacia pueblos extranjeros.
+    var p0 = camino.getPointAtLength(L * .25);
+    var dDesvio = 'M' + p0.x.toFixed(1) + ' ' + p0.y.toFixed(1) + ' C ' + (p0.x + 70).toFixed(1) + ' ' + (p0.y + 10).toFixed(1) + ', 380 365, 470 338';
+    lienzo.querySelectorAll('path.mapa-desvio').forEach(function(d){ d.setAttribute('d', dDesvio); });
     var pop = lienzo.querySelector('.mapa-pop');
     lienzo.querySelectorAll('.mapa-grupo').forEach(function(g){
       g.querySelector('.mapa-pila').onclick = function(ev){
