@@ -327,10 +327,10 @@ import { showAlert, showConfirm } from '../components/dialog.js';
   // ubicarMapa()). Los que están cerca (≤4 puntos) se agrupan en un racimo.
   var MAPA_CAMINO = 'M115 340 C 200 375, 270 300, 205 245 S 140 125, 285 145 S 430 270, 470 190 S 470 110, 515 95';
   var MAPA_ESTACIONES = [
-    { pct: 0, label: 'Entre los chanchos', lado: 'abajo' },
-    { pct: 25, label: 'Entra en sí mismo', lado: 'der' },
-    { pct: 50, label: 'Se levanta y vuelve', lado: 'arriba' },
-    { pct: 75, label: 'El Padre lo abraza', lado: 'arriba' },
+    { pct: 0, label: 'El valle de los cerdos', lado: 'abajo' },
+    { pct: 25, label: 'La encrucijada', lado: 'der' },
+    { pct: 50, label: 'El camino de retorno', lado: 'arriba' },
+    { pct: 75, label: 'La Tranquera', lado: 'arriba' },
     { pct: 100, label: 'La casa del Padre', lado: 'izq' }
   ];
 
@@ -368,7 +368,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       '<path class="mapa-sendero-borde" d="' + MAPA_CAMINO + '"/>' +
       '<path class="mapa-sendero mapa-camino" d="' + MAPA_CAMINO + '"/>' +
       '</svg>' +
-      '<span class="mapa-deco mapa-chancho" title="Entre los chanchos">' + MAPA_SVG_CHANCHO + '</span>' +
+      '<span class="mapa-deco mapa-chancho" title="El valle de los cerdos">' + MAPA_SVG_CHANCHO + '</span>' +
       '<span class="mapa-deco mapa-casa" title="La casa del Padre">' + MAPA_SVG_CASA + '</span>';
     MAPA_ESTACIONES.forEach(function(e, i){
       html += '<div class="mapa-estacion mapa-lado-' + e.lado + '" data-pct="' + e.pct + '">' +
