@@ -11,7 +11,7 @@ import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_SVG_ICON } from '../config/const
 import { escapeHtml, roleLabel, activityIcon, estaOculta } from '../utils/helpers.js';
 import { userBadgeInnerHtml, sectionShieldHtml } from '../utils/badge-icons.js';
 import { icon } from '../utils/icons.js';
-import { canSeeMiComandoSubtab, realIsAdmin, effectiveRole, effectiveSeccion, effectiveDepto, lectorModeActive } from '../services/permissions.js';
+import { canSeeMiComandoSubtab, realIsAdmin, isAdmin, effectiveRole, effectiveSeccion, effectiveDepto, lectorModeActive } from '../services/permissions.js';
 import { buildMandosIndex, findMandoByName } from '../utils/mandos-matcher.js';
 import { isMilicianoUser } from './users.js';
 import { renderPanel } from '../main.js';
@@ -316,7 +316,9 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     return '<span class="tablero-icon tablero-icon-' + f.tipo + '">' + inner + '</span>';
   }
 
+  // «N de M con avance»: solo para el admin (pedido del usuario, 06/11/2026).
   function metaTxt(f){ return f.conDatos + ' de ' + f.total + ' con avance'; }
+  function metaHtml(f, tag){ return isAdmin() ? '<' + tag + ' class="tablero-meta">' + metaTxt(f) + '</' + tag + '>' : ''; }
 
   function renderTableroHtml(){
     var filas = tableroComandos();
@@ -328,7 +330,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     if(mia){
       html += '<div class="tablero-mio">' + comandoIconHtml(mia) +
         '<div class="tablero-mio-info"><span class="tablero-mio-label">Tu comando</span>' +
-        '<strong>' + escapeHtml(mia.grupo) + '</strong><span class="tablero-meta">' + metaTxt(mia) + '</span></div>' +
+        '<strong>' + escapeHtml(mia.grupo) + '</strong>' + metaHtml(mia, 'span') + '</div>' +
         '<div class="tablero-mio-nums"><span class="tablero-mio-pos">' + mia.pos + '°</span>' +
         '<span class="tablero-mio-pct">' + mia.promedio + '%</span></div></div>';
     }
@@ -343,7 +345,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
         comandoIconHtml(f) +
         '<span class="podio-nombre">' + escapeHtml(f.grupo) + '</span>' +
         '<span class="podio-pct">' + f.promedio + '%</span>' +
-        '<span class="tablero-meta">' + metaTxt(f) + '</span>' +
+        metaHtml(f, 'span') +
         '<div class="podio-base"><span>' + f.pos + '°</span></div></div>';
     });
     html += '</div>';
@@ -354,7 +356,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
         '<summary>Resto del ranking (' + resto.length + ')</summary><table class="tablero-tabla"><tbody>';
       resto.forEach(function(f){
         html += '<tr' + (f.grupo === mio ? ' class="es-mio"' : '') + '><td class="tt-pos">' + f.pos + '°</td>' +
-          '<td><div class="tt-nombre">' + comandoIconHtml(f) + '<span>' + escapeHtml(f.grupo) + '<small class="tablero-meta">' + metaTxt(f) + '</small></span></div></td>' +
+          '<td><div class="tt-nombre">' + comandoIconHtml(f) + '<span>' + escapeHtml(f.grupo) + '' + metaHtml(f, 'small') + '</span></div></td>' +
           '<td class="tt-barra"><div class="perfil-barra"><span style="width:' + f.promedio + '%"></span></div></td>' +
           '<td class="tt-pct">' + f.promedio + '%</td></tr>';
       });
