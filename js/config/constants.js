@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.06.12';
+  export var APP_VERSION = '2026.11.06.13';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.06.13', date: '06/11/2026', items: [
+      'Mapa del Tablero: portón de madera sin cruz, pozo y olivos en lugar del molino, Pueblos extranjeros como un caserío sobre la montaña, y el desvío unido al camino sin línea.'
+    ]},
     { version: '2026.11.06.12', date: '06/11/2026', items: [
       'Mapa del Tablero: las tierras del Padre y el alambrado terminan en las montañas (ya no en el cielo) y La Tranquera es un portón con arco y cartel que se distingue.'
     ]},

@@ -1035,7 +1035,6 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .me-pata{ fill:none; stroke:var(--ink-soft); stroke-width:1.4; stroke-linecap:round; }
 .me-lana{ fill:var(--il-pared); stroke:var(--il-trazo); stroke-width:1.1; stroke-linejoin:round; }
 .me-cara{ fill:var(--il-trazo); }
-.mapa-tranquera-hoja{ fill:none; stroke:var(--gold); stroke-width:2.2; stroke-linecap:round; }
 .mr-tronco{ stroke:var(--il-madera); stroke-width:2.2; stroke-linecap:round; }
 .mr-copa{ fill:var(--sage); opacity:.75; }
 .mr-roca{ fill:var(--il-arido); stroke:var(--il-trazo); stroke-opacity:.35; stroke-width:1.2; stroke-linejoin:round; }
@@ -1043,23 +1042,17 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .mapa-cerca-poste{ fill:none; stroke:var(--il-madera); stroke-width:2.8; stroke-linecap:round; }
 .mapa-mojones rect{ fill:var(--il-pared); stroke:var(--il-madera); stroke-width:1.4; }
 .mapa-mojones path{ fill:none; stroke:var(--gold); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-.mapa-tranquera-palo{ fill:none; stroke:var(--ink-soft); stroke-width:5; stroke-linecap:round; }
-.mapa-tranquera-arco{ fill:none; stroke:var(--ink-soft); stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
-.mapa-tranquera-cartel .mt-cuerda{ stroke:var(--ink-soft); stroke-width:1.2; }
-.mapa-tranquera-cartel rect{ fill:var(--il-pared); stroke:var(--ink-soft); stroke-width:1.6; }
-.mapa-tranquera-cartel path{ fill:none; stroke:var(--gold); stroke-width:2.2; stroke-linecap:round; }
 .mc-flecha{ fill:none; stroke:var(--il-madera); stroke-width:2.4 !important; }
 .mc-abrevadero{ fill:var(--il-madera); stroke:var(--il-trazo); }
 .mc-agua{ fill:none; stroke:var(--teal); stroke-width:3 !important; }
-.mapa-extranjeros{ left:14%; top:41%; width:110px; height:66px; z-index:1; }
 .mx-suelo{ fill:var(--il-arido); stroke:none; }
 .mx-grieta, .mx-arbol, .mx-choza, .mx-techo{ fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
 .mx-grieta{ stroke:var(--il-niebla); }
 .mx-arbol, .mx-choza{ stroke:var(--il-niebla); }
 .mx-techo{ stroke:var(--il-niebla); stroke-dasharray:6 3; }
-.mapa-zona-label{ position:absolute; left:14%; top:54%; transform:translate(-50%, -50%); z-index:3; white-space:nowrap; font-size:12px; font-weight:600; font-style:italic;
+.mapa-zona-label{ position:absolute; left:16%; top:34%; transform:translate(-50%, -50%); z-index:3; white-space:nowrap; font-size:12px; font-weight:600; font-style:italic;
   color:var(--ink-soft); background:var(--card-bg); border:1px dashed var(--il-niebla); padding:1px 8px; border-radius:999px; }
-.mapa-grupo[data-zona="extranjeros"]{ left:15%; top:30%; }
+.mapa-grupo[data-zona="extranjeros"]{ left:15%; top:22%; }
 .mapa-grupo[data-zona="extranjeros"] .mapa-av:not(.es-mio){ filter:grayscale(.7); opacity:.85; }
 .mapa-chancho{ left:10%; top:87%; width:124px; height:63px; }
 .mapa-casa{ left:93%; top:16.5%; width:84px; height:57px; transform:translate(-50%, -93%); }
@@ -1092,6 +1085,26 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .mapa-afuera{ fill:var(--il-arido); fill-opacity:.2; }
 .mapa-dominio-verde{ fill:var(--sage); fill-opacity:.16; }
 .mapa-calido-a{ stop-color:var(--amber); stop-opacity:.32; } .mapa-calido-b{ stop-color:var(--amber); stop-opacity:.04; }
+.mt-poste{ fill:var(--il-madera); stroke:var(--il-trazo); stroke-width:1; }
+.mt-punta{ fill:var(--gold); stroke:var(--il-trazo); stroke-width:.8; stroke-linejoin:round; }
+.mt-viga{ fill:var(--il-madera); stroke:var(--il-trazo); stroke-width:1; }
+.mt-arco{ fill:none; stroke:var(--il-madera); stroke-width:2.2; stroke-linecap:round; }
+.mt-cartel{ fill:var(--il-pared); stroke:var(--il-madera); stroke-width:1.4; }
+.mt-veta{ fill:none; stroke:var(--il-madera); stroke-width:.9; stroke-linecap:round; opacity:.7; }
+.mt-cuerda{ fill:none; stroke:var(--il-madera); stroke-width:1.2; }
+.mt-hoja{ fill:none; stroke:var(--il-madera); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.me-pozo{ fill:var(--il-arido); stroke:var(--il-trazo); stroke-width:1.1; }
+.me-piedra{ fill:none; stroke:var(--il-trazo); stroke-width:.8; opacity:.6; }
+.me-palo{ fill:none; stroke:var(--il-madera); stroke-width:1.8; stroke-linecap:round; }
+.me-balde{ fill:var(--il-madera); stroke:var(--il-trazo); stroke-width:.8; }
+.me-tronco-olivo{ fill:none; stroke:var(--il-madera); stroke-width:2.2; stroke-linecap:round; }
+.me-olivo{ fill:var(--sage); opacity:.78; }
+.me-aceituna{ fill:var(--il-uva); }
+.mx-frente{ fill:var(--il-arido); stroke:var(--il-niebla); stroke-width:1; stroke-linejoin:round; }
+.mx-lado{ fill:var(--il-niebla); fill-opacity:.55; stroke:var(--il-niebla); stroke-width:1; stroke-linejoin:round; }
+.mx-techo-plano{ fill:var(--il-arido); stroke:var(--il-niebla); stroke-width:1; stroke-linejoin:round; }
+.mx-hueco{ fill:var(--il-niebla); }
+.mx-escombro{ fill:var(--il-niebla); fill-opacity:.7; }
 .mc-techo{ fill:none; stroke:var(--gold); stroke-width:3.5 !important; }
 .mc-pared{ fill:var(--il-pared); stroke:var(--il-trazo); }
 .mc-chimenea{ fill:var(--il-pared); stroke:var(--il-trazo); }
@@ -1159,7 +1172,6 @@ a.user-menu-item{ text-decoration:none; display:block; }
   .mapa-deco{ width:36px; height:36px; }
   .mapa-casa{ width:54px; height:37px; }
   .mapa-chancho{ width:78px; height:40px; left:11%; }
-  .mapa-extranjeros{ width:70px; height:42px; }
   .mapa-zona-label{ display:none; }
   .mapa-label{ padding:2px; }
   .mapa-label-txt{ display:none; }

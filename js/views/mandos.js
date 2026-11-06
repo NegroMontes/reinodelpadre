@@ -386,16 +386,33 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     '<circle class="mc-flor" cx="23" cy="61" r="1.6"/><circle class="mc-flor" cx="85" cy="61" r="1.6"/><circle class="mc-flor" cx="89" cy="60.5" r="1.3"/>' +
     '</svg>';
 
-  // Pueblos extranjeros: tierra árida, árboles secos y una choza caída.
-  var MAPA_SVG_EXTRANJEROS = '<svg viewBox="0 0 120 72" aria-hidden="true">' +
-    '<path class="mx-suelo" d="M2 62c14-5 30-6 48-4s40 1 68-3v15H2z"/>' +
-    '<path class="mx-grieta" d="M20 66l6-3 4 3M64 64l5-3 3 2 4-2M96 63l4 2"/>' +
-    '<path class="mx-arbol" d="M18 60V34M18 46l-8-7M18 40l7-8M18 52l6-4M25 32l3-4M10 39l-3-3"/>' +
-    '<path class="mx-arbol" d="M102 59V40M102 50l6-6M102 46l-6-5M108 44l2-4"/>' +
-    '<path class="mx-choza" d="M44 60V44l13-11 14 10v17"/>' +
-    '<path class="mx-techo" d="M40 46l17-15 9 7M60 36l13 11"/>' +
-    '<path class="mx-grieta" d="M53 60v-8h6v8M64 50l3 3"/>' +
-    '</svg>';
+  // Pueblos extranjeros: un caserío de adobe (casas cúbicas de techo plano,
+  // al estilo de la época) apoyado sobre la cresta de la izquierda, gris y
+  // venido a menos: una casa en ruinas, árboles secos y escombros.
+  function mapaCasita(x, y, w, h, ruina){
+    var d = w * .35, top = y - h;
+    var frente = ruina
+      ? 'M' + x + ' ' + y + 'V' + top + 'h' + (w * .45) + 'l' + (w * .12) + ' ' + (h * .3) + 'l' + (w * .15) + ' -' + (h * .12) + 'l' + (w * .28) + ' ' + (h * .45) + 'V' + y + 'z'
+      : 'M' + x + ' ' + y + 'V' + top + 'h' + w + 'V' + y + 'z';
+    var h2 = '<path class="mx-frente" d="' + frente + '"/>';
+    if(!ruina){
+      h2 += '<path class="mx-lado" d="M' + (x + w) + ' ' + y + 'V' + top + 'l' + d + ' -' + (d * .5) + 'V' + (y - d * .5) + 'z"/>' +
+        '<path class="mx-techo-plano" d="M' + x + ' ' + top + 'l' + d + ' -' + (d * .5) + 'h' + w + 'l-' + d + ' ' + (d * .5) + 'z"/>';
+    }
+    h2 += '<rect class="mx-hueco" x="' + (x + w * .38) + '" y="' + (y - h * .55) + '" width="' + (w * .26) + '" height="' + (h * .55) + '" rx="' + (w * .1) + '"/>';
+    if(w > 13 && !ruina) h2 += '<rect class="mx-hueco" x="' + (x + w * .1) + '" y="' + (y - h * .8) + '" width="' + (w * .16) + '" height="' + (w * .16) + '"/>';
+    return h2;
+  }
+  function mapaArbolSeco(x, y, k){
+    return '<path class="mx-arbol" d="M' + x + ' ' + y + 'v-' + (16 * k) + 'M' + x + ' ' + (y - 8 * k) + 'l-' + (6 * k) + ' -' + (5 * k) +
+      'M' + x + ' ' + (y - 11 * k) + 'l' + (6 * k) + ' -' + (6 * k) + 'M' + (x - 6 * k) + ' ' + (y - 13 * k) + 'l-' + (2 * k) + ' -' + (3 * k) + '"/>';
+  }
+  var MAPA_SVG_PUEBLO =
+    mapaArbolSeco(22, 226, 1) +
+    mapaCasita(34, 216, 13, 12) + mapaCasita(50, 205, 16, 16) + mapaCasita(70, 190, 14, 13, true) +
+    mapaCasita(86, 179, 17, 18) + mapaCasita(108, 170, 13, 12) + mapaCasita(124, 169, 15, 15) +
+    mapaArbolSeco(148, 172, .9) +
+    '<path class="mx-escombro" d="M64 192l3-3 3 2 2-2 3 3zM100 172l2-2 3 1 2-2 2 3z"/>';
 
   // Relieve: álamos (Mendoza) y rocas en las curvas del camino.
   function mapaAlamo(x, y, h){
@@ -447,13 +464,21 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     }
     return '<path class="me-trigo" d="' + d + '"/><path class="me-surco" d="' + surcos + '"/>';
   }
-  function mapaMolino(x, y){
-    var aspas = '';
-    for(var i = 0; i < 8; i++){
-      var a = i * Math.PI / 4;
-      aspas += 'M' + x + ' ' + (y - 30) + 'l' + (Math.cos(a) * 9).toFixed(1) + ' ' + (Math.sin(a) * 9).toFixed(1);
-    }
-    return '<path class="me-molino" d="M' + (x - 6) + ' ' + y + 'L' + x + ' ' + (y - 30) + 'L' + (x + 6) + ' ' + y + 'M' + (x - 4) + ' ' + (y - 10) + 'h8M' + (x - 2.5) + ' ' + (y - 20) + 'h5' + aspas + 'M' + x + ' ' + (y - 30) + 'h12l-3 3"/>';
+  // Pozo de piedra con su travesaño y balde (en vez del molino, para que
+  // la estancia se sienta de la época del Evangelio).
+  function mapaPozo(x, y){
+    return '<path class="me-pozo" d="M' + (x - 9) + ' ' + (y - 8) + 'v8a9 3 0 0 0 18 0v-8"/>' +
+      '<ellipse class="me-pozo" cx="' + x + '" cy="' + (y - 8) + '" rx="9" ry="3"/>' +
+      '<path class="me-piedra" d="M' + (x - 9) + ' ' + (y - 4) + 'a9 3 0 0 0 18 0M' + (x - 4) + ' ' + (y - 5) + 'v3M' + (x + 3) + ' ' + (y - 5) + 'v3"/>' +
+      '<path class="me-palo" d="M' + (x - 8) + ' ' + (y - 8) + 'v-14M' + (x + 8) + ' ' + (y - 8) + 'v-14M' + (x - 10) + ' ' + (y - 22) + 'h20M' + x + ' ' + (y - 22) + 'v6"/>' +
+      '<path class="me-balde" d="M' + (x - 2.5) + ' ' + (y - 16) + 'h5l-1 4h-3z"/>';
+  }
+  // Olivo: tronco retorcido y copa ancha gris verdosa.
+  function mapaOlivo(x, y, k){
+    return '<path class="me-tronco-olivo" d="M' + x + ' ' + y + 'c' + (-2 * k) + ' -' + (4 * k) + ' ' + (2 * k) + ' -' + (6 * k) + ' 0 -' + (10 * k) + '"/>' +
+      '<ellipse class="me-olivo" cx="' + (x - 3 * k) + '" cy="' + (y - 13 * k) + '" rx="' + (6 * k) + '" ry="' + (4.5 * k) + '"/>' +
+      '<ellipse class="me-olivo" cx="' + (x + 4 * k) + '" cy="' + (y - 14 * k) + '" rx="' + (6 * k) + '" ry="' + (5 * k) + '"/>' +
+      '<circle class="me-aceituna" cx="' + (x + 2 * k) + '" cy="' + (y - 12 * k) + '" r="' + (1 * k) + '"/><circle class="me-aceituna" cx="' + (x - 4 * k) + '" cy="' + (y - 14 * k) + '" r="' + (1 * k) + '"/>';
   }
   // Fuera de la estancia: austero (arbustos secos, rocas, matas de pasto).
   function mapaSeco(x, y, k){
@@ -474,11 +499,11 @@ import { showAlert, showConfirm } from '../components/dialog.js';
   }
   var MAPA_SVG_ESTANCIA =
     mapaTrigal([[520, 128], [598, 112], [604, 160], [530, 176]]) +
-    mapaMolino(456, 162) +
+    mapaPozo(458, 166) + mapaOlivo(505, 192, 1.1) + mapaOlivo(528, 184, 1) + mapaOlivo(590, 196, 1.1) +
     mapaVinedo() +
     mapaVaca(536, 222, 1.15) + mapaVaca(566, 236, 1, true) + mapaOveja(512, 252, 1.1) + mapaOveja(590, 214, 1) + mapaOveja(548, 262, .9) +
     mapaAlamo(470, 262, 30) + mapaAlamo(478, 250, 26) + mapaAlamo(590, 296, 34) + mapaAlamo(578, 290, 30) +
-    mapaArbusto(512, 196, 5) + mapaArbusto(596, 186, 4) + mapaArbusto(530, 100, 4) + mapaArbusto(505, 112, 3.5) + mapaArbusto(588, 262, 4.5);
+    mapaArbusto(596, 186, 4) + mapaArbusto(530, 100, 4) + mapaArbusto(505, 112, 3.5) + mapaArbusto(588, 262, 4.5);
 
   // Cresta de la cordillera de atrás, de izquierda a la cerca (440,118).
   var MAPA_CRESTA_IZQ = 'M0 235 C 50 205, 85 150, 140 168 S 225 105, 290 145 S 375 85, 440 118';
@@ -495,20 +520,21 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       '<ellipse cx="85" cy="150" rx="150" ry="100" fill="url(#mapaNiebla)"/>' +
       '<circle cx="560" cy="70" r="105" fill="url(#mapaLuz)"/>' +
       '<path fill="url(#mapaG1)" d="M0 235 C 50 205, 85 150, 140 168 S 225 105, 290 145 S 375 85, 440 118 C 480 98, 510 68, 545 66 S 590 66, 600 70 L600 400 L0 400 Z"/>' +
-      MAPA_SVG_RELIEVE +
+      MAPA_SVG_RELIEVE + MAPA_SVG_PUEBLO +
       '<path fill="url(#mapaG2)" d="M0 318 C 75 280, 145 302, 215 272 S 355 228, 430 258 S 535 215, 600 238 L600 400 L0 400 Z"/>' +
       '<path class="mapa-afuera"/><path class="mapa-dominio-verde mapa-dominio"/><path class="mapa-dominio-luz mapa-dominio" fill="url(#mapaCalido)"/>' +
       MAPA_SVG_ESTANCIA +
+      // Bordes primero y centros después: el desvío y el camino se funden
+      // en La Encrucijada, sin una línea que los separe.
       '<path class="mapa-desvio-borde mapa-desvio"/>' +
-      '<path class="mapa-desvio-centro mapa-desvio"/>' +
       '<path class="mapa-sendero-borde" d="' + MAPA_CAMINO + '"/>' +
+      '<path class="mapa-desvio-centro mapa-desvio"/>' +
       '<path class="mapa-sendero mapa-camino" d="' + MAPA_CAMINO + '"/>' +
       '<path class="mapa-cerca-riel"/><path class="mapa-cerca-poste"/><g class="mapa-mojones"></g>' +
-      '<g class="mapa-tranquera"><path class="mapa-tranquera-hoja"/><path class="mapa-tranquera-palo"/><path class="mapa-tranquera-arco"/><g class="mapa-tranquera-cartel"></g></g>' +
+      '<g class="mapa-tranquera"></g>' +
       '</svg>' +
       '<span class="mapa-deco mapa-chancho" title="El valle de los cerdos">' + MAPA_SVG_CHANCHO + '</span>' +
       '<span class="mapa-deco mapa-casa" title="La casa del Padre">' + MAPA_SVG_CASA + '</span>' +
-      '<span class="mapa-deco mapa-extranjeros" title="Pueblos extranjeros">' + MAPA_SVG_EXTRANJEROS + '</span>' +
       '<span class="mapa-zona-label">Pueblos extranjeros</span>';
     MAPA_ESTACIONES.forEach(function(e, i){
       html += '<div class="mapa-estacion mapa-lado-' + e.lado + '" data-pct="' + e.pct + '">' +
@@ -625,28 +651,33 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     lienzo.querySelector('path.mapa-cerca-poste').setAttribute('d', postes);
     lienzo.querySelector('path.mapa-cerca-riel').setAttribute('d', rieles);
     lienzo.querySelector('.mapa-mojones').innerHTML = mojones;
-    // La Tranquera: portón de estancia de frente — dos postes altos con
-    // punta de flecha, arco con cartel (cruz) y la hoja abierta hacia adentro.
+    // La Tranquera: portón de madera de frente — dos postes, viga de
+    // dintel con un cartel de tablas encima, un arco debajo de la viga y
+    // las dos hojas abiertas hacia adentro de la estancia.
     var t0 = camino.getPointAtLength(L * .746), t1 = camino.getPointAtLength(L * .754);
     var tx = t1.x - t0.x, ty = t1.y - t0.y, tn = Math.sqrt(tx * tx + ty * ty) || 1;
     tx /= tn; ty /= tn;
-    var alto = 30, izq = abajo, der = arriba, tope = izq.y - alto;
-    var palos = 'M' + izq.x.toFixed(1) + ' ' + izq.y.toFixed(1) + 'V' + tope.toFixed(1) + 'M' + der.x.toFixed(1) + ' ' + der.y.toFixed(1) + 'V' + tope.toFixed(1);
-    var puntas = 'M' + (izq.x - 3.4).toFixed(1) + ' ' + (tope + 3).toFixed(1) + 'l3.4-4 3.4 4M' + (der.x - 3.4).toFixed(1) + ' ' + (tope + 3).toFixed(1) + 'l3.4-4 3.4 4';
-    var arco = 'M' + (izq.x - 2).toFixed(1) + ' ' + (tope + 7).toFixed(1) + 'Q' + pT.x.toFixed(1) + ' ' + (tope - 6).toFixed(1) + ' ' + (der.x + 2).toFixed(1) + ' ' + (tope + 7).toFixed(1);
-    // Hoja abierta: gira desde el poste derecho hacia adentro de la estancia.
-    var hx = tx * 20, hy = ty * 20 + 6, h0 = { x: der.x, y: der.y - 1 };
-    var hoja = '';
-    [0, 5, 10].forEach(function(h){ hoja += 'M' + h0.x.toFixed(1) + ' ' + (h0.y - h).toFixed(1) + 'l' + hx.toFixed(1) + ' ' + hy.toFixed(1); });
-    hoja += 'M' + h0.x.toFixed(1) + ' ' + h0.y.toFixed(1) + 'l' + hx.toFixed(1) + ' ' + (hy - 10).toFixed(1) +
-      'M' + (h0.x + hx).toFixed(1) + ' ' + (h0.y + hy + 1).toFixed(1) + 'v-12';
-    lienzo.querySelector('path.mapa-tranquera-palo').setAttribute('d', palos);
-    lienzo.querySelector('path.mapa-tranquera-arco').setAttribute('d', arco + puntas);
-    lienzo.querySelector('path.mapa-tranquera-hoja').setAttribute('d', hoja);
-    var cx = pT.x, cy = tope + 2, cartel = lienzo.querySelector('.mapa-tranquera-cartel');
-    cartel.innerHTML = '<path class="mt-cuerda" d="M' + (cx - 5).toFixed(1) + ' ' + (cy - 2).toFixed(1) + 'v4M' + (cx + 5).toFixed(1) + ' ' + (cy - 2).toFixed(1) + 'v4"/>' +
-      '<rect x="' + (cx - 9).toFixed(1) + '" y="' + (cy + 2).toFixed(1) + '" width="18" height="12" rx="2.5"/>' +
-      '<path d="M' + cx.toFixed(1) + ' ' + (cy + 4).toFixed(1) + 'v8M' + (cx - 3.2).toFixed(1) + ' ' + (cy + 7).toFixed(1) + 'h6.4"/>';
+    var izq = abajo, der = arriba, tope = izq.y - 30, f = function(n){ return n.toFixed(1); };
+    var g = '';
+    // Hojas abiertas (detrás de los postes).
+    [izq, der].forEach(function(p){
+      var hx = tx * 13, hy = ty * 13 + 4, b0 = p.y - 1;
+      g += '<path class="mt-hoja" d="M' + f(p.x) + ' ' + f(b0) + 'l' + f(hx) + ' ' + f(hy) + 'M' + f(p.x) + ' ' + f(b0 - 5) + 'l' + f(hx) + ' ' + f(hy) +
+        'M' + f(p.x) + ' ' + f(b0 - 10) + 'l' + f(hx) + ' ' + f(hy) + 'M' + f(p.x + hx) + ' ' + f(b0 + hy + 1) + 'v-12' +
+        'M' + f(p.x) + ' ' + f(b0) + 'l' + f(hx) + ' ' + f(hy - 10) + '"/>';
+    });
+    // Postes con punta de flecha (guiño FASTA).
+    [izq, der].forEach(function(p){
+      g += '<rect class="mt-poste" x="' + f(p.x - 2.6) + '" y="' + f(tope) + '" width="5.2" height="' + f(p.y - tope + 1) + '" rx="1"/>' +
+        '<path class="mt-punta" d="M' + f(p.x - 2.6) + ' ' + f(tope) + 'l2.6-3.6 2.6 3.6z"/>';
+    });
+    var ancho = der.x - izq.x;
+    g += '<path class="mt-arco" d="M' + f(izq.x + 2.6) + ' ' + f(tope + 15) + 'Q' + f(pT.x) + ' ' + f(tope + 5) + ' ' + f(der.x - 2.6) + ' ' + f(tope + 15) + '"/>' +
+      '<rect class="mt-viga" x="' + f(izq.x - 7) + '" y="' + f(tope + 3) + '" width="' + f(ancho + 14) + '" height="4.2" rx="1.2"/>' +
+      '<rect class="mt-cartel" x="' + f(pT.x - 10) + '" y="' + f(tope - 6) + '" width="20" height="8.5" rx="1.5"/>' +
+      '<path class="mt-veta" d="M' + f(pT.x - 7) + ' ' + f(tope - 3) + 'h14M' + f(pT.x - 6) + ' ' + f(tope - .5) + 'h10"/>' +
+      '<path class="mt-cuerda" d="M' + f(pT.x - 6) + ' ' + f(tope + 2.5) + 'v1M' + f(pT.x + 6) + ' ' + f(tope + 2.5) + 'v1"/>';
+    lienzo.querySelector('.mapa-tranquera').innerHTML = g;
     var pop = lienzo.querySelector('.mapa-pop');
     lienzo.querySelectorAll('.mapa-grupo').forEach(function(g){
       g.querySelector('.mapa-pila').onclick = function(ev){
