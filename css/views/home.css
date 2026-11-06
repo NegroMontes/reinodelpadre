@@ -1007,12 +1007,12 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .tablero-mapa h3{ margin:0 0 2px; }
 .tablero-mapa > .tablero-meta{ margin:0 0 8px; }
 .mapa-lienzo{ position:relative; width:100%; aspect-ratio:3/2; max-height:460px; margin:0 auto; }
-.mapa-lienzo svg{ position:absolute; inset:0; width:100%; height:100%; }
+.mapa-lienzo > svg{ position:absolute; inset:0; width:100%; height:100%; }
 .mapa-monte{ fill:var(--bg); }
 .mapa-monte-2{ fill:var(--bg-alt); opacity:.6; }
 .mapa-camino-base{ fill:none; stroke:var(--line); stroke-width:16; stroke-linecap:round; }
 .mapa-camino{ fill:none; stroke:var(--amber); stroke-width:3; stroke-dasharray:2 9; stroke-linecap:round; }
-.mapa-estacion, .mapa-comando{ position:absolute; transform:translate(-50%, -50%); }
+.mapa-estacion, .mapa-grupo{ position:absolute; transform:translate(-50%, -50%); }
 .mapa-estacion{ display:flex; flex-direction:column; align-items:center; pointer-events:none; z-index:3; }
 .mapa-punto{ width:12px; height:12px; border-radius:50%; background:var(--sage); border:2px solid var(--card-bg); }
 .mapa-deco{ position:absolute; transform:translate(-50%, -50%); font-size:34px; line-height:1; pointer-events:none; }
@@ -1021,18 +1021,44 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .mapa-lado-arriba .mapa-label{ bottom:calc(100% + 4px); }
 .mapa-lado-izq .mapa-label{ right:calc(100% + 6px); top:50%; transform:translateY(-50%); }
 .mapa-lado-der .mapa-label{ left:calc(100% + 6px); top:50%; transform:translateY(-50%); }
-.mapa-comando{ --tam:38px; --dx:0; --dy:0; z-index:2; width:var(--tam); height:var(--tam); padding:2px; border-radius:50%; cursor:pointer;
-  background:var(--card-bg); border:2px solid var(--line); box-shadow:var(--shadow-sm);
-  transform:translate(calc(-50% + var(--dx) * (var(--tam) + 2px)), calc(-50% + var(--dy) * (var(--tam) + 2px))); }
-.mapa-comando .tablero-icon{ width:100%; height:100%; }
-.mapa-comando .tablero-icon svg{ width:60%; height:60%; }
-.mapa-comando.es-mio{ border-color:var(--teal); border-width:3px; z-index:4; }
-.mapa-comando.activo{ border-color:var(--bordeaux); z-index:5; }
 .mapa-estacion[data-pct="0"] .mapa-label{ top:calc(100% + 18px); }
 .mapa-estacion[data-pct="0"] .mapa-punto, .mapa-estacion[data-pct="100"] .mapa-punto{ visibility:hidden; }
-.mapa-info{ margin:6px 0 0; text-align:center; font-size:14px; font-weight:600; min-height:1.4em; }
+/* Pila de escudos superpuestos (stacked avatars). */
+.mapa-grupo{ --tam:38px; z-index:4; display:flex; flex-direction:column; align-items:center; }
+.mapa-grupo.es-mio{ z-index:5; }
+.mapa-grupo.abierto{ z-index:7; }
+.mapa-pila{ -webkit-tap-highlight-color:transparent; display:flex; align-items:center; padding:0; border:0; background:none; cursor:pointer; font:inherit; color:inherit; }
+.mapa-av, .mapa-mas{ width:var(--tam); height:var(--tam); border-radius:50%; background:var(--card-bg); border:2px solid var(--line);
+  box-shadow:var(--shadow-sm); display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; padding:2px; }
+.mapa-av + .mapa-av, .mapa-av + .mapa-mas{ margin-left:calc(var(--tam) * -.45); }
+.mapa-av .tablero-icon{ width:100%; height:100%; background:none; }
+.mapa-av .tablero-icon svg{ width:58%; height:58%; }
+.mapa-mas{ font-size:12px; font-weight:700; color:var(--ink); background:var(--bg); }
+.mapa-av.es-mio{ border:3px solid var(--teal); position:relative; z-index:1; animation:mapa-pulso 2.2s ease-out infinite; }
+@keyframes mapa-pulso{ 0%{ box-shadow:0 0 0 0 rgba(0,155,179,.55); } 70%{ box-shadow:0 0 0 10px rgba(0,155,179,0); } 100%{ box-shadow:0 0 0 0 rgba(0,155,179,0); } }
+@media (prefers-reduced-motion:reduce){ .mapa-av.es-mio{ animation:none; } }
+.mapa-grupo.abierto .mapa-av, .mapa-grupo.abierto .mapa-mas{ border-color:var(--bordeaux); }
+.mapa-tuyo{ position:absolute; bottom:calc(100% + 6px); white-space:nowrap; font-size:11px; font-weight:700; color:var(--white);
+  background:var(--teal); padding:2px 8px; border-radius:999px; pointer-events:none; }
+.mapa-tuyo::after{ content:''; position:absolute; left:50%; top:100%; transform:translateX(-50%); border:5px solid transparent; border-top-color:var(--teal); }
+/* Globito con el detalle. */
+.mapa-pop{ position:absolute; z-index:8; min-width:200px; max-width:min(280px, 94%); padding:6px; background:var(--card-bg);
+  border:1px solid var(--line); border-radius:var(--radius-sm); box-shadow:var(--shadow-md); }
+.mapa-pop-fila{ display:flex; align-items:center; gap:8px; padding:6px; border-radius:8px; }
+.mapa-pop-fila.es-mio{ background:var(--bg); }
+.mapa-pop-fila .tablero-icon{ width:26px; height:26px; }
+.mapa-pop-fila .tablero-icon svg{ width:16px; height:16px; }
+.mapa-pop-nombre{ flex:1; font-weight:600; font-size:14px; line-height:1.2; }
+.mapa-pop-nombre small{ color:var(--teal); font-weight:600; }
+.mapa-pop-pos{ font-size:13px; color:var(--ink-soft); font-weight:700; }
+.mapa-pop-pct{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:17px; min-width:42px; text-align:right; }
 @media (max-width:600px){
-  .mapa-comando{ --tam:28px; }
+  .mapa-grupo{ --tam:30px; }
+  .mapa-pop{ min-width:180px; padding:4px; }
+  .mapa-pop-fila{ padding:4px 6px; gap:6px; }
+  .mapa-pop-fila .tablero-icon{ width:22px; height:22px; }
+  .mapa-pop-nombre{ font-size:13px; }
+  .mapa-pop-pct{ font-size:15px; min-width:36px; }
   .mapa-estacion[data-pct="0"] .mapa-label{ top:calc(100% + 12px); }
   .mapa-label{ font-size:10px; }
   .mapa-deco{ font-size:24px; }

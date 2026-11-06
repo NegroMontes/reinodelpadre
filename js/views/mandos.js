@@ -330,7 +330,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     { pct: 0, label: 'Entre los chanchos', lado: 'abajo' },
     { pct: 25, label: 'Entra en sí mismo', lado: 'der' },
     { pct: 50, label: 'Se levanta y vuelve', lado: 'arriba' },
-    { pct: 75, label: 'El Padre lo abraza', lado: 'abajo' },
+    { pct: 75, label: 'El Padre lo abraza', lado: 'arriba' },
     { pct: 100, label: 'La casa del Padre', lado: 'izq' }
   ];
 
@@ -351,7 +351,9 @@ import { showAlert, showConfirm } from '../components/dialog.js';
         '<span class="mapa-punto"></span>' +
         '<span class="mapa-label">' + escapeHtml(e.label) + '</span></div>';
     });
-    // Racimos: comandos a ≤4 puntos del primero del racimo.
+    // Racimos: comandos a ≤4 puntos del primero del racimo. Cada racimo es
+    // una «pila» (hasta 3 escudos superpuestos + «+N»); al tocarla, un
+    // globito con nombre, puesto y % de cada uno.
     var orden = filas.slice().sort(function(a, b){ return a.promedio - b.promedio; });
     var racimos = [];
     orden.forEach(function(f){
@@ -360,20 +362,37 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     });
     racimos.forEach(function(r){
       var pct = Math.round(r.reduce(function(x, f){ return x + f.promedio; }, 0) / r.length);
-      var porFila = 4;
-      r.forEach(function(f, i){
-        var fila = Math.floor(i / porFila), col = i % porFila;
-        var enFila = Math.min(porFila, r.length - fila * porFila);
-        var dx = (col - (enFila - 1) / 2), dy = -fila;
-        var txt = f.grupo + ' · ' + f.pos + '° · ' + f.promedio + '%';
-        html += '<button type="button" class="mapa-comando' + (f.grupo === mio ? ' es-mio' : '') + '" data-pct="' + pct + '" data-dx="' + dx + '" data-dy="' + dy + '"' +
-          ' data-mapa-info="' + escapeHtml(txt) + '" title="' + escapeHtml(txt) + '" aria-label="' + escapeHtml(txt) + '">' + comandoIconHtml(f) + '</button>';
+      r.sort(function(x, y){ return (y.grupo === mio) - (x.grupo === mio) || x.pos - y.pos; });
+      var esMio = r.some(function(f){ return f.grupo === mio; });
+      var nombres = r.map(function(f){ return f.grupo + ' ' + f.pos + '° ' + f.promedio + '%'; }).join(', ');
+      var visibles = r.slice(0, 3), extra = r.length - visibles.length;
+      html += '<div class="mapa-grupo' + (esMio ? ' es-mio' : '') + '" data-pct="' + pct + '">' +
+        (esMio ? '<span class="mapa-tuyo">Tu comando</span>' : '') +
+        '<button type="button" class="mapa-pila" aria-haspopup="dialog" aria-label="' + escapeHtml(nombres) + '">';
+      visibles.forEach(function(f){
+        html += '<span class="mapa-av' + (f.grupo === mio ? ' es-mio' : '') + '">' + comandoIconHtml(f) + '</span>';
       });
+      if(extra) html += '<span class="mapa-mas">+' + extra + '</span>';
+      html += '</button><div class="mapa-pop-content" hidden>';
+      r.forEach(function(f){
+        html += '<div class="mapa-pop-fila' + (f.grupo === mio ? ' es-mio' : '') + '">' + comandoIconHtml(f) +
+          '<span class="mapa-pop-nombre">' + escapeHtml(f.grupo) + (f.grupo === mio ? ' <small>(tu comando)</small>' : '') + '</span>' +
+          '<span class="mapa-pop-pos">' + f.pos + '°</span><span class="mapa-pop-pct">' + f.promedio + '%</span></div>';
+      });
+      html += '</div></div>';
     });
-    html += '</div><p class="mapa-info" aria-live="polite">Tocá un escudo para ver qué comando es.</p></section>';
+    html += '<div class="mapa-pop" role="dialog" hidden></div></div></section>';
     return html;
   }
 
+  function cerrarMapaPop(){
+    var pop = document.querySelector('.mapa-pop');
+    if(pop) pop.hidden = true;
+    document.querySelectorAll('.mapa-grupo.abierto').forEach(function(g){ g.classList.remove('abierto'); });
+  }
+
+  // Cierra el globito al tocar afuera o con Escape (instalado una sola vez).
+  var mapaDocListo = false;
   function ubicarMapa(){
     var lienzo = document.querySelector('.mapa-lienzo');
     if(!lienzo) return;
@@ -384,20 +403,33 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       var pt = camino.getPointAtLength(L * Math.max(0, Math.min(100, +el.getAttribute('data-pct'))) / 100);
       el.style.left = (pt.x / 600 * 100) + '%';
       el.style.top = (pt.y / 400 * 100) + '%';
-      if(el.hasAttribute('data-dx')){
-        el.style.setProperty('--dx', el.getAttribute('data-dx'));
-        el.style.setProperty('--dy', el.getAttribute('data-dy'));
-      }
     });
-    var info = document.querySelector('.mapa-info');
-    lienzo.querySelectorAll('[data-mapa-info]').forEach(function(btn){
-      btn.onclick = function(){
-        lienzo.querySelectorAll('.mapa-comando.activo').forEach(function(b){ b.classList.remove('activo'); });
-        btn.classList.add('activo');
-        if(info) info.textContent = btn.getAttribute('data-mapa-info');
+    var pop = lienzo.querySelector('.mapa-pop');
+    lienzo.querySelectorAll('.mapa-grupo').forEach(function(g){
+      g.querySelector('.mapa-pila').onclick = function(ev){
+        ev.stopPropagation();
+        if(g.classList.contains('abierto')){ cerrarMapaPop(); return; }
+        cerrarMapaPop();
+        g.classList.add('abierto');
+        pop.innerHTML = g.querySelector('.mapa-pop-content').innerHTML;
+        pop.hidden = false;
+        // Arriba o abajo del escudo según dónde está; sin salirse del mapa.
+        var W = lienzo.clientWidth, H = lienzo.clientHeight;
+        var x = g.offsetLeft, y = g.offsetTop, w = pop.offsetWidth, h = pop.offsetHeight;
+        var alto = g.querySelector('.mapa-pila').offsetHeight / 2 + 8;
+        pop.style.left = Math.max(4, Math.min(W - w - 4, x - w / 2)) + 'px';
+        var arriba = y - alto - h >= 0 || (y + alto + h > H && y > H - y);
+        var top = arriba ? y - alto - h : y + alto;
+        pop.style.top = Math.max(-h + 40, Math.min(H - 40, top)) + 'px';
       };
     });
+    if(!mapaDocListo){
+      mapaDocListo = true;
+      document.addEventListener('click', function(ev){ if(!ev.target.closest || !ev.target.closest('.mapa-pop')) cerrarMapaPop(); });
+      document.addEventListener('keydown', function(ev){ if(ev.key === 'Escape') cerrarMapaPop(); });
+    }
   }
+
 
   function renderTableroHtml(){
     var filas = tableroComandos();
