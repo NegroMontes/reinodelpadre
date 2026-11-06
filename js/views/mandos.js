@@ -381,21 +381,76 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     '<path class="mx-grieta" d="M53 60v-8h6v8M64 50l3 3"/>' +
     '</svg>';
 
-  // Relieve: álamos (Mendoza), arbustos y rocas en las curvas del camino.
+  // Relieve: álamos (Mendoza) y rocas en las curvas del camino.
   function mapaAlamo(x, y, h){
     return '<path class="mr-tronco" d="M' + x + ' ' + y + 'v-' + (h * .35) + '"/>' +
-      '<ellipse class="mr-copa" cx="' + x + '" cy="' + (y - h * .62) + '" rx="' + (h * .17) + '" ry="' + (h * .42) + '"/>';
+      '<ellipse class="mr-copa" cx="' + x + '" cy="' + (y - h * .62) + '" rx="' + (h * .17) + '" ry="' + (h * .42) + '"/>' +
+      '<path class="mr-copa-luz" d="M' + (x + h * .05) + ' ' + (y - h * .95) + 'q' + (h * .1) + ' ' + (h * .3) + ' 0 ' + (h * .6) + '"/>';
   }
   function mapaRoca(x, y, w){
     var h = w * .6;
-    return '<path class="mr-roca" d="M' + (x - w / 2) + ' ' + y + 'l' + (w * .18) + ' -' + h + ' l' + (w * .4) + ' -' + (h * .25) + ' l' + (w * .3) + ' ' + (h * .55) + ' L' + (x + w / 2) + ' ' + y + 'z"/>';
+    return '<path class="mr-roca" d="M' + (x - w / 2) + ' ' + y + 'l' + (w * .18) + ' -' + h + ' l' + (w * .4) + ' -' + (h * .25) + ' l' + (w * .3) + ' ' + (h * .55) + ' L' + (x + w / 2) + ' ' + y + 'z"/>' +
+      '<path class="mr-roca-luz" d="M' + (x - w * .26) + ' ' + (y - h * .8) + 'l' + (w * .3) + ' -' + (h * .2) + '"/>';
+  }
+  // La estancia del Padre (lado derecho, dentro de la cerca): viñedo,
+  // trigales, ganado y un molino — lo productiva que es la casa del Padre.
+  function mapaVaca(x, y, k, espejo){
+    return '<g class="me-vaca" transform="translate(' + x + ' ' + y + ') scale(' + (espejo ? -k : k) + ' ' + k + ')">' +
+      '<path class="me-pata" d="M-6 4v5M-3 4v5M4 4v5M7 4v5"/>' +
+      '<rect class="me-cuerpo" x="-9" y="-5" width="18" height="10" rx="4"/>' +
+      '<path class="me-mancha" d="M-4-5c2 2 5 2 6 0zM3 1c2-1 4 0 4 2-2 1-4 0-4-2z"/>' +
+      '<rect class="me-cuerpo" x="8" y="-8" width="7" height="7" rx="2.5"/>' +
+      '<path class="me-pata" d="M9-8l-2-2M14-8l2-2"/></g>';
+  }
+  function mapaOveja(x, y, k){
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + k + ')">' +
+      '<path class="me-pata" d="M-3 3v4M3 3v4"/>' +
+      '<path class="me-lana" d="M-7 1a3 3 0 0 1 2-5 3 3 0 0 1 5-1 3 3 0 0 1 5 1 3 3 0 0 1 2 5 3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3z"/>' +
+      '<ellipse class="me-cara" cx="8" cy="-1" rx="2.6" ry="3.2"/></g>';
+  }
+  function mapaVinedo(){
+    var h = '';
+    for(var i = 0; i < 6; i++){
+      var x0 = 452 + i * 24, y0 = 392, x1 = x0 + 40, y1 = 285 + i * 4;
+      h += '<path class="me-espaldera" d="M' + x0 + ' ' + y0 + 'L' + x1 + ' ' + y1 + '"/>';
+      for(var j = 1; j < 7; j++){
+        var t = j / 7, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t;
+        h += '<circle class="me-hoja" cx="' + x.toFixed(1) + '" cy="' + (y - 2).toFixed(1) + '" r="3.4"/>';
+        if(j % 2) h += '<circle class="me-uva" cx="' + (x + 2).toFixed(1) + '" cy="' + (y + 1.5).toFixed(1) + '" r="1.6"/>';
+      }
+    }
+    return h;
+  }
+  function mapaTrigal(pts){
+    var d = 'M' + pts.map(function(p){ return p.join(' '); }).join('L') + 'z';
+    var surcos = '';
+    for(var t = .2; t < 1; t += .2){
+      var a = pts[0], b = pts[1], c = pts[3], e = pts[2];
+      surcos += 'M' + (a[0] + (c[0] - a[0]) * t).toFixed(1) + ' ' + (a[1] + (c[1] - a[1]) * t).toFixed(1) +
+        'L' + (b[0] + (e[0] - b[0]) * t).toFixed(1) + ' ' + (b[1] + (e[1] - b[1]) * t).toFixed(1);
+    }
+    return '<path class="me-trigo" d="' + d + '"/><path class="me-surco" d="' + surcos + '"/>';
+  }
+  function mapaMolino(x, y){
+    var aspas = '';
+    for(var i = 0; i < 8; i++){
+      var a = i * Math.PI / 4;
+      aspas += 'M' + x + ' ' + (y - 30) + 'l' + (Math.cos(a) * 9).toFixed(1) + ' ' + (Math.sin(a) * 9).toFixed(1);
+    }
+    return '<path class="me-molino" d="M' + (x - 6) + ' ' + y + 'L' + x + ' ' + (y - 30) + 'L' + (x + 6) + ' ' + y + 'M' + (x - 4) + ' ' + (y - 10) + 'h8M' + (x - 2.5) + ' ' + (y - 20) + 'h5' + aspas + 'M' + x + ' ' + (y - 30) + 'h12l-3 3"/>';
   }
   var MAPA_SVG_RELIEVE =
     mapaAlamo(318, 318, 34) + mapaAlamo(334, 322, 40) + mapaAlamo(350, 326, 32) + mapaAlamo(366, 330, 38) +
     mapaAlamo(352, 222, 26) + mapaAlamo(366, 226, 30) +
-    mapaAlamo(548, 312, 30) + mapaAlamo(563, 318, 36) +
-    mapaRoca(276, 372, 22) + mapaRoca(292, 375, 14) + mapaRoca(428, 352, 26) + mapaRoca(540, 360, 18) +
-    mapaRoca(58, 286, 18) + mapaRoca(405, 196, 14);
+    mapaRoca(276, 372, 22) + mapaRoca(292, 375, 14) + mapaRoca(385, 362, 22) +
+    mapaRoca(58, 286, 18) + mapaRoca(405, 160, 14);
+  var MAPA_SVG_ESTANCIA =
+    mapaTrigal([[520, 128], [598, 112], [604, 160], [530, 176]]) +
+    mapaTrigal([[452, 70], [500, 58], [508, 92], [458, 104]]) +
+    mapaMolino(484, 128) +
+    mapaVinedo() +
+    mapaVaca(536, 222, 1.15) + mapaVaca(566, 236, 1, true) + mapaOveja(512, 252, 1.1) + mapaOveja(590, 214, 1) + mapaOveja(548, 262, .9) +
+    mapaAlamo(452, 262, 28) + mapaAlamo(446, 300, 30) + mapaAlamo(440, 340, 32);
 
   function renderMapaHtml(filas, mio){
     var html = '<section class="tablero-mapa"><h3>El camino de vuelta</h3>' +
@@ -408,14 +463,14 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       '<ellipse cx="85" cy="150" rx="150" ry="100" fill="url(#mapaNiebla)"/>' +
       '<circle cx="560" cy="70" r="105" fill="url(#mapaLuz)"/>' +
       '<path fill="url(#mapaG1)" d="M0 235 C 50 205, 85 150, 140 168 S 225 105, 290 145 S 375 85, 440 118 C 480 98, 510 68, 545 66 S 590 66, 600 70 L600 400 L0 400 Z"/>' +
-      MAPA_SVG_RELIEVE +
+      MAPA_SVG_RELIEVE + MAPA_SVG_ESTANCIA +
       '<path fill="url(#mapaG2)" d="M0 318 C 75 280, 145 302, 215 272 S 355 228, 430 258 S 535 215, 600 238 L600 400 L0 400 Z"/>' +
       '<path class="mapa-desvio-borde mapa-desvio"/>' +
       '<path class="mapa-desvio-centro mapa-desvio"/>' +
       '<path class="mapa-sendero-borde" d="' + MAPA_CAMINO + '"/>' +
       '<path class="mapa-sendero mapa-camino" d="' + MAPA_CAMINO + '"/>' +
-      '<path class="mapa-cerca-riel"/><path class="mapa-cerca-poste"/>' +
-      '<g class="mapa-tranquera"><path class="mapa-tranquera-palo"/><g class="mapa-tranquera-cartel"></g></g>' +
+      '<path class="mapa-cerca-riel"/><path class="mapa-cerca-poste"/><g class="mapa-mojones"></g>' +
+      '<g class="mapa-tranquera"><path class="mapa-tranquera-hoja"/><path class="mapa-tranquera-palo"/><g class="mapa-tranquera-cartel"></g></g>' +
       '</svg>' +
       '<span class="mapa-deco mapa-chancho" title="El valle de los cerdos">' + MAPA_SVG_CHANCHO + '</span>' +
       '<span class="mapa-deco mapa-casa" title="La casa del Padre">' + MAPA_SVG_CASA + '</span>' +
@@ -495,38 +550,53 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     var p0 = camino.getPointAtLength(L * .25);
     var dDesvio = 'M' + p0.x.toFixed(1) + ' ' + p0.y.toFixed(1) + ' C ' + (p0.x - 70).toFixed(1) + ' ' + (p0.y + 15).toFixed(1) + ', 70 270, 88 190';
     lienzo.querySelectorAll('path.mapa-desvio').forEach(function(d){ d.setAttribute('d', dDesvio); });
-    // Cerca de los dominios del Padre: desde la casa hasta La Tranquera (75%),
-    // por el lado de afuera del camino; postes con punta de flecha (FASTA).
+    // Cerca de los dominios del Padre: cruza todo el mapa (de arriba a abajo,
+    // saliendo por los bordes) y el camino entra por La Tranquera (75%).
+    // Postes con punta de flecha (guiño a las flechas del emblema de FASTA).
     function puntoNormal(f, off){
       var a = camino.getPointAtLength(L * Math.max(0, f - .004)), b = camino.getPointAtLength(L * Math.min(1, f + .004));
       var dx = b.x - a.x, dy = b.y - a.y, n = Math.sqrt(dx * dx + dy * dy) || 1;
       var p = camino.getPointAtLength(L * f);
       return { x: p.x + (-dy / n) * off, y: p.y + (dx / n) * off };
     }
-    var postes = '', riel1 = '', riel2 = '', OFF = 17, PASO = 15;
-    var desde = .79, hasta = .985, nPostes = Math.max(2, Math.round(L * (hasta - desde) / PASO));
-    for(var k = 0; k <= nPostes; k++){
-      var q = puntoNormal(desde + (hasta - desde) * k / nPostes, OFF);
-      var x = q.x.toFixed(1), yb = q.y.toFixed(1), yt = (q.y - 12).toFixed(1);
-      postes += 'M' + x + ' ' + yb + 'V' + yt + 'M' + (q.x - 2.6).toFixed(1) + ' ' + (q.y - 9.4).toFixed(1) + 'L' + x + ' ' + yt + 'L' + (q.x + 2.6).toFixed(1) + ' ' + (q.y - 9.4).toFixed(1);
-      riel1 += (k ? 'L' : 'M') + x + ' ' + (q.y - 4).toFixed(1);
-      riel2 += (k ? 'L' : 'M') + x + ' ' + (q.y - 8).toFixed(1);
+    var g1 = puntoNormal(.75, 16), g2 = puntoNormal(.75, -16);
+    var arriba = g1.y < g2.y ? g1 : g2, abajo = g1.y < g2.y ? g2 : g1;
+    var postes = '', rieles = '', mojones = '';
+    function tramo(a, b){
+      var dx = b.x - a.x, dy = b.y - a.y, n = Math.max(1, Math.round(Math.sqrt(dx * dx + dy * dy) / 16));
+      var r1 = '', r2 = '';
+      // Alambrado (dos hilos, ±2 a los lados), postes chicos y, cada 5,
+      // un mojón con punta de flecha.
+      var nx = -dy / Math.sqrt(dx * dx + dy * dy) * 2, ny = dx / Math.sqrt(dx * dx + dy * dy) * 2;
+      rieles += 'M' + (a.x + nx).toFixed(1) + ' ' + (a.y + ny).toFixed(1) + 'L' + (b.x + nx).toFixed(1) + ' ' + (b.y + ny).toFixed(1) +
+        'M' + (a.x - nx).toFixed(1) + ' ' + (a.y - ny).toFixed(1) + 'L' + (b.x - nx).toFixed(1) + ' ' + (b.y - ny).toFixed(1);
+      for(var k = 0; k <= n; k++){
+        var x = a.x + dx * k / n, y = a.y + dy * k / n;
+        if(k % 5 === 2) mojones += '<rect x="' + (x - 3).toFixed(1) + '" y="' + (y - 9).toFixed(1) + '" width="6" height="11" rx="1"/>' +
+          '<path d="M' + (x - 2.4).toFixed(1) + ' ' + (y - 4.5).toFixed(1) + 'l2.4-2.6 2.4 2.6"/>';
+        else postes += 'M' + x.toFixed(1) + ' ' + (y - 3).toFixed(1) + 'v6';
+      }
     }
-    // La Tranquera (75%): un poste a cada lado del camino, travesaño y cartel con la cruz de FASTA.
-    var g1 = puntoNormal(.75, OFF), g2 = puntoNormal(.75, -OFF);
-    var tope = Math.min(g1.y, g2.y) - 22;
-    var palos = 'M' + g1.x.toFixed(1) + ' ' + g1.y.toFixed(1) + 'V' + tope.toFixed(1) + 'M' + g2.x.toFixed(1) + ' ' + g2.y.toFixed(1) + 'V' + tope.toFixed(1) +
-      'M' + (g1.x - 3).toFixed(1) + ' ' + (tope + 2).toFixed(1) + 'L' + (g2.x + 3).toFixed(1) + ' ' + (tope + 2).toFixed(1);
-    // El último poste de la cerca se une a la tranquera.
-    var qf = puntoNormal(desde, OFF);
-    riel1 = 'M' + g1.x.toFixed(1) + ' ' + (g1.y - 4).toFixed(1) + 'L' + qf.x.toFixed(1) + ' ' + (qf.y - 4).toFixed(1) + riel1.replace(/^M/, 'L');
-    riel2 = 'M' + g1.x.toFixed(1) + ' ' + (g1.y - 8).toFixed(1) + 'L' + qf.x.toFixed(1) + ' ' + (qf.y - 8).toFixed(1) + riel2.replace(/^M/, 'L');
+    tramo({ x: 448, y: -14 }, arriba);
+    tramo(abajo, { x: 405, y: 414 });
     lienzo.querySelector('path.mapa-cerca-poste').setAttribute('d', postes);
-    lienzo.querySelector('path.mapa-cerca-riel').setAttribute('d', riel1 + riel2);
+    lienzo.querySelector('path.mapa-cerca-riel').setAttribute('d', rieles);
+    lienzo.querySelector('.mapa-mojones').innerHTML = mojones;
+    // La Tranquera: dos palos gruesos, travesaño con cartel (cruz) y la hoja abierta.
+    var tope = Math.min(g1.y, g2.y) - 24;
+    var palos = 'M' + g1.x.toFixed(1) + ' ' + g1.y.toFixed(1) + 'V' + tope.toFixed(1) + 'M' + g2.x.toFixed(1) + ' ' + g2.y.toFixed(1) + 'V' + tope.toFixed(1) +
+      'M' + (g1.x - 4).toFixed(1) + ' ' + (tope + 2).toFixed(1) + 'L' + (g2.x + 4).toFixed(1) + ' ' + (tope + 2).toFixed(1);
+    var ux = 405 - abajo.x, uy = 414 - abajo.y, un = Math.sqrt(ux * ux + uy * uy) || 1;
+    ux = ux / un * 20; uy = uy / un * 20;
+    var hoja = '';
+    [3, 7.5, 12].forEach(function(h){ hoja += 'M' + abajo.x.toFixed(1) + ' ' + (abajo.y - h).toFixed(1) + 'l' + ux.toFixed(1) + ' ' + uy.toFixed(1); });
+    hoja += 'M' + abajo.x.toFixed(1) + ' ' + (abajo.y - 3).toFixed(1) + 'l' + ux.toFixed(1) + ' ' + (uy - 9).toFixed(1) +
+      'M' + (abajo.x + ux).toFixed(1) + ' ' + (abajo.y + uy - 1).toFixed(1) + 'v-12';
     lienzo.querySelector('path.mapa-tranquera-palo').setAttribute('d', palos);
+    lienzo.querySelector('path.mapa-tranquera-hoja').setAttribute('d', hoja);
     var cx = (g1.x + g2.x) / 2, cartel = lienzo.querySelector('.mapa-tranquera-cartel');
-    cartel.innerHTML = '<rect x="' + (cx - 7) + '" y="' + (tope - 13) + '" width="14" height="13" rx="2"/>' +
-      '<path d="M' + cx + ' ' + (tope - 11) + 'v9M' + (cx - 3) + ' ' + (tope - 8) + 'h6"/>';
+    cartel.innerHTML = '<rect x="' + (cx - 8) + '" y="' + (tope - 15) + '" width="16" height="14" rx="2.5"/>' +
+      '<path d="M' + cx + ' ' + (tope - 12.5) + 'v9M' + (cx - 3.4) + ' ' + (tope - 9.5) + 'h6.8"/>';
     var pop = lienzo.querySelector('.mapa-pop');
     lienzo.querySelectorAll('.mapa-grupo').forEach(function(g){
       g.querySelector('.mapa-pila').onclick = function(ev){

@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.06.9';
+  export var APP_VERSION = '2026.11.06.10';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.06.10', date: '06/11/2026', items: [
+      'Mapa del Tablero: la estancia del Padre — un alambrado cruza todo el mapa por La Tranquera y adentro hay viñedos, trigales, vacas, ovejas y un molino.'
+    ]},
     { version: '2026.11.06.9', date: '06/11/2026', items: [
       'Mapa del Tablero: más chanchos y un abrevadero, casa apoyada en la cima, álamos y rocas, cerca y tranquera del Padre, y el desvío con el mismo estilo de sendero.'
     ]},

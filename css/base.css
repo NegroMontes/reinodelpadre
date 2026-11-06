@@ -31,6 +31,7 @@
     --il-trazo: #3E5260;
     --il-arido: #B8B2A6;
     --il-niebla: #7D8C96;
+    --il-uva: #7B4B8E;
 
     /* Sistema de forma/profundidad (06/10/2026) — nunca cambia de color, solo
        redondea/da volumen, inspirado en la estética de "Encuentros" (tarjetas
@@ -84,6 +85,7 @@
       --il-trazo: #22323D;
       --il-arido: #4A4D4F;
       --il-niebla: #6B7A84;
+      --il-uva: #B18AC4;
     }
   }
   :root[data-theme="dark"]{
@@ -114,6 +116,7 @@
     --il-trazo: #22323D;
     --il-arido: #4A4D4F;
     --il-niebla: #6B7A84;
+    --il-uva: #B18AC4;
   }
 
 html,body{margin:0;padding:0;}
