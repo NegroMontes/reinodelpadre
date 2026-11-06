@@ -1008,15 +1008,40 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .tablero-mapa > .tablero-meta{ margin:0 0 8px; }
 .mapa-lienzo{ position:relative; width:100%; aspect-ratio:3/2; max-height:460px; margin:0 auto; }
 .mapa-lienzo > svg{ position:absolute; inset:0; width:100%; height:100%; }
-.mapa-monte{ fill:var(--bg); }
-.mapa-monte-2{ fill:var(--bg-alt); opacity:.6; }
-.mapa-camino-base{ fill:none; stroke:var(--line); stroke-width:16; stroke-linecap:round; }
-.mapa-camino{ fill:none; stroke:var(--amber); stroke-width:3; stroke-dasharray:2 9; stroke-linecap:round; }
+.mapa-g1a{ stop-color:var(--sage); stop-opacity:.30; } .mapa-g1b{ stop-color:var(--sage); stop-opacity:0; }
+.mapa-g2a{ stop-color:var(--teal); stop-opacity:.16; } .mapa-g2b{ stop-color:var(--teal); stop-opacity:0; }
+.mapa-luz-a{ stop-color:var(--amber); stop-opacity:.30; } .mapa-luz-b{ stop-color:var(--amber); stop-opacity:0; }
+.mapa-sendero-borde{ fill:none; stroke:var(--sage); stroke-opacity:.7; stroke-width:21; stroke-linecap:round; stroke-linejoin:round; }
+.mapa-sendero{ fill:none; stroke:var(--bg); stroke-width:14; stroke-linecap:round; stroke-linejoin:round; }
 .mapa-estacion, .mapa-grupo{ position:absolute; transform:translate(-50%, -50%); }
 .mapa-estacion{ display:flex; flex-direction:column; align-items:center; pointer-events:none; z-index:3; }
-.mapa-punto{ width:12px; height:12px; border-radius:50%; background:var(--sage); border:2px solid var(--card-bg); }
-.mapa-deco{ position:absolute; transform:translate(-50%, -50%); font-size:34px; line-height:1; pointer-events:none; }
-.mapa-label{ position:absolute; white-space:nowrap; font-size:12px; font-weight:600; color:var(--ink-soft); background:var(--card-bg); box-shadow:var(--shadow-sm); padding:1px 6px; border-radius:999px; }
+.mapa-punto{ width:14px; height:14px; border-radius:50%; background:var(--bg); border:3px solid var(--ink); }
+.mapa-deco{ position:absolute; transform:translate(-50%, -50%); width:56px; height:56px; z-index:2; }
+.mapa-deco svg{ width:100%; height:100%; overflow:visible; }
+.mapa-chancho{ left:7%; top:85%; }
+.mapa-casa{ left:94%; top:14%; }
+.mapa-deco [class^="mc-"]{ stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.mc-barro{ fill:var(--sage); opacity:.35; stroke:none; }
+.mc-cuerpo{ fill:var(--bg-alt); stroke:var(--bordeaux); }
+.mc-hocico{ fill:var(--bg); stroke:var(--bordeaux); }
+.mc-linea{ fill:none; stroke:var(--ink-soft); }
+.mapa-chancho .mc-linea{ stroke:var(--bordeaux); }
+.mc-ojo{ fill:var(--ink); stroke:none; }
+.mc-techo{ fill:none; stroke:var(--gold); stroke-width:3.5 !important; }
+.mc-pared{ fill:var(--bg-alt); stroke:var(--ink-soft); }
+.mc-chimenea{ fill:var(--bg-alt); stroke:var(--ink-soft); }
+.mc-puerta{ fill:var(--gold); stroke:var(--ink-soft); }
+.mc-ventana{ fill:var(--amber); stroke:var(--ink-soft); }
+.mapa-label{ position:absolute; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; font-size:12px; font-weight:600; color:var(--ink);
+  background:var(--card-bg); border:1px solid var(--line); box-shadow:var(--shadow-sm); padding:2px 8px 2px 2px; border-radius:999px; }
+.mapa-label b{ display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%;
+  background:var(--ink); color:var(--card-bg); font-size:11px; font-family:'Baloo 2', sans-serif; }
+.mapa-leyenda{ display:none; list-style:none; counter-reset:paso; margin:10px 0 2px; padding:0; gap:4px 12px; grid-template-columns:1fr 1fr; font-size:13px; color:var(--ink); }
+.mapa-leyenda li{ counter-increment:paso; display:flex; align-items:center; gap:6px; }
+.mapa-leyenda li::before{ content:counter(paso); display:inline-flex; align-items:center; justify-content:center; flex:0 0 18px; height:18px; border-radius:50%;
+  background:var(--ink); color:var(--card-bg); font-size:11px; font-weight:700; font-family:'Baloo 2', sans-serif; }
+.mapa-leyenda li:last-child::before{ background:var(--gold); color:var(--white); }
+.mapa-estacion[data-pct="100"] .mapa-label b{ background:var(--gold); color:var(--white); }
 .mapa-lado-abajo .mapa-label{ top:calc(100% + 4px); }
 .mapa-lado-arriba .mapa-label{ bottom:calc(100% + 4px); }
 .mapa-lado-izq .mapa-label{ right:calc(100% + 6px); top:50%; transform:translateY(-50%); }
@@ -1061,5 +1086,9 @@ a.user-menu-item{ text-decoration:none; display:block; }
   .mapa-pop-pct{ font-size:15px; min-width:36px; }
   .mapa-estacion[data-pct="0"] .mapa-label{ top:calc(100% + 12px); }
   .mapa-label{ font-size:10px; }
-  .mapa-deco{ font-size:24px; }
+  .mapa-deco{ width:36px; height:36px; }
+  .mapa-label{ padding:2px; }
+  .mapa-label-txt{ display:none; }
+  .mapa-label b{ width:18px; height:18px; font-size:11px; }
+  .mapa-leyenda{ display:grid; }
 }

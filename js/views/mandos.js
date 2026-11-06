@@ -334,22 +334,46 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     { pct: 100, label: 'La casa del Padre', lado: 'izq' }
   ];
 
+  // Ilustraciones del mapa (06/11/2026): trazo redondeado como los íconos
+  // Lucide de la página, con relleno suave; colores por variables CSS.
+  var MAPA_SVG_CHANCHO = '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+    '<ellipse class="mc-barro" cx="32" cy="56" rx="26" ry="4.5"/>' +
+    '<path class="mc-cuerpo" d="M14 34c0-9 8-15 19-15s19 6 19 15-8 14-19 14-19-5-19-14z"/>' +
+    '<path class="mc-linea" d="M20 46v7M27 47v7M40 47v7M46 46v7"/>' +
+    '<path class="mc-cuerpo" d="M44 21l4-7 3 9"/>' +
+    '<ellipse class="mc-hocico" cx="53" cy="33" rx="5" ry="6"/>' +
+    '<path class="mc-linea" d="M52 31v1M54.5 31v1"/>' +
+    '<circle class="mc-ojo" cx="45" cy="27" r="1.6"/>' +
+    '<path class="mc-linea" d="M14 31c-4 0-6-2-5-4s4-1 3 1"/></svg>';
+  var MAPA_SVG_CASA = '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+    '<path class="mc-techo" d="M6 30L32 8l26 22"/>' +
+    '<path class="mc-pared" d="M12 26v30h40V26"/>' +
+    '<path class="mc-chimenea" d="M44 17V10h6v12"/>' +
+    '<path class="mc-puerta" d="M27 56V42a5 5 0 0 1 10 0v14"/>' +
+    '<rect class="mc-ventana" x="17" y="33" width="7" height="7" rx="1.5"/>' +
+    '<rect class="mc-ventana" x="40" y="33" width="7" height="7" rx="1.5"/>' +
+    '<path class="mc-linea" d="M4 56h56"/></svg>';
+
   function renderMapaHtml(filas, mio){
     var html = '<section class="tablero-mapa"><h3>El camino de vuelta</h3>' +
       '<p class="tablero-meta">De los chanchos a la casa del Padre (Lucas 15, 11-32). Cada comando avanza según su promedio.</p>' +
       '<div class="mapa-lienzo">' +
-      '<svg viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true">' +
-      '<polygon class="mapa-monte" points="300,400 420,230 470,280 560,150 600,200 600,400"/>' +
-      '<polygon class="mapa-monte mapa-monte-2" points="0,400 0,250 70,180 150,290 210,240 300,400"/>' +
-      '<path class="mapa-camino-base" d="' + MAPA_CAMINO + '"/>' +
-      '<path class="mapa-camino" d="' + MAPA_CAMINO + '"/>' +
+      '<svg viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true"><defs>' +
+      '<linearGradient id="mapaG1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="mapa-g1a"/><stop offset="1" class="mapa-g1b"/></linearGradient>' +
+      '<linearGradient id="mapaG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="mapa-g2a"/><stop offset="1" class="mapa-g2b"/></linearGradient>' +
+      '<radialGradient id="mapaLuz"><stop offset="0" class="mapa-luz-a"/><stop offset="1" class="mapa-luz-b"/></radialGradient></defs>' +
+      '<circle cx="545" cy="100" r="100" fill="url(#mapaLuz)"/>' +
+      '<path fill="url(#mapaG1)" d="M0 235 C 50 205, 85 150, 140 168 S 225 105, 290 145 S 375 85, 440 118 S 535 55, 600 92 L600 400 L0 400 Z"/>' +
+      '<path fill="url(#mapaG2)" d="M0 318 C 75 280, 145 302, 215 272 S 355 228, 430 258 S 535 215, 600 238 L600 400 L0 400 Z"/>' +
+      '<path class="mapa-sendero-borde" d="' + MAPA_CAMINO + '"/>' +
+      '<path class="mapa-sendero mapa-camino" d="' + MAPA_CAMINO + '"/>' +
       '</svg>' +
-      '<span class="mapa-deco" style="left:8%;top:91%">🐖</span>' +
-      '<span class="mapa-deco" style="left:94%;top:13%">🏡</span>';
-    MAPA_ESTACIONES.forEach(function(e){
+      '<span class="mapa-deco mapa-chancho" title="Entre los chanchos">' + MAPA_SVG_CHANCHO + '</span>' +
+      '<span class="mapa-deco mapa-casa" title="La casa del Padre">' + MAPA_SVG_CASA + '</span>';
+    MAPA_ESTACIONES.forEach(function(e, i){
       html += '<div class="mapa-estacion mapa-lado-' + e.lado + '" data-pct="' + e.pct + '">' +
         '<span class="mapa-punto"></span>' +
-        '<span class="mapa-label">' + escapeHtml(e.label) + '</span></div>';
+        '<span class="mapa-label"><b>' + (i + 1) + '</b><span class="mapa-label-txt">' + escapeHtml(e.label) + '</span></span></div>';
     });
     // Racimos: comandos a ≤4 puntos del primero del racimo. Cada racimo es
     // una «pila» (hasta 3 escudos superpuestos + «+N»); al tocarla, un
@@ -381,7 +405,9 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       });
       html += '</div></div>';
     });
-    html += '<div class="mapa-pop" role="dialog" hidden></div></div></section>';
+    html += '<div class="mapa-pop" role="dialog" hidden></div></div>';
+    // Referencia numerada (solo en celular, donde las etiquetas no entran).
+    html += '<ol class="mapa-leyenda">' + MAPA_ESTACIONES.map(function(e){ return '<li>' + escapeHtml(e.label) + '</li>'; }).join('') + '</ol></section>';
     return html;
   }
 

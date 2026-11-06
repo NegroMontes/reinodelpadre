@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.06.3';
+  export var APP_VERSION = '2026.11.06.4';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.06.4', date: '06/11/2026', items: [
+      'Mapa del Tablero rediseñado: montañas suaves, sendero, chancho y casa dibujados, y las 5 etapas de Lucas 15 numeradas.'
+    ]},
     { version: '2026.11.06.3', date: '06/11/2026', items: [
       'Mapa del Tablero: los comandos que van parejos se apilan; tu comando tiene etiqueta y un pulso; tocando un escudo se ve nombre, puesto y %.'
     ]},
