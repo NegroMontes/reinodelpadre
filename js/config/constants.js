@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.06.11';
+  export var APP_VERSION = '2026.11.06.12';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.06.12', date: '06/11/2026', items: [
+      'Mapa del Tablero: las tierras del Padre y el alambrado terminan en las montañas (ya no en el cielo) y La Tranquera es un portón con arco y cartel que se distingue.'
+    ]},
     { version: '2026.11.06.11', date: '06/11/2026', items: [
       'Mapa del Tablero: alambrado curvo, camino más fino, casa del Padre nueva, tierras del Padre cálidas y llenas de vida frente a un afuera árido, y etapas más discretas.'
     ]},

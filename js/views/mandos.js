@@ -330,7 +330,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     { pct: 0, label: 'El valle de los cerdos', lado: 'abajo' },
     { pct: 25, label: 'La encrucijada', lado: 'der' },
     { pct: 50, label: 'El camino de retorno', lado: 'arriba' },
-    { pct: 75, label: 'La Tranquera', lado: 'arriba' },
+    { pct: 75, label: 'La Tranquera', lado: 'abajo' },
     { pct: 100, label: 'La casa del Padre', lado: 'izq' }
   ];
 
@@ -474,12 +474,14 @@ import { showAlert, showConfirm } from '../components/dialog.js';
   }
   var MAPA_SVG_ESTANCIA =
     mapaTrigal([[520, 128], [598, 112], [604, 160], [530, 176]]) +
-    mapaTrigal([[452, 70], [500, 58], [508, 92], [458, 104]]) +
     mapaMolino(456, 162) +
     mapaVinedo() +
     mapaVaca(536, 222, 1.15) + mapaVaca(566, 236, 1, true) + mapaOveja(512, 252, 1.1) + mapaOveja(590, 214, 1) + mapaOveja(548, 262, .9) +
     mapaAlamo(470, 262, 30) + mapaAlamo(478, 250, 26) + mapaAlamo(590, 296, 34) + mapaAlamo(578, 290, 30) +
     mapaArbusto(512, 196, 5) + mapaArbusto(596, 186, 4) + mapaArbusto(530, 100, 4) + mapaArbusto(505, 112, 3.5) + mapaArbusto(588, 262, 4.5);
+
+  // Cresta de la cordillera de atrás, de izquierda a la cerca (440,118).
+  var MAPA_CRESTA_IZQ = 'M0 235 C 50 205, 85 150, 140 168 S 225 105, 290 145 S 375 85, 440 118';
 
   function renderMapaHtml(filas, mio){
     var html = '<section class="tablero-mapa"><h3>El camino de vuelta</h3>' +
@@ -502,7 +504,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       '<path class="mapa-sendero-borde" d="' + MAPA_CAMINO + '"/>' +
       '<path class="mapa-sendero mapa-camino" d="' + MAPA_CAMINO + '"/>' +
       '<path class="mapa-cerca-riel"/><path class="mapa-cerca-poste"/><g class="mapa-mojones"></g>' +
-      '<g class="mapa-tranquera"><path class="mapa-tranquera-hoja"/><path class="mapa-tranquera-palo"/><g class="mapa-tranquera-cartel"></g></g>' +
+      '<g class="mapa-tranquera"><path class="mapa-tranquera-hoja"/><path class="mapa-tranquera-palo"/><path class="mapa-tranquera-arco"/><g class="mapa-tranquera-cartel"></g></g>' +
       '</svg>' +
       '<span class="mapa-deco mapa-chancho" title="El valle de los cerdos">' + MAPA_SVG_CHANCHO + '</span>' +
       '<span class="mapa-deco mapa-casa" title="La casa del Padre">' + MAPA_SVG_CASA + '</span>' +
@@ -591,8 +593,9 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       var p = camino.getPointAtLength(L * f);
       return { x: p.x + (-dy / n) * off, y: p.y + (dx / n) * off };
     }
-    var g1 = puntoNormal(.75, 16), g2 = puntoNormal(.75, -16);
-    var arriba = g1.y < g2.y ? g1 : g2, abajo = g1.y < g2.y ? g2 : g1;
+    // Portón de frente, centrado en La Tranquera: un poste a cada costado.
+    var pT = camino.getPointAtLength(L * .75);
+    var arriba = { x: pT.x + 13, y: pT.y + 5 }, abajo = { x: pT.x - 13, y: pT.y + 5 };
     var postes = '', rieles = '', mojones = '';
     // Alambrado curvo (Bézier cuadrática): dos hilos, postes chicos y, cada
     // 5, un mojón con punta de flecha.
@@ -608,31 +611,42 @@ import { showAlert, showConfirm } from '../components/dialog.js';
         else postes += 'M' + x.toFixed(1) + ' ' + (y - 3).toFixed(1) + 'v6';
       }
     }
-    var A0 = { x: 448, y: -14 }, CA = { x: 392, y: 95 }, B1 = { x: 405, y: 414 }, CB = { x: 472, y: 330 };
+    // Arriba arranca en la cresta de la cordillera de atrás (no en el cielo).
+    var A0 = { x: 440, y: 118 }, CA = { x: 412, y: 150 }, B1 = { x: 405, y: 414 }, CB = { x: 472, y: 330 };
     curva(A0, CA, arriba);
     curva(abajo, CB, B1);
     // Tierras del Padre (derecha de la cerca) y afuera: dos rellenos.
-    var borde = 'M448 -14Q' + CA.x + ' ' + CA.y + ' ' + arriba.x.toFixed(1) + ' ' + arriba.y.toFixed(1) + 'L' + abajo.x.toFixed(1) + ' ' + abajo.y.toFixed(1) + 'Q' + CB.x + ' ' + CB.y + ' 405 414';
-    lienzo.querySelectorAll('path.mapa-dominio').forEach(function(d){ d.setAttribute('d', borde + 'L610 414L610 -14Z'); });
-    lienzo.querySelector('path.mapa-afuera').setAttribute('d', borde + 'L-10 414L-10 -14Z');
+    // Los rellenos llegan hasta la cresta (MAPA_CRESTA), no al cielo.
+    var borde = 'Q' + CA.x + ' ' + CA.y + ' ' + arriba.x.toFixed(1) + ' ' + arriba.y.toFixed(1) + 'L' + abajo.x.toFixed(1) + ' ' + abajo.y.toFixed(1) + 'Q' + CB.x + ' ' + CB.y + ' 405 414';
+    lienzo.querySelectorAll('path.mapa-dominio').forEach(function(d){
+      d.setAttribute('d', 'M440 118' + borde + 'L610 414L610 70L600 70C590 66 576 66 545 66C510 68 480 98 440 118Z');
+    });
+    lienzo.querySelector('path.mapa-afuera').setAttribute('d', MAPA_CRESTA_IZQ + borde + 'L-10 414L-10 235Z');
     lienzo.querySelector('path.mapa-cerca-poste').setAttribute('d', postes);
     lienzo.querySelector('path.mapa-cerca-riel').setAttribute('d', rieles);
     lienzo.querySelector('.mapa-mojones').innerHTML = mojones;
-    // La Tranquera: dos palos gruesos, travesaño con cartel (cruz) y la hoja abierta.
-    var tope = Math.min(g1.y, g2.y) - 24;
-    var palos = 'M' + g1.x.toFixed(1) + ' ' + g1.y.toFixed(1) + 'V' + tope.toFixed(1) + 'M' + g2.x.toFixed(1) + ' ' + g2.y.toFixed(1) + 'V' + tope.toFixed(1) +
-      'M' + (g1.x - 4).toFixed(1) + ' ' + (tope + 2).toFixed(1) + 'L' + (g2.x + 4).toFixed(1) + ' ' + (tope + 2).toFixed(1);
-    var ux = 405 - abajo.x, uy = 414 - abajo.y, un = Math.sqrt(ux * ux + uy * uy) || 1;
-    ux = ux / un * 20; uy = uy / un * 20;
+    // La Tranquera: portón de estancia de frente — dos postes altos con
+    // punta de flecha, arco con cartel (cruz) y la hoja abierta hacia adentro.
+    var t0 = camino.getPointAtLength(L * .746), t1 = camino.getPointAtLength(L * .754);
+    var tx = t1.x - t0.x, ty = t1.y - t0.y, tn = Math.sqrt(tx * tx + ty * ty) || 1;
+    tx /= tn; ty /= tn;
+    var alto = 30, izq = abajo, der = arriba, tope = izq.y - alto;
+    var palos = 'M' + izq.x.toFixed(1) + ' ' + izq.y.toFixed(1) + 'V' + tope.toFixed(1) + 'M' + der.x.toFixed(1) + ' ' + der.y.toFixed(1) + 'V' + tope.toFixed(1);
+    var puntas = 'M' + (izq.x - 3.4).toFixed(1) + ' ' + (tope + 3).toFixed(1) + 'l3.4-4 3.4 4M' + (der.x - 3.4).toFixed(1) + ' ' + (tope + 3).toFixed(1) + 'l3.4-4 3.4 4';
+    var arco = 'M' + (izq.x - 2).toFixed(1) + ' ' + (tope + 7).toFixed(1) + 'Q' + pT.x.toFixed(1) + ' ' + (tope - 6).toFixed(1) + ' ' + (der.x + 2).toFixed(1) + ' ' + (tope + 7).toFixed(1);
+    // Hoja abierta: gira desde el poste derecho hacia adentro de la estancia.
+    var hx = tx * 20, hy = ty * 20 + 6, h0 = { x: der.x, y: der.y - 1 };
     var hoja = '';
-    [3, 7.5, 12].forEach(function(h){ hoja += 'M' + abajo.x.toFixed(1) + ' ' + (abajo.y - h).toFixed(1) + 'l' + ux.toFixed(1) + ' ' + uy.toFixed(1); });
-    hoja += 'M' + abajo.x.toFixed(1) + ' ' + (abajo.y - 3).toFixed(1) + 'l' + ux.toFixed(1) + ' ' + (uy - 9).toFixed(1) +
-      'M' + (abajo.x + ux).toFixed(1) + ' ' + (abajo.y + uy - 1).toFixed(1) + 'v-12';
+    [0, 5, 10].forEach(function(h){ hoja += 'M' + h0.x.toFixed(1) + ' ' + (h0.y - h).toFixed(1) + 'l' + hx.toFixed(1) + ' ' + hy.toFixed(1); });
+    hoja += 'M' + h0.x.toFixed(1) + ' ' + h0.y.toFixed(1) + 'l' + hx.toFixed(1) + ' ' + (hy - 10).toFixed(1) +
+      'M' + (h0.x + hx).toFixed(1) + ' ' + (h0.y + hy + 1).toFixed(1) + 'v-12';
     lienzo.querySelector('path.mapa-tranquera-palo').setAttribute('d', palos);
+    lienzo.querySelector('path.mapa-tranquera-arco').setAttribute('d', arco + puntas);
     lienzo.querySelector('path.mapa-tranquera-hoja').setAttribute('d', hoja);
-    var cx = (g1.x + g2.x) / 2, cartel = lienzo.querySelector('.mapa-tranquera-cartel');
-    cartel.innerHTML = '<rect x="' + (cx - 8) + '" y="' + (tope - 15) + '" width="16" height="14" rx="2.5"/>' +
-      '<path d="M' + cx + ' ' + (tope - 12.5) + 'v9M' + (cx - 3.4) + ' ' + (tope - 9.5) + 'h6.8"/>';
+    var cx = pT.x, cy = tope + 2, cartel = lienzo.querySelector('.mapa-tranquera-cartel');
+    cartel.innerHTML = '<path class="mt-cuerda" d="M' + (cx - 5).toFixed(1) + ' ' + (cy - 2).toFixed(1) + 'v4M' + (cx + 5).toFixed(1) + ' ' + (cy - 2).toFixed(1) + 'v4"/>' +
+      '<rect x="' + (cx - 9).toFixed(1) + '" y="' + (cy + 2).toFixed(1) + '" width="18" height="12" rx="2.5"/>' +
+      '<path d="M' + cx.toFixed(1) + ' ' + (cy + 4).toFixed(1) + 'v8M' + (cx - 3.2).toFixed(1) + ' ' + (cy + 7).toFixed(1) + 'h6.4"/>';
     var pop = lienzo.querySelector('.mapa-pop');
     lienzo.querySelectorAll('.mapa-grupo').forEach(function(g){
       g.querySelector('.mapa-pila').onclick = function(ev){

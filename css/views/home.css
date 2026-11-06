@@ -1035,7 +1035,7 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .me-pata{ fill:none; stroke:var(--ink-soft); stroke-width:1.4; stroke-linecap:round; }
 .me-lana{ fill:var(--il-pared); stroke:var(--il-trazo); stroke-width:1.1; stroke-linejoin:round; }
 .me-cara{ fill:var(--il-trazo); }
-.mapa-tranquera-hoja{ fill:none; stroke:var(--il-madera); stroke-width:2.2; stroke-linecap:round; }
+.mapa-tranquera-hoja{ fill:none; stroke:var(--gold); stroke-width:2.2; stroke-linecap:round; }
 .mr-tronco{ stroke:var(--il-madera); stroke-width:2.2; stroke-linecap:round; }
 .mr-copa{ fill:var(--sage); opacity:.75; }
 .mr-roca{ fill:var(--il-arido); stroke:var(--il-trazo); stroke-opacity:.35; stroke-width:1.2; stroke-linejoin:round; }
@@ -1043,8 +1043,10 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .mapa-cerca-poste{ fill:none; stroke:var(--il-madera); stroke-width:2.8; stroke-linecap:round; }
 .mapa-mojones rect{ fill:var(--il-pared); stroke:var(--il-madera); stroke-width:1.4; }
 .mapa-mojones path{ fill:none; stroke:var(--gold); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-.mapa-tranquera-palo{ fill:none; stroke:var(--il-madera); stroke-width:4.2; stroke-linecap:round; }
-.mapa-tranquera-cartel rect{ fill:var(--il-pared); stroke:var(--il-madera); stroke-width:1.6; }
+.mapa-tranquera-palo{ fill:none; stroke:var(--ink-soft); stroke-width:5; stroke-linecap:round; }
+.mapa-tranquera-arco{ fill:none; stroke:var(--ink-soft); stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
+.mapa-tranquera-cartel .mt-cuerda{ stroke:var(--ink-soft); stroke-width:1.2; }
+.mapa-tranquera-cartel rect{ fill:var(--il-pared); stroke:var(--ink-soft); stroke-width:1.6; }
 .mapa-tranquera-cartel path{ fill:none; stroke:var(--gold); stroke-width:2.2; stroke-linecap:round; }
 .mc-flecha{ fill:none; stroke:var(--il-madera); stroke-width:2.4 !important; }
 .mc-abrevadero{ fill:var(--il-madera); stroke:var(--il-trazo); }
@@ -1114,6 +1116,7 @@ a.user-menu-item{ text-decoration:none; display:block; }
 .mapa-lado-izq .mapa-label{ right:calc(100% + 6px); top:50%; transform:translateY(-50%); }
 .mapa-lado-der .mapa-label{ left:calc(100% + 6px); top:50%; transform:translateY(-50%); }
 .mapa-estacion[data-pct="0"] .mapa-label{ top:calc(100% + 18px); }
+.mapa-estacion[data-pct="75"] .mapa-label{ top:calc(100% + 10px); }
 .mapa-estacion[data-pct="0"] .mapa-punto, .mapa-estacion[data-pct="100"] .mapa-punto{ visibility:hidden; }
 /* Pila de escudos superpuestos (stacked avatars). */
 .mapa-grupo{ --tam:38px; z-index:4; display:flex; flex-direction:column; align-items:center; }
