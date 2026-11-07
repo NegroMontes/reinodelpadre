@@ -6,7 +6,7 @@ import { onSnapshot, setDoc, doc, getDoc } from "https://www.gstatic.com/firebas
 import { stateDocRef, db } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { uid } from '../utils/helpers.js';
-import { decodeHash } from '../utils/hash-router.js';
+import { decodeHash, applyHashNav } from '../utils/hash-router.js';
 import { canEditStructure, canEditConsigna } from './permissions.js';
 import { ensureProgressSubs, ensureCompletionsSubs } from './progress.service.js';
 import { render, renderPanel, showStatus } from '../main.js';
@@ -136,7 +136,7 @@ import { showConfirm } from '../components/dialog.js';
   // llegado ahí por cualquier otro camino.
   function applyInitialNavFromHash(){
     var target = decodeHash(window.location.hash);
-    AppState.activeDayId = target.tab;
+    applyHashNav(AppState, target);
     if(target.tab === 'MENSAJE' && target.dayId && AppState.state.days.some(function(d){ return d.id === target.dayId; })){
       AppState.activeMensajeDayId = target.dayId;
     } else {

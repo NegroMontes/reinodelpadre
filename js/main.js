@@ -24,7 +24,7 @@ import { realIsAdmin, effectiveRole, effectiveSeccion, effectiveDepto, isAdmin, 
 import { AppState } from './app-state.js';
 import { uid, escapeHtml, linkify, alignStyleAttr, roleLabel } from './utils/helpers.js';
 import { saveNovedadesSeenAt, saveUsersSeenAt, saveTheme } from './utils/storage.js';
-import { encodeHash, decodeHash } from './utils/hash-router.js';
+import { encodeHash, decodeHash, applyHashNav } from './utils/hash-router.js';
 import { icon } from './utils/icons.js';
 import { startVersionWatch, stopVersionWatch } from './services/version-check.service.js';
 import { sincronizarMiRango } from './services/rangos.service.js';
@@ -659,7 +659,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     // llegara a leerlo. No tocar la URL en absoluto mientras siga sin
     // resolver evita pisarlo.
     if(AppState.activeDayId === null) return;
-    var newHash = encodeHash(AppState.activeDayId, AppState.activeMensajeDayId);
+    var newHash = encodeHash(AppState);
     if((window.location.hash || '').replace(/^#/, '') !== newHash){
       window.location.hash = newHash;
     }
@@ -680,10 +680,9 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     var resolvedDayId = target.tab === 'MENSAJE'
       ? ((target.dayId && days.some(function(d){ return d.id === target.dayId; })) ? target.dayId : (days.length ? days[0].id : null))
       : null;
-    var sameTab = AppState.activeDayId === target.tab;
-    var sameDay = target.tab !== 'MENSAJE' || AppState.activeMensajeDayId === resolvedDayId;
-    if(sameTab && sameDay) return;
-    AppState.activeDayId = target.tab;
+    // Mismo lugar que ya se ve (el cambio vino de syncHashFromState()): nada que hacer.
+    if(encodeHash(AppState) === (window.location.hash || '').replace(/^#/, '')) return;
+    applyHashNav(AppState, target);
     if(target.tab === 'MENSAJE'){ AppState.activeMensajeDayId = resolvedDayId; }
     AppState.formOpen = false;
     render();
