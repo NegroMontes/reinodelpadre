@@ -25,12 +25,11 @@ function premio(clave){
 }
 function hash(s){ var h = 0; for(var i = 0; i < s.length; i++){ h = (h * 31 + s.charCodeAt(i)) | 0; } return Math.abs(h); }
 function minutos(){ var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
-function forzado(nombre){
-  try{
-    if(new RegExp('[?&]' + nombre + '=1').test(location.search)) sessionStorage.setItem('mj-' + nombre, '1');
-    return sessionStorage.getItem('mj-' + nombre) === '1';
-  }catch(e){ return false; }
-}
+// Forzar un evento para probarlo: solo mientras `?<nombre>=1` esté en la
+// dirección. Antes quedaba guardado en la pestaña y el evento seguía
+// saliendo a cualquier hora (reporte del usuario, 07/11/2026).
+function forzado(nombre){ return new RegExp('[?&]' + nombre + '=1').test(location.search); }
+try{ Object.keys(sessionStorage).forEach(function(k){ if(/^mj-|^mjLluvia$/.test(k)) sessionStorage.removeItem(k); }); }catch(e){}
 function vez(clave){ try{ if(localStorage.getItem(clave)) return false; localStorage.setItem(clave, '1'); return true; }catch(e){ return true; } }
 
 // Aviso a pantalla completa con botones [{txt, fn, clase}]. De a uno: si
@@ -42,7 +41,14 @@ function siguiente(){
   if(ocupado()) return setTimeout(siguiente, 1000);
   var a = cola.shift(); mostrarAviso(a[0], a[1], a[2]);
 }
-function aviso(clase, html, botones){ cola.push([clase, html, botones]); siguiente(); }
+// Como mucho un evento por cada vez que se abre la página (salvo los
+// forzados para probar): los demás quedan para otra apertura.
+var mostrados = 0;
+function aviso(clase, html, botones, siempre){
+  if(!siempre && mostrados >= 1 && !/[?&](estrellas|bandera|saboteador)=1/.test(location.search)) return;
+  if(!siempre) mostrados++;
+  cola.push([clase, html, botones]); siguiente();
+}
 function mostrarAviso(clase, html, botones){
   var ov = document.createElement('div');
   ov.className = 'mj-evento ' + clase;
@@ -255,7 +261,7 @@ function engancharBotella(lienzo){
       var mision = MISIONES[hash(hoyClave()) % MISIONES.length], txt = premio('huevo-botella');
       setTimeout(function(){
         aviso('mj-pergamino', '<div class="mj-botella">🍾</div><p class="mj-card-kicker">Mensaje en la botella</p><p class="mj-pergamino-txt">' + escapeHtml(mision) + '</p>' +
-          '<p class="mj-info">Misión secreta para el campamento' + (txt ? ' · ' + escapeHtml(txt) : '') + '</p>', [{ txt: 'Guardar el secreto' }]);
+          '<p class="mj-info">Misión secreta para el campamento' + (txt ? ' · ' + escapeHtml(txt) : '') + '</p>', [{ txt: 'Guardar el secreto' }], true);
       }, 150);
     });
   });
@@ -291,7 +297,7 @@ function terminarSab(gano){
   var p = document.querySelector('.mj-chancho-suelto'); if(p) p.remove();
   var txt = gano ? premio('saboteador-' + hoyClave()) : '';
   sab = null;
-  aviso('', gano ? '<p style="font-size:44px;margin:0">🐖✅</p><p><b>¡Lo atrapaste!</b></p><p>' + escapeHtml(txt || 'Volvió a la porqueriza.') + '</p>' : '<p style="font-size:44px;margin:0">🐖💨</p><p><b>Se escapó…</b> Se perdió por el campamento.</p>', [{ txt: 'Volver' }]);
+  aviso('', gano ? '<p style="font-size:44px;margin:0">🐖✅</p><p><b>¡Lo atrapaste!</b></p><p>' + escapeHtml(txt || 'Volvió a la porqueriza.') + '</p>' : '<p style="font-size:44px;margin:0">🐖💨</p><p><b>Se escapó…</b> Se perdió por el campamento.</p>', [{ txt: 'Volver' }], true);
 }
 function arrancarSab(){
   sab = { pasos: barajar(Object.keys(PESTANAS)).slice(0, 3), i: 0, hasta: Date.now() + 60000 };

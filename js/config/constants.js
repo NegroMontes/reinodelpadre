@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.07.15';
+  export var APP_VERSION = '2026.11.07.16';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.07.16', date: '07/11/2026', items: [
+      'Arreglo: los eventos ya no aparecen fuera de su horario, y sale como mucho uno por vez que se abre la página.'
+    ]},
     { version: '2026.11.07.15', date: '07/11/2026', items: [
       'Perfil (solo admin): botón para borrar los propios puntos bonus.'
     ]},

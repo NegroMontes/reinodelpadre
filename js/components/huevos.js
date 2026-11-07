@@ -75,8 +75,7 @@ function engancharLogo(){
 var LAT = -32.89, LON = -68.84;
 function forzarLluvia(){
   try{
-    if(/[?&]lluvia=1/.test(location.search)) sessionStorage.setItem('mjLluvia', '1');
-    return sessionStorage.getItem('mjLluvia') === '1';
+    return /[?&]lluvia=1/.test(location.search);
   }catch(e){ return false; }
 }
 function llueve(){
