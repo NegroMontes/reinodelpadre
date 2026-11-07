@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.07.3';
+  export var APP_VERSION = '2026.11.07.4';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.07.4', date: '07/11/2026', items: [
+      'Arreglo: «Perfil» desde otra pestaña llevaba a Inicio.'
+    ]},
     { version: '2026.11.07.3', date: '07/11/2026', items: [
       'Mensaje: el texto de cada día ahora es parte de la página (editable), en vez de una entrada del día.'
     ]},
