@@ -136,7 +136,7 @@ function(host, fin){
   var t = setInterval(function(){
     if(terminado) return;
     tiempo -= 0.05;
-    tension += tirando ? 2.6 + Math.random() * 1.6 : -3.2;
+    tension += tirando ? 1.7 + Math.random() * 1.1 : -2.2;
     tension = Math.max(0, tension);
     if(tension >= 45 && tension <= 75) altura += 0.75;
     band.style.bottom = (8 + altura * 0.78) + '%';

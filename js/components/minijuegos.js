@@ -5,9 +5,9 @@
 import { escapeHtml } from '../utils/helpers.js';
 
 export var MINIJUEGOS = {
-  fogata:      { titulo: 'La fogata de la guardia', ayuda: 'Echá leña para que el fuego quede en la zona verde. Si se apaga o se desborda, se pierde. Aguantá 20 segundos en la zona.' },
+  fogata:      { titulo: 'La fogata de la guardia', ayuda: 'Echá leña (botón o barra espaciadora) para que el fuego quede en la zona verde. Si se apaga o se desborda, se pierde. Aguantá 20 segundos en la zona.' },
   radio:       { titulo: 'Sintonizar la transmisión', ayuda: 'Mové el dial hasta que la señal quede al máximo y descifrá la palabra en morse.' },
-  estacas:     { titulo: 'El clavado de estacas', ayuda: 'El viento afloja las estacas de la carpa. Tocá cada estaca que se levanta antes de que se suelte. Aguantá 30 segundos sin perder 3.' },
+  estacas:     { titulo: 'El clavado de estacas', ayuda: 'El viento afloja las estacas de la carpa. Tocá cada estaca que se levanta antes de que se suelte. Aguantá 30 segundos sin perder 4.' },
   proveeduria: { titulo: 'Tetris de proveeduría', ayuda: 'Acomodá toda la carga en el baúl. Elegí una pieza, girala si hace falta y tocá la casilla donde va su esquina de arriba a la izquierda. Tocá una pieza puesta para sacarla.' },
   cuentas:     { titulo: 'Cuadre de cuentas', ayuda: 'Elegí cuánto queda en la caja después de cada movimiento. Acertá 4 de 5 antes de que se acabe el tiempo.' },
   red:         { titulo: 'Sintonizar la red', ayuda: 'Memorizá las frecuencias. Después uní de a dos las radios que transmiten en la misma.' },
@@ -16,6 +16,10 @@ export var MINIJUEGOS = {
 };
 
 var abierto = null;
+
+// Con mouse (o trackpad) se apunta más lento que con el dedo: algunos juegos
+// de velocidad se aflojan un poco (revisión de dificultad, 07/11/2026).
+export function esMouse(){ try{ return matchMedia('(pointer: fine)').matches; }catch(e){ return false; } }
 
 export function abrirMinijuego(id, opts){
   opts = opts || {};
@@ -38,7 +42,14 @@ export function abrirMinijuego(id, opts){
     document.removeEventListener('keydown', onKey);
     if(opts.alCerrar) opts.alCerrar();
   }
-  function onKey(ev){ if(ev.key === 'Escape') cerrar(); }
+  // Barra espaciadora = el botón principal del juego (data-espacio), útil con mouse.
+  function onKey(ev){
+    if(ev.key === 'Escape') return cerrar();
+    if(ev.key === ' ' && !/INPUT|TEXTAREA|SELECT/.test((ev.target && ev.target.tagName) || '')){
+      var b = host.querySelector('[data-espacio]:not(:disabled)');
+      if(b){ ev.preventDefault(); b.click(); }
+    }
+  }
   document.addEventListener('keydown', onKey);
   ov.querySelector('.mj-close').onclick = cerrar;
   function empezar(){
@@ -72,7 +83,7 @@ JUEGOS.fogata = function(host, fin){
   var nivel = 50, enZona = 0, META = 20, viento = 0, terminado = false, t0 = Date.now();
   host.innerHTML = '<div class="mj-fogata"><div class="mj-llama">🔥</div>' +
     '<div class="mj-barra"><div class="mj-barra-zona" style="left:45%;width:25%"></div><div class="mj-barra-nivel"></div></div>' +
-    '<div class="mj-info"></div><button type="button" class="btn" data-leña>🪵 Echar leña</button></div>';
+    '<div class="mj-info"></div><button type="button" class="btn" data-leña data-espacio>🪵 Echar leña</button></div>';
   var llama = host.querySelector('.mj-llama'), nivelEl = host.querySelector('.mj-barra-nivel'), info = host.querySelector('.mj-info');
   // Cada tronco suma distinto (troncos más secos o más verdes): no alcanza con un ritmo fijo.
   host.querySelector('[data-leña]').onclick = function(){ nivel = Math.min(100, nivel + rnd(9, 19)); pintar(); };
@@ -157,20 +168,20 @@ JUEGOS.estacas = function(host, fin){
       b.classList.toggle('mj-perdida', f < 0);
       b.style.setProperty('--flojo', f < 0 ? 1 : f / 100);
     });
-    info.textContent = 'Tiempo: ' + Math.ceil(tiempo) + ' s · Estacas perdidas: ' + perdidas + ' / 3';
+    info.textContent = 'Tiempo: ' + Math.ceil(tiempo) + ' s · Estacas perdidas: ' + perdidas + ' / 4';
   }
   var t = setInterval(function(){
     if(terminado) return;
     tiempo -= 0.1;
     var avance = (30 - tiempo) / 30;
-    var fuerza = 0.8 + avance * 2.6 + avance * avance * 1.5;
+    var fuerza = (0.8 + avance * 2.2 + avance * avance * 1.2) * (esMouse() ? 0.75 : 1);
     flojas.forEach(function(f, i){
       if(f < 0) return;
       if(f > 0 || Math.random() < 0.016 * fuerza) flojas[i] = f + fuerza * 2.4;
       if(flojas[i] >= 100){ flojas[i] = -1; perdidas++; }
     });
     pintar();
-    if(perdidas >= 3){ terminado = true; fin(false); }
+    if(perdidas >= 4){ terminado = true; fin(false); }
     else if(tiempo <= 0){ terminado = true; fin(true); }
   }, 100);
   pintar();

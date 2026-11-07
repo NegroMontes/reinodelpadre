@@ -1,6 +1,6 @@
 // T10 — Dos minijuegos por sección (07/11/2026). Mismo contrato que
 // minijuegos.js: (host, fin) → función de limpieza.
-import { registrarMinijuego, rnd, rndInt, barajar } from './minijuegos.js';
+import { registrarMinijuego, rnd, rndInt, barajar, esMouse } from './minijuegos.js';
 import { escapeHtml } from '../utils/helpers.js';
 
 function reloj(segundos, alTick, alFin){
@@ -29,8 +29,10 @@ function(host, fin){
   var t = setInterval(function(){
     if(terminado) return;
     tiempo -= 0.1;
-    var vel = 1.4 + (25 - tiempo) / 25 * 1.8;
-    if(Math.random() < 0.05 + (25 - tiempo) / 25 * 0.05){
+    var vel = (1.3 + (25 - tiempo) / 25 * 1.4) * (esMouse() ? 0.85 : 1);
+    // Nunca dos obstáculos casi a la misma altura: siempre queda un carril libre.
+    var cerca = obst.some(function(o){ return o.y < 14; });
+    if(!cerca && Math.random() < 0.05 + (25 - tiempo) / 25 * 0.04){
       var el = document.createElement('span'); el.className = 'mj-obst'; var c = rndInt(0, 2);
       el.textContent = Math.random() < 0.5 ? '🌿' : '🟤'; el.style.left = (c * 33.33 + 16.66) + '%'; pista.appendChild(el);
       obst.push({ el: el, c: c, y: -8 });
@@ -85,7 +87,7 @@ function(host, fin){
 var NUDOS = ['Nudo llano', 'As de guía', 'Ballestrinque', 'Vuelta de braza'];
 var COLORES_SOGA = ['#d93a5d', '#009bb3', '#ffa41d', '#639e8d'];
 registrarMinijuego('nudos', { titulo: 'El desafío de nudos', seccion: 'Templarios Menores',
-  ayuda: 'Para cada nudo, uní cada extremo de la izquierda con el de la derecha del mismo color. Tenés 8 segundos por nudo.' },
+  ayuda: 'Para cada nudo, uní cada extremo de la izquierda con el de la derecha del mismo color. Tenés 10 segundos por nudo.' },
 function(host, fin){
   var ronda = 0, limpiarReloj = null;
   function jugar(){
@@ -109,7 +111,7 @@ function(host, fin){
         if(unidos === 4){ limpiarReloj(); ronda++; setTimeout(jugar, 400); }
       };
     });
-    limpiarReloj = reloj(8, function(t){ barra.style.width = (t / 8 * 100) + '%'; }, function(){ fin(false); });
+    limpiarReloj = reloj(10, function(t){ barra.style.width = (t / 10 * 100) + '%'; }, function(){ fin(false); });
   }
   jugar();
   return function(){ if(limpiarReloj) limpiarReloj(); };
@@ -177,13 +179,13 @@ function(host, fin){
 
 // Cruce del río: saltar cuando la piedra siguiente está fuera del agua.
 registrarMinijuego('rio', { titulo: 'El cruce del río', seccion: 'Templarios Intermedios',
-  ayuda: 'Las piedras suben y bajan con la corriente. Tocá «Saltar» cuando la piedra siguiente esté afuera del agua: si saltás a una hundida, te caés. Cruzá en 15 segundos.' },
+  ayuda: 'Las piedras suben y bajan con la corriente. Tocá «Saltar» (o la barra espaciadora) cuando la piedra siguiente esté afuera del agua: si saltás a una hundida, te caés. Cruzá en 15 segundos.' },
 function(host, fin){
   var N = 6, pos = -1, fase = [], vel = [], t0 = Date.now(), terminado = false;
   for(var i = 0; i < N; i++){ fase.push(rnd(0, Math.PI * 2)); vel.push(rnd(1.6, 3.2)); }
   var h = '<div class="mj-rio"><span class="mj-orilla">🌳</span>';
   for(var k = 0; k < N; k++) h += '<span class="mj-piedra" data-i="' + k + '"></span>';
-  h += '<span class="mj-orilla">🏁</span><span class="mj-saltador">🧍</span></div><div class="mj-fila"><button type="button" class="btn" data-saltar>Saltar</button></div><div class="mj-info">Piedra 0 / ' + N + '</div>';
+  h += '<span class="mj-orilla">🏁</span><span class="mj-saltador">🧍</span></div><div class="mj-fila"><button type="button" class="btn" data-saltar data-espacio>Saltar</button></div><div class="mj-info">Piedra 0 / ' + N + '</div>';
   host.innerHTML = h;
   var piedras = host.querySelectorAll('.mj-piedra'), yo = host.querySelector('.mj-saltador'), info = host.querySelector('.mj-info');
   // Al saltar hay un margen (se ve hundida un instante antes de que cuente como hundida).
@@ -211,10 +213,10 @@ function(host, fin){
 
 // La pira: apilar troncos en pirámide (4-3-2-1), cada uno bien centrado.
 registrarMinijuego('pira', { titulo: 'La pira de la fogata', seccion: 'Templarios Mayores',
-  ayuda: 'El tronco va y viene. Tocá «Soltar» cuando quede justo en su lugar (la marca punteada). Si se corre mucho, la pira se cae. Armá la pirámide entera y prendé el fuego.' },
+  ayuda: 'El tronco va y viene. Tocá «Soltar» (o la barra espaciadora) cuando quede justo en su lugar (la marca punteada). Si se corre mucho, la pira se cae. Armá la pirámide entera y prendé el fuego.' },
 function(host, fin){
   var filas = [4, 3, 2, 1], fila = 0, enFila = 0, x = 0, dir = 1, vel = 1.0, terminado = false, ANCHO = 18;
-  host.innerHTML = '<div class="mj-pira"><div class="mj-pira-guia"></div><div class="mj-tronco mj-tronco-mov"></div></div><div class="mj-fila"><button type="button" class="btn" data-soltar>Soltar</button></div><div class="mj-info"></div>';
+  host.innerHTML = '<div class="mj-pira"><div class="mj-pira-guia"></div><div class="mj-tronco mj-tronco-mov"></div></div><div class="mj-fila"><button type="button" class="btn" data-soltar data-espacio>Soltar</button></div><div class="mj-info"></div>';
   var pira = host.querySelector('.mj-pira'), mov = host.querySelector('.mj-tronco-mov'), guia = host.querySelector('.mj-pira-guia'), info = host.querySelector('.mj-info');
   function objetivo(){ var n = filas[fila]; var inicio = 50 - n * ANCHO / 2; return inicio + enFila * ANCHO; }
   function alto(f){ return 88 - f * 14; }
@@ -223,9 +225,9 @@ function(host, fin){
   host.querySelector('[data-soltar]').onclick = function(){
     if(terminado) return;
     var err = Math.abs(x - objetivo());
-    if(err > 5){ terminado = true; mov.classList.add('mj-cae'); return setTimeout(function(){ fin(false); }, 500); }
+    if(err > 6){ terminado = true; mov.classList.add('mj-cae'); return setTimeout(function(){ fin(false); }, 500); }
     var t = document.createElement('div'); t.className = 'mj-tronco'; t.style.left = objetivo() + '%'; t.style.top = alto(fila) + '%'; pira.appendChild(t);
-    enFila++; vel += 0.12;
+    enFila++; vel += esMouse() ? 0.06 : 0.08;
     if(enFila >= filas[fila]){ fila++; enFila = 0; }
     if(fila >= filas.length){ terminado = true; mov.remove(); guia.remove(); pira.insertAdjacentHTML('beforeend', '<div class="mj-pira-fuego">🔥</div>'); return setTimeout(function(){ fin(true); }, 700); }
     pintarGuia();
@@ -236,12 +238,12 @@ function(host, fin){
 
 // Rescate en altura: lanzar la cuerda cuando la mira apunta al anclaje.
 registrarMinijuego('rescate', { titulo: 'Rescate en altura', seccion: 'Templarios Mayores',
-  ayuda: 'La mira se balancea. Tocá «Lanzar» cuando apunte al árbol de anclaje. Hay 5 tramos, cada uno más difícil; acertá 4 antes de 30 segundos.' },
+  ayuda: 'La mira se balancea. Tocá «Lanzar» (o la barra espaciadora) cuando apunte al árbol de anclaje. Hay 5 tramos, cada uno más difícil; acertá 4 antes de 30 segundos.' },
 function(host, fin){
   var tramo = 0, bien = 0, ang = -60, dir = 1, meta = 0, tol = 8, terminado = false;
-  host.innerHTML = '<div class="mj-rescate"><div class="mj-ancla">🌲</div><div class="mj-mira"><i></i></div><div class="mj-rescatista">🧗</div></div><div class="mj-fila"><button type="button" class="btn" data-lanzar>Lanzar</button></div><div class="mj-info"></div>';
+  host.innerHTML = '<div class="mj-rescate"><div class="mj-ancla">🌲</div><div class="mj-mira"><i></i></div><div class="mj-rescatista">🧗</div></div><div class="mj-fila"><button type="button" class="btn" data-lanzar data-espacio>Lanzar</button></div><div class="mj-info"></div>';
   var mira = host.querySelector('.mj-mira'), ancla = host.querySelector('.mj-ancla'), info = host.querySelector('.mj-info'), tiempo = 30;
-  function nuevo(){ meta = rndInt(-50, 50); tol = 9 - tramo * 1.2; var rad = (meta - 90) * Math.PI / 180; ancla.style.left = (50 + Math.cos(rad) * 40) + '%'; ancla.style.top = (88 + Math.sin(rad) * 75) + '%'; }
+  function nuevo(){ meta = rndInt(-50, 50); tol = Math.max(6, 10 - tramo); var rad = (meta - 90) * Math.PI / 180; ancla.style.left = (50 + Math.cos(rad) * 40) + '%'; ancla.style.top = (88 + Math.sin(rad) * 75) + '%'; }
   function pintarInfo(){ info.textContent = 'Tramo ' + (tramo + 1) + ' de 5 · Aciertos: ' + bien + ' · ' + Math.ceil(tiempo) + ' s'; }
   nuevo();
   host.querySelector('[data-lanzar]').onclick = function(){
@@ -254,7 +256,7 @@ function(host, fin){
   };
   var t = setInterval(function(){
     if(terminado) return;
-    ang += dir * (2.2 + tramo * 0.5); if(ang > 60){ ang = 60; dir = -1; } if(ang < -60){ ang = -60; dir = 1; }
+    ang += dir * (1.6 + tramo * 0.3) * (esMouse() ? 0.85 : 1); if(ang > 60){ ang = 60; dir = -1; } if(ang < -60){ ang = -60; dir = 1; }
     mira.style.transform = 'rotate(' + ang + 'deg)';
     tiempo -= 0.03; pintarInfo();
     if(tiempo <= 0){ terminado = true; fin(false); }

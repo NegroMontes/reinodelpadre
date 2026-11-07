@@ -88,14 +88,14 @@ function(host, fin){
 
 // Control de carga: ¿el bulto sube o se pasa del límite?
 registrarMinijuego('carga', { titulo: 'Control de carga', depto: 'Logística',
-  ayuda: 'Cada bulto puede pesar como mucho 20 kg. Sumá lo que tiene adentro y decidí si sube a la camioneta o excede. Acertá 7 de 8 en 30 segundos.' },
+  ayuda: 'Cada bulto puede pesar como mucho 20 kg. Sumá lo que tiene adentro y decidí si sube a la camioneta o excede. Acertá 6 de 8 en 40 segundos.' },
 function(host, fin){
   var ronda = 0, bien = 0, terminado = false;
   var COSA = ['bolsas de papa', 'bidones de agua', 'cajones de fruta', 'bolsas de leña', 'cajas de fideos'];
   host.innerHTML = '<div class="mj-info" data-t></div><div data-q></div>';
   var q = host.querySelector('[data-q]');
   function jugar(){
-    if(ronda >= 8){ terminado = true; return fin(bien >= 7); }
+    if(ronda >= 8){ terminado = true; return fin(bien >= 6); }
     var n = rndInt(2, 4), kg = rndInt(3, 8), extra = rndInt(1, 6), total = n * kg + extra;
     if(Math.abs(total - 20) > 6 && Math.random() < 0.6){ extra = Math.max(1, 20 - n * kg + rndInt(-2, 2)); total = n * kg + extra; }
     var excede = total > 20;
@@ -104,7 +104,7 @@ function(host, fin){
     q.querySelectorAll('[data-r]').forEach(function(b){ b.onclick = function(){ if((b.getAttribute('data-r') === 'excede') === excede) bien++; ronda++; jugar(); }; });
   }
   jugar();
-  return reloj(30, function(t){ host.querySelector('[data-t]').textContent = 'Tiempo: ' + Math.ceil(t) + ' s'; }, function(){ if(!terminado){ terminado = true; fin(false); } });
+  return reloj(40, function(t){ host.querySelector('[data-t]').textContent = 'Tiempo: ' + Math.ceil(t) + ' s'; }, function(){ if(!terminado){ terminado = true; fin(false); } });
 });
 
 // ===================== COMUNICACIONES =====================
@@ -163,7 +163,7 @@ function(host, fin){
     function pintar(){ mia.setAttribute('d', onda(fi.value / 10, +pi.value)); barra.style.width = cerca() + '%'; }
     fi.oninput = pintar; pi.oninput = pintar; pintar();
     clearInterval(t);
-    t = setInterval(function(){ fijo = cerca() > 85 ? fijo + 0.1 : 0; if(fijo >= 1){ clearInterval(t); ronda++; setTimeout(jugar, 400); } }, 100);
+    t = setInterval(function(){ fijo = cerca() > 80 ? fijo + 0.1 : 0; if(fijo >= 1){ clearInterval(t); ronda++; setTimeout(jugar, 400); } }, 100);
   }
   jugar();
   return function(){ clearInterval(t); };
@@ -225,7 +225,7 @@ function(host, fin){
 
 // Reparación de lonas: repasar el desgarro con el dedo.
 registrarMinijuego('lonas', { titulo: 'Reparación de lonas', depto: 'Intendencia',
-  ayuda: 'Pasá el dedo (o el mouse apretado) por encima de cada desgarro para emparcharlo con cinta, antes de que empiece a llover. Son 3 desgarros en 25 segundos.' },
+  ayuda: 'Pasá el dedo (o el mouse apretado) por encima de cada desgarro para emparcharlo con cinta, antes de que empiece a llover. Son 3 desgarros en 30 segundos.' },
 function(host, fin){
   var tear = 0, puntos = [], tapados = [], terminado = false, dibujando = false;
   host.innerHTML = '<svg class="mj-lona" viewBox="0 0 300 200"><rect width="300" height="200" rx="10" class="mj-lona-tela"/><path class="mj-desgarro"/><path class="mj-cinta"/></svg><div class="mj-barra"><div class="mj-barra-nivel"></div></div><div class="mj-info"></div>';
@@ -254,7 +254,7 @@ function(host, fin){
     if(pct >= 0.9){ tear++; dibujando = false; if(tear >= 3){ terminado = true; return setTimeout(function(){ fin(true); }, 300); } setTimeout(nuevo, 300); }
   }
   nuevo();
-  var corta = reloj(25, function(t){ info.textContent = 'Desgarro ' + Math.min(tear + 1, 3) + ' de 3 · ' + Math.ceil(t) + ' s'; }, function(){ if(!terminado){ terminado = true; fin(false); } });
+  var corta = reloj(30, function(t){ info.textContent = 'Desgarro ' + Math.min(tear + 1, 3) + ' de 3 · ' + Math.ceil(t) + ' s'; }, function(){ if(!terminado){ terminado = true; fin(false); } });
   return corta;
 });
 
@@ -336,7 +336,7 @@ function(host, fin){
 // Posta de destreza: repetir la secuencia de señales (banderines y silbato).
 var SENALES = [{ id: 'r', txt: '🚩', clase: 'mj-s-rojo' }, { id: 'a', txt: '🏳️', clase: 'mj-s-azul' }, { id: 'v', txt: '🟩', clase: 'mj-s-verde' }, { id: 's', txt: '📯', clase: 'mj-s-silbato' }];
 registrarMinijuego('posta', { titulo: 'Posta de destreza', depto: 'Actividades',
-  ayuda: 'El jefe de posta hace una secuencia de señales. Repetila en el mismo orden. Cada vez se suma una más: llegá a 7.' },
+  ayuda: 'El jefe de posta hace una secuencia de señales. Repetila en el mismo orden. Cada vez se suma una más: llegá a 6.' },
 function(host, fin){
   var sec = [], timers = [], escuchando = false, pos = 0, ctx = null;
   host.innerHTML = '<div class="mj-posta">' + SENALES.map(function(s){ return '<button type="button" class="mj-senal ' + s.clase + '" data-s="' + s.id + '">' + s.txt + '</button>'; }).join('') + '</div><div class="mj-info"></div>';
@@ -346,7 +346,7 @@ function(host, fin){
   }
   function prender(id){ var i = SENALES.findIndex(function(s){ return s.id === id; }), b = host.querySelector('[data-s="' + id + '"]'); b.classList.add('mj-on'); sonar(i); timers.push(setTimeout(function(){ b.classList.remove('mj-on'); }, 350)); }
   function ronda(){
-    if(sec.length >= 7) return fin(true);
+    if(sec.length >= 6) return fin(true);
     sec.push(SENALES[rndInt(0, 3)].id); escuchando = false; pos = 0;
     info.textContent = 'Mirá… (' + sec.length + (sec.length === 1 ? ' señal)' : ' señales)');
     sec.forEach(function(id, k){ timers.push(setTimeout(function(){ prender(id); }, 600 + k * 550)); });
