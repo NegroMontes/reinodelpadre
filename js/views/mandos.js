@@ -282,6 +282,12 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     return esFormacionMember(u, mandosIndex) ? 'Formación' : comandoGrupoDe(u, mandosIndex);
   }
 
+  // T18: comando con el que participa cada uno en las subastas de Beneficios
+  // (el mismo agrupamiento del Tablero; siempre con la identidad real).
+  export function grupoSubastaDe(u){
+    return grupoTableroDe(u, buildMandosIndex(AppState.mandosData));
+  }
+
   function totalesResolucion(mandosIndex){
     var t = {};
     mandosIndex.forEach(function(e){

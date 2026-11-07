@@ -6,22 +6,29 @@
 //   config/public.tienda   {activa, titulo, moneda, usarEntradas, usarBonus, nota}
 //                          (config/** ya deja leer a todos y escribir al admin)
 //   beneficios/{id}        {titulo, desc, tipo:'compra'|'subasta', precio, stock|null,
-//                           limite|null, vendidos, cierre|null, incremento,
-//                           estado:'abierta'|'cerrada', ganadorUid, ganadorNombre,
-//                           montoGanador, orden, createdAt}
+//                           limite|null, vendidos, cierre|null,
+//                           estado:'abierta'|'cerrada', ganadorGrupo, montoGanador,
+//                           orden, createdAt}
 //   canjes/{id}            {uid, nombre, beneficioId, titulo, monto, tipo,
 //                           estado:'pendiente'|'entregado'|'cancelado', createdAt}
-//   pujas/{id}             {uid, nombre, beneficioId, monto, createdAt}
+//   pujas/{id}             aportes a una subasta: {uid, nombre, grupo, beneficioId, monto, createdAt}
+//
+// Subastas POR COMANDO (pedido del usuario, 07/11/2026): cada sección/depto
+// puja con la suma de lo que aporta cada uno de sus miembros (cada uno elige
+// cuánto). Gana el comando con más total (que llegue a la puja inicial); a los
+// que aportaron en el ganador se les cobra lo suyo (un canje por persona), al
+// resto se le devuelve. Grupo = el mismo del Tablero (`grupoSubastaDe()`).
 //
 // Saldo = puntos ganados (entradas completadas + bonus de minijuegos, según la
-// config) − canjes no cancelados − lo «reservado» en subastas abiertas donde
-// la persona va ganando. Gastar NO baja el rango: el rango sigue sobre lo ganado.
+// config) − canjes no cancelados − lo «reservado»: lo que aportó a subastas
+// todavía abiertas. Gastar NO baja el rango: el rango sigue sobre lo ganado.
 import { doc, collection, onSnapshot, setDoc, addDoc, updateDoc, deleteDoc, query, where, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { db } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { miRango } from './rangos.service.js';
 import { bonusDe } from './juegos.service.js';
 import { renderPanel, render } from '../main.js';
+import { grupoSubastaDe } from '../views/mandos.js';
 
 export var TIENDA_DEFAULT = { activa: false, titulo: 'Beneficios', moneda: 'puntos', usarEntradas: true, usarBonus: true, nota: '' };
 
@@ -90,10 +97,36 @@ export function stopTiendaSubs(){
 export function subastaAbierta(b){ return b.tipo === 'subasta' && b.estado !== 'cerrada'; }
 export function subastaVencida(b){ return subastaAbierta(b) && b.cierre && Date.now() >= b.cierre; }
 
-// Mejor puja de una subasta (empate: la más vieja).
-export function mejorPuja(beneficioId){
-  return (AppState.pujas || []).filter(function(p){ return p.beneficioId === beneficioId; })
-    .sort(function(a, b){ return (b.monto - a.monto) || (a.createdAt - b.createdAt); })[0] || null;
+export function miGrupo(){ return grupoSubastaDe(AppState.currentUser); }
+
+function aportesDe(beneficioId){
+  return (AppState.pujas || []).filter(function(p){ return p.beneficioId === beneficioId; });
+}
+
+// Total por comando, de mayor a menor (empate: el que llegó primero a ese total).
+export function totalesSubasta(beneficioId){
+  var g = {};
+  aportesDe(beneficioId).forEach(function(p){
+    var k = p.grupo || '—';
+    if(!g[k]) g[k] = { grupo: k, total: 0, ultimo: 0, aportes: [] };
+    g[k].total += Number(p.monto) || 0;
+    g[k].ultimo = Math.max(g[k].ultimo, p.createdAt || 0);
+    g[k].aportes.push(p);
+  });
+  return Object.keys(g).map(function(k){ return g[k]; })
+    .sort(function(a, b){ return (b.total - a.total) || (a.ultimo - b.ultimo); });
+}
+
+// El comando que va ganando (null si nadie llegó a la puja inicial).
+export function grupoGanando(b){
+  var t = totalesSubasta(b.id)[0];
+  return t && t.total >= Math.max(1, Number(b.precio) || 0) ? t : null;
+}
+
+export function miAporte(beneficioId){
+  var uid = AppState.currentUser && AppState.currentUser.uid;
+  return aportesDe(beneficioId).filter(function(p){ return p.uid === uid; })
+    .reduce(function(s, p){ return s + (Number(p.monto) || 0); }, 0);
 }
 
 export function misCanjes(){
@@ -101,16 +134,14 @@ export function misCanjes(){
   return (AppState.canjes || []).filter(function(c){ return c.uid === uid; });
 }
 
-export function saldo(excluirSubasta){
+export function saldo(){
   var u = AppState.currentUser, cfg = tiendaConfig();
   var entradas = cfg.usarEntradas ? (miRango().puntos || 0) : 0;
   var bonus = cfg.usarBonus ? bonusDe(u) : 0;
   var gastado = misCanjes().filter(function(c){ return c.estado !== 'cancelado'; })
     .reduce(function(s, c){ return s + (Number(c.monto) || 0); }, 0);
   var reservado = (AppState.beneficios || []).filter(subastaAbierta).reduce(function(s, b){
-    if(b.id === excluirSubasta) return s;
-    var m = mejorPuja(b.id);
-    return s + (m && m.uid === u.uid ? (Number(m.monto) || 0) : 0);
+    return s + miAporte(b.id);
   }, 0);
   return { entradas: entradas, bonus: bonus, ganado: entradas + bonus, gastado: gastado, reservado: reservado, disponible: entradas + bonus - gastado - reservado };
 }
@@ -149,20 +180,16 @@ export function canjear(b){
   });
 }
 
-export function minimoPuja(b){
-  var m = mejorPuja(b.id), inc = Math.max(1, Number(b.incremento) || 1);
-  return m ? Number(m.monto) + inc : Math.max(1, Number(b.precio) || 1);
-}
-
-export function pujar(b, monto){
+// Suma un aporte propio a la puja del comando de quien aporta.
+export function aportar(b, monto){
   monto = Math.floor(Number(monto));
   if(bloqueado()) return Promise.resolve('No disponible en «Ver como».');
   if(!tiendaConfig().activa) return Promise.resolve('El evento no está activo.');
   if(!subastaAbierta(b) || subastaVencida(b)) return Promise.resolve('La subasta ya terminó.');
-  if(!(monto >= minimoPuja(b))) return Promise.resolve('La puja mínima es ' + minimoPuja(b) + '.');
-  if(saldo(b.id).disponible < monto) return Promise.resolve('No te alcanzan los ' + tiendaConfig().moneda + '.');
+  if(!(monto >= 1)) return Promise.resolve('Aportá al menos 1.');
+  if(saldo().disponible < monto) return Promise.resolve('No te alcanzan los ' + tiendaConfig().moneda + '.');
   var u = AppState.currentUser;
-  return addDoc(pujasCol, { uid: u.uid, nombre: u.displayName || '', beneficioId: b.id, monto: monto, createdAt: Date.now() })
+  return addDoc(pujasCol, { uid: u.uid, nombre: u.displayName || '', grupo: miGrupo(), beneficioId: b.id, monto: monto, createdAt: Date.now() })
     .then(function(){ return ''; })
     .catch(function(e){ console.error('No se pudo pujar:', e); return 'No se pudo pujar (¿faltan publicar las reglas?).'; });
 }
@@ -185,16 +212,25 @@ export function guardarBeneficio(b){
 
 export function borrarBeneficio(id){ return deleteDoc(doc(beneficiosCol, id)); }
 
-// Cierra la subasta: el que más pujó se lleva el beneficio (se crea su canje).
+// Cierra la subasta: gana el comando con más total. A cada uno de sus
+// aportantes se le crea un canje por lo que aportó; el resto queda libre.
 export function cerrarSubasta(b){
-  var m = mejorPuja(b.id), ref = doc(beneficiosCol, b.id);
-  var cambios = { estado: 'cerrada', ganadorUid: m ? m.uid : '', ganadorNombre: m ? (m.nombre || '') : '', montoGanador: m ? m.monto : 0 };
-  var p = m ? addDoc(canjesCol, { uid: m.uid, nombre: m.nombre || '', beneficioId: b.id, titulo: b.titulo || '', monto: Number(m.monto) || 0, tipo: 'subasta', estado: 'pendiente', createdAt: Date.now() }) : Promise.resolve();
-  return p.then(function(){ return updateDoc(ref, cambios); });
+  var g = grupoGanando(b), ref = doc(beneficiosCol, b.id), ahora = Date.now();
+  var porPersona = {};
+  if(g) g.aportes.forEach(function(p){
+    if(!porPersona[p.uid]) porPersona[p.uid] = { uid: p.uid, nombre: p.nombre || '', monto: 0 };
+    porPersona[p.uid].monto += Number(p.monto) || 0;
+  });
+  return Promise.all(Object.keys(porPersona).map(function(uid){
+    var x = porPersona[uid];
+    return addDoc(canjesCol, { uid: x.uid, nombre: x.nombre, grupo: g.grupo, beneficioId: b.id, titulo: b.titulo || '', monto: x.monto, tipo: 'subasta', estado: 'pendiente', createdAt: ahora });
+  })).then(function(){
+    return updateDoc(ref, { estado: 'cerrada', ganadorGrupo: g ? g.grupo : '', montoGanador: g ? g.total : 0 });
+  });
 }
 
 export function reabrirSubasta(b){
-  return updateDoc(doc(beneficiosCol, b.id), { estado: 'abierta', ganadorUid: '', ganadorNombre: '', montoGanador: 0 });
+  return updateDoc(doc(beneficiosCol, b.id), { estado: 'abierta', ganadorGrupo: '', montoGanador: 0 });
 }
 
 export function setEstadoCanje(c, estado){

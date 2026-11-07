@@ -5,7 +5,7 @@ import { realIsAdmin } from '../services/permissions.js';
 import { showAlert, showConfirm } from '../components/dialog.js';
 import { renderPanel } from '../main.js';
 import {
-  tiendaConfig, saldo, canjear, pujar, mejorPuja, minimoPuja, quedan, misCanjes, misCanjesDe,
+  tiendaConfig, saldo, canjear, aportar, totalesSubasta, grupoGanando, miAporte, miGrupo, quedan, misCanjes, misCanjesDe,
   subastaAbierta, subastaVencida, guardarConfigTienda, guardarBeneficio, borrarBeneficio,
   cerrarSubasta, reabrirSubasta, setEstadoCanje
 } from '../services/tienda.service.js';
@@ -46,17 +46,29 @@ import {
     html += '<h3>' + escapeHtml(b.titulo || '(sin título)') + '</h3>';
     if(b.desc) html += '<p class="mandos-sub">' + escapeHtml(b.desc) + '</p>';
     if(b.tipo === 'subasta'){
-      var mp = mejorPuja(b.id);
-      html += '<p>' + (mp ? 'Mejor puja: <strong>' + mp.monto + '</strong> ' + m + (mp.uid === yo ? ' <span class="tag">¡vas ganando!</span>' : '') : 'Base: <strong>' + (b.precio || 1) + '</strong> ' + m + ' · todavía sin pujas') + '</p>';
-      if(admin && mp) html += '<p class="mandos-sub">Va ganando: ' + escapeHtml(mp.nombre || '') + '</p>';
+      // Subasta por comando: cada uno aporta a la puja de su sección/depto.
+      var tot = totalesSubasta(b.id), gan = grupoGanando(b), mg = miGrupo();
+      var mio = tot.find(function(t){ return t.grupo === mg; });
+      var base = Math.max(1, Number(b.precio) || 0);
+      html += '<p class="mandos-sub">Pujan los comandos: cada uno aporta lo que quiera a la puja de su sección o departamento. Puja inicial: ' + base + ' ' + m + '.</p>';
+      if(tot.length){
+        html += '<ol class="tienda-ranking">' + tot.map(function(t, i){
+          var es = t.grupo === mg;
+          return '<li class="' + (es ? 'es-mio' : '') + '"><span>' + escapeHtml(t.grupo) + (es ? ' <span class="tag">tu comando</span>' : '') + '</span><strong>' + t.total + '</strong>' +
+            (admin ? '<span class="mandos-sub tienda-aportantes">' + escapeHtml(t.aportes.map(function(a){ return (a.nombre || '?') + ' ' + a.monto; }).join(' · ')) + '</span>' : '') + '</li>';
+        }).join('') + '</ol>';
+      } else {
+        html += '<p class="mandos-sub">Todavía ningún comando pujó.</p>';
+      }
       if(cerrada){
-        html += '<p class="mandos-sub">Cerrada. ' + (b.ganadorUid ? 'Ganó ' + (b.ganadorUid === yo ? 'vos' : escapeHtml(b.ganadorNombre || '')) + ' con ' + b.montoGanador + ' ' + m + '.' : 'Nadie pujó.') + '</p>';
+        html += '<p class="mandos-sub">Cerrada. ' + (b.ganadorGrupo ? 'Ganó ' + escapeHtml(b.ganadorGrupo) + ' con ' + b.montoGanador + ' ' + m + '.' : 'Ningún comando llegó a la puja inicial.') + '</p>';
         if(admin) html += '<button type="button" class="btn small ghost" data-tienda-reabrir="' + b.id + '">Reabrir</button>';
       } else {
+        html += '<p>' + escapeHtml(mg) + ': <strong>' + (mio ? mio.total : 0) + '</strong> ' + m + ' (vos: ' + miAporte(b.id) + ')' + (gan && gan.grupo === mg ? ' <span class="tag">¡van ganando!</span>' : '') + '</p>';
         if(b.cierre) html += '<p class="mandos-sub">' + (subastaVencida(b) ? 'Terminó el ' + fecha(b.cierre) + (admin ? ': falta cerrarla.' : '. Falta que la cierre el admin.') : 'Cierra el ' + fecha(b.cierre)) + '</p>';
         if(!subastaVencida(b)){
-          html += '<div class="tienda-pujar"><input type="number" min="' + minimoPuja(b) + '" step="1" value="' + minimoPuja(b) + '" data-tienda-monto="' + b.id + '" aria-label="Monto">';
-          html += '<button type="button" class="btn small" data-tienda-pujar="' + b.id + '">Pujar</button></div>';
+          html += '<div class="tienda-pujar"><input type="number" min="1" step="1" value="1" data-tienda-monto="' + b.id + '" aria-label="Cuánto aportás">';
+          html += '<button type="button" class="btn small" data-tienda-pujar="' + b.id + '">Aportar</button></div>';
         }
         if(admin) html += '<button type="button" class="btn small neutral" data-tienda-cerrar="' + b.id + '">Cerrar subasta</button>';
       }
@@ -80,7 +92,7 @@ import {
     if(!c.length) return '';
     var html = '<h3 class="tienda-titulo">Mis canjes</h3><ul class="tienda-canjes">';
     c.forEach(function(x){
-      html += '<li><span>' + escapeHtml(x.titulo || '') + (x.tipo === 'subasta' ? ' (subasta)' : '') + '</span><span class="mandos-sub">' + x.monto + ' ' + escapeHtml(cfg.moneda) + ' · ' + escapeHtml(ESTADOS_CANJE[x.estado] || x.estado) + '</span></li>';
+      html += '<li><span>' + escapeHtml(x.titulo || '') + (x.tipo === 'subasta' ? ' (subasta' + (x.grupo ? ', ' + escapeHtml(x.grupo) : '') + ')' : '') + '</span><span class="mandos-sub">' + x.monto + ' ' + escapeHtml(cfg.moneda) + ' · ' + escapeHtml(ESTADOS_CANJE[x.estado] || x.estado) + '</span></li>';
     });
     return html + '</ul>';
   }
@@ -92,7 +104,7 @@ import {
     if(!c.length) return html + '<p class="mandos-sub">Todavía nadie canjeó nada.</p></details>';
     html += '<ul class="tienda-canjes">';
     c.forEach(function(x){
-      html += '<li><span><strong>' + escapeHtml(x.nombre || '') + '</strong> · ' + escapeHtml(x.titulo || '') + ' <span class="mandos-sub">(' + x.monto + ' ' + escapeHtml(cfg.moneda) + ', ' + fecha(x.createdAt) + ')</span></span>';
+      html += '<li><span><strong>' + escapeHtml(x.nombre || '') + '</strong>' + (x.grupo ? ' (' + escapeHtml(x.grupo) + ')' : '') + ' · ' + escapeHtml(x.titulo || '') + ' <span class="mandos-sub">(' + x.monto + ' ' + escapeHtml(cfg.moneda) + ', ' + fecha(x.createdAt) + ')</span></span>';
       html += '<select data-tienda-canje="' + x.id + '">' + Object.keys(ESTADOS_CANJE).map(function(k){ return '<option value="' + k + '"' + (x.estado === k ? ' selected' : '') + '>' + ESTADOS_CANJE[k] + '</option>'; }).join('') + '</select></li>';
     });
     return html + '</ul></details>';
@@ -133,9 +145,9 @@ import {
       var id = el.getAttribute('data-tienda-pujar'), b = buscar(id); if(!b) return;
       var inp = document.querySelector('[data-tienda-monto="' + id + '"]');
       var monto = inp ? inp.value : 0;
-      if(!(await showConfirm('¿Pujar ' + monto + ' ' + tiendaConfig().moneda + ' por «' + b.titulo + '»? Quedan reservados mientras vayas ganando.'))) return;
+      if(!(await showConfirm('¿Aportar ' + monto + ' ' + tiendaConfig().moneda + ' a la puja de ' + miGrupo() + ' por «' + b.titulo + '»? Quedan reservados hasta que cierre: si gana tu comando se descuentan, si no, vuelven. No se pueden retirar.'))) return;
       el.disabled = true;
-      var err = await pujar(b, monto);
+      var err = await aportar(b, monto);
       el.disabled = false; avisar(err);
     }; });
     if(!realIsAdmin()) return;
@@ -149,13 +161,13 @@ import {
     }; });
     q('[data-tienda-cerrar]', function(el){ el.onclick = async function(){
       var b = buscar(el.getAttribute('data-tienda-cerrar')); if(!b) return;
-      var m = mejorPuja(b.id);
-      if(!(await showConfirm(m ? 'Cerrar la subasta: gana ' + (m.nombre || '') + ' con ' + m.monto + ' ' + tiendaConfig().moneda + ' (se le descuentan).' : 'Cerrar la subasta sin pujas.'))) return;
+      var g = grupoGanando(b);
+      if(!(await showConfirm(g ? 'Cerrar la subasta: gana ' + g.grupo + ' con ' + g.total + ' ' + tiendaConfig().moneda + ' (se le descuenta a cada uno lo que aportó; al resto se le devuelve).' : 'Cerrar la subasta: ningún comando llegó a la puja inicial, se devuelve todo.'))) return;
       cerrarSubasta(b).catch(function(e){ console.error(e); showAlert('No se pudo cerrar.'); });
     }; });
     q('[data-tienda-reabrir]', function(el){ el.onclick = async function(){
       var b = buscar(el.getAttribute('data-tienda-reabrir')); if(!b) return;
-      if(!(await showConfirm('¿Reabrir la subasta? Si ya tenía ganador, cancelá a mano su canje en «Canjes de todos».'))) return;
+      if(!(await showConfirm('¿Reabrir la subasta? Si ya tenía ganador, cancelá a mano sus canjes en «Canjes de todos».'))) return;
       reabrirSubasta(b).catch(function(e){ console.error(e); showAlert('No se pudo reabrir.'); });
     }; });
     q('[data-tienda-canje]', function(el){ el.onchange = function(){
@@ -214,17 +226,16 @@ import {
   }
 
   function openBeneficioDialog(b){
-    var x = b || { tipo: 'compra', precio: 10, stock: null, limite: null, incremento: 1 };
+    var x = b || { tipo: 'compra', precio: 10, stock: null, limite: null };
     var o = dialogo(b ? 'Editar beneficio' : 'Nuevo beneficio',
       fila('Título', '<input type="text" id="tdBTitulo" value="' + escapeHtml(x.titulo || '') + '" placeholder="Ej: Elegir la canción del fogón">') +
       fila('Descripción (opcional)', '<textarea id="tdBDesc" rows="2">' + escapeHtml(x.desc || '') + '</textarea>') +
       fila('Tipo', '<select id="tdBTipo"><option value="compra"' + (x.tipo !== 'subasta' ? ' selected' : '') + '>Canje directo (precio fijo)</option><option value="subasta"' + (x.tipo === 'subasta' ? ' selected' : '') + '>Subasta (gana el que más puja)</option></select>') +
-      fila('<span id="tdBPrecioLbl">' + (x.tipo === 'subasta' ? 'Puja inicial' : 'Precio') + '</span>', '<input type="number" min="0" step="1" id="tdBPrecio" value="' + (x.precio != null ? x.precio : '') + '">') +
+      fila('<span id="tdBPrecioLbl">' + (x.tipo === 'subasta' ? 'Puja inicial (mínimo que tiene que juntar un comando)' : 'Precio') + '</span>', '<input type="number" min="0" step="1" id="tdBPrecio" value="' + (x.precio != null ? x.precio : '') + '">') +
       '<div data-solo="compra">' +
       fila('Cantidad disponible (vacío = sin límite)', '<input type="number" min="0" step="1" id="tdBStock" value="' + (x.stock != null ? x.stock : '') + '">') +
       fila('Máximo por persona (vacío = sin límite)', '<input type="number" min="1" step="1" id="tdBLimite" value="' + (x.limite != null ? x.limite : '') + '">') +
       '</div><div data-solo="subasta">' +
-      fila('Aumento mínimo entre pujas', '<input type="number" min="1" step="1" id="tdBInc" value="' + (x.incremento || 1) + '">') +
       fila('Cierra el (opcional)', '<input type="datetime-local" id="tdBCierre" value="' + aInputFecha(x.cierre) + '">') +
       '</div>',
       function(o){
@@ -237,7 +248,7 @@ import {
         var cierreV = o.querySelector('#tdBCierre').value;
         var data = { titulo: titulo, desc: o.querySelector('#tdBDesc').value.trim(), tipo: tipo, precio: precio,
           stock: tipo === 'compra' ? num('#tdBStock') : null, limite: tipo === 'compra' ? (num('#tdBLimite') || null) : null,
-          incremento: Math.max(1, num('#tdBInc') || 1), cierre: tipo === 'subasta' && cierreV ? new Date(cierreV).getTime() : null };
+          cierre: tipo === 'subasta' && cierreV ? new Date(cierreV).getTime() : null };
         if(b) data.id = b.id;
         guardarBeneficio(data).catch(function(e){ console.error(e); showAlert('No se pudo guardar (¿faltan publicar las reglas?).'); });
         return '';
@@ -245,7 +256,7 @@ import {
     var sel = o.querySelector('#tdBTipo');
     var sync = function(){
       o.querySelectorAll('[data-solo]').forEach(function(d){ d.hidden = d.getAttribute('data-solo') !== sel.value; });
-      o.querySelector('#tdBPrecioLbl').textContent = sel.value === 'subasta' ? 'Puja inicial' : 'Precio';
+      o.querySelector('#tdBPrecioLbl').textContent = sel.value === 'subasta' ? 'Puja inicial (mínimo que tiene que juntar un comando)' : 'Precio';
     };
     sel.onchange = sync; sync();
   }

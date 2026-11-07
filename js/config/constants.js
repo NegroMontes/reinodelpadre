@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.07.20';
+  export var APP_VERSION = '2026.11.07.21';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.07.21', date: '07/11/2026', items: [
+      'Beneficios: las subastas son por sección/departamento. Cada uno elige cuánto aporta a la puja de su comando.'
+    ]},
     { version: '2026.11.07.20', date: '07/11/2026', items: [
       'Beneficios (esqueleto): el admin prende el evento desde su Perfil y aparece una pestaña debajo de Comando para gastar los puntos en beneficios o pujar en subastas.'
     ]},

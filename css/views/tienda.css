@@ -23,3 +23,7 @@
 .tienda-admin-canjes summary{ cursor:pointer; }
 .tienda-admin-canjes summary h3{ display:inline; }
 .tienda-admin-canjes .tienda-canjes{ margin-top:10px; }
+.tienda-ranking{ margin:4px 0; padding-left:22px; display:flex; flex-direction:column; gap:4px; }
+.tienda-ranking li{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 8px; }
+.tienda-ranking li.es-mio{ color:var(--teal); }
+.tienda-aportantes{ flex-basis:100%; font-size:.8rem; }
