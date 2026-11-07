@@ -4,14 +4,14 @@
 // (T13 E3).
 
 import { AppState } from '../app-state.js';
-import { juegosDe, bonusDe } from '../services/juegos.service.js';
+import { juegosDe, bonusDe, borrarMisJuegos } from '../services/juegos.service.js';
 import { DEPARTAMENTO_ICONS, CONSAGRADO_ICONS } from '../config/constants.js';
 import { escapeHtml, roleLabelScoped } from '../utils/helpers.js';
 import { cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { updateMyProfile } from '../services/auth.service.js';
 import { miRango, puntosDisponibles, alDia, rangoUmbrales, entradasQueCuentan, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { icon } from '../utils/icons.js';
-import { showAlert } from '../components/dialog.js';
+import { showAlert, showConfirm } from '../components/dialog.js';
 import { HIJOS_BIBLICOS } from '../config/test-hijo-biblico.js';
 import { render } from '../main.js';
 import { realIsAdmin } from '../services/permissions.js';
@@ -114,7 +114,7 @@ import '../components/eventos.js';
     return '<div class="home-card perfil-card"><details class="mj-probar"><summary><h3>Probar minijuegos (' + ids.length + ')</h3></summary>' +
       '<p class="mandos-sub">Solo para admin. Se juegan sin guardar ni sumar puntos.</p><div class="mj-probar-lista">' +
       ids.map(function(id){ return '<button type="button" class="btn small ghost" data-probar="' + id + '">' + escapeHtml(MINIJUEGOS[id].titulo) + '</button>'; }).join('') +
-      '</div></details></div>';
+      '</div><p style="margin-top:10px"><button type="button" class="btn small neutral" id="borrarMisJuegosBtn">Borrar mis puntos bonus</button></p></details></div>';
   }
 
   function datosCardHtml(){
@@ -171,6 +171,14 @@ import '../components/eventos.js';
     bind('userProfileDeptoIconSelect', 'deptoIconChoice', 'onchange');
     bind('userProfileCupulaIconSelect', 'cupulaIcon', 'onchange');
     bind('userProfileConsagradoIconSelect', 'consagradoIconChoice', 'onchange');
+    var borrarBtn = document.getElementById('borrarMisJuegosBtn');
+    if(borrarBtn) borrarBtn.onclick = function(){
+      showConfirm('¿Borrar todos tus puntos bonus de minijuegos y eventos? No se puede deshacer.').then(function(ok){
+        if(!ok) return;
+        borrarMisJuegos().then(function(){ render(); showAlert('Listo: tus puntos bonus quedaron en 0.'); })
+          .catch(function(e){ console.error(e); showAlert('No se pudo borrar (¿falta publicar la regla de «juegos»?).'); });
+      });
+    };
     document.querySelectorAll('[data-probar]').forEach(function(b){
       b.onclick = function(){ abrirMinijuego(b.getAttribute('data-probar'), { titulo: '🧪 ' + MINIJUEGOS[b.getAttribute('data-probar')].titulo }); };
     });
