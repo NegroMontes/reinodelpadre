@@ -7,6 +7,7 @@
 
 import { HIJOS_BIBLICOS } from '../config/test-hijo-biblico.js';
 import { bonusDe } from '../services/juegos.service.js';
+import { engancharMapaEventos } from '../components/eventos.js';
 import { rangoGuardadoDe, rangoNombre, avanceGuardadoDe, obligPendientesDe, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_SVG_ICON } from '../config/constants.js';
@@ -747,6 +748,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       el.onclick = abrir;
       el.onkeydown = function(ev){ if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); abrir(ev); } };
     });
+    engancharMapaEventos(lienzo);
     if(!mapaDocListo){
       mapaDocListo = true;
       document.addEventListener('click', function(ev){ if(!ev.target.closest || !ev.target.closest('.mapa-pop')) cerrarMapaPop(); });

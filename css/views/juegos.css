@@ -207,3 +207,47 @@ html{touch-action:manipulation}
 .mj-senal{aspect-ratio:1;border-radius:var(--radius);border:3px solid var(--line);font-size:38px;cursor:pointer;opacity:.6;transition:opacity .1s,transform .1s}
 .mj-s-rojo{background:#d93a5d}.mj-s-azul{background:#009bb3}.mj-s-verde{background:#639e8d}.mj-s-silbato{background:#ffa41d}
 .mj-senal.mj-on{opacity:1;transform:scale(1.06);box-shadow:0 0 18px rgba(255,255,255,.6)}
+
+/* Eventos especiales (07/11/2026). */
+.mj-evento{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,20,28,.6)}
+.mj-evento-box{background:var(--card-bg);color:var(--ink);border-radius:var(--radius-lg);box-shadow:var(--shadow-lift);padding:18px 20px;max-width:340px;text-align:center}
+.mj-noche-aviso{background:radial-gradient(circle at 50% 30%,#1d3550,#05101a)}
+.mj-noche-aviso .mj-evento-box{background:#0f1b24;color:#e1eef2}
+.mj-alba-aviso{background:linear-gradient(#162937,#db6829)}
+.mj-alerta .mj-evento-box{border:3px solid var(--bordeaux)}
+.mj-pergamino .mj-evento-box{background:#f3e3bf;color:#4a3420;border:2px solid #b08a52;border-radius:6px 18px 6px 18px;box-shadow:0 0 0 6px rgba(176,138,82,.25),var(--shadow-lift);font-family:Georgia,serif}
+.mj-pergamino .mj-card-kicker,.mj-pergamino .mj-info{color:#7a5a36}
+.mj-botella{font-size:42px}
+.mj-pergamino-txt{font-size:17px;line-height:1.45;font-style:italic}
+.mj-cielo-juego{border-radius:var(--radius);overflow:hidden;background:radial-gradient(ellipse at 50% 0,#1d3550,#05101a 75%)}
+.mj-cielo-juego svg{display:block;width:100%}
+.mj-sierras{fill:#0a1620;stroke:#1d3550}
+.mj-estrella{fill:#fff8e0;pointer-events:none}
+.mj-estrella.mj-sel{fill:#ffa41d;filter:drop-shadow(0 0 4px #ffa41d)}
+.mj-estrella.mj-mal{fill:#d93a5d}
+.mj-estrella-hit{fill:transparent;cursor:pointer}
+.mj-lineas line{stroke:#ffd27a;stroke-width:1.4;stroke-linecap:round}
+.mj-guia rect{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.2)}
+.mj-guia line{stroke:rgba(255,210,122,.7);stroke-width:1.5;stroke-linecap:round}
+.mj-mastil{position:relative;height:260px;border-radius:var(--radius);background:linear-gradient(#5b7fa0,#f2b27a);overflow:hidden}
+.mj-palo{position:absolute;left:50%;bottom:0;width:6px;height:92%;margin-left:-3px;background:#d9d9d9;border-radius:3px 3px 0 0;box-shadow:inset -2px 0 0 #a9a9a9}
+.mj-bandera-izada{position:absolute;left:calc(50% + 3px);bottom:8%;width:58px;height:36px;transition:bottom .05s linear}
+.mj-bandera-izada i{display:block;width:100%;height:100%;background:linear-gradient(#74acdf 0 33%,#fff 33% 67%,#74acdf 67%);border:1px solid rgba(0,0,0,.2);position:relative}
+.mj-bandera-izada i::after{content:"";position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px;border-radius:50%;background:#f6b40e}
+.mj-driza{user-select:none;-webkit-user-select:none;touch-action:none}
+.mj-tormenta{width:100%;display:block;touch-action:none;border-radius:var(--radius)}
+.mj-tormenta-suelo{fill:#6f8a6a}
+.mj-zanjas line{stroke:var(--il-barro-osc);stroke-width:6;stroke-linecap:round}
+.mj-agua circle{fill:#4fa3c9;stroke:#e1eef2;stroke-width:1}
+.mj-agua circle.mj-desviada{fill:#9cc3d6;opacity:.4}
+.mj-carpa-t{font-size:22px;text-anchor:middle}
+.mj-carpa-t.mj-inundada{opacity:.35}
+.mj-zonda-aviso{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:8px 12px;margin:0 0 8px;border-radius:var(--radius);background:rgba(255,164,29,.15);border:1px solid var(--amber);font-size:13px}
+.mj-zonda-aviso .mj-barra{flex:1 1 100%;margin:2px 0}
+.mapa-zonda .mapa-grupo{animation:mj-zonda 1.2s ease-in-out infinite alternate}
+.mapa-zonda .mapa-grupo:nth-child(2n){animation-duration:.9s}
+@keyframes mj-zonda{from{translate:calc(var(--zonda,1) * -6px) 0;rotate:calc(var(--zonda,1) * -6deg)}to{translate:calc(var(--zonda,1) * 26px) calc(var(--zonda,1) * -6px);rotate:calc(var(--zonda,1) * 10deg)}}
+@media (prefers-reduced-motion:reduce){.mapa-zonda .mapa-grupo{animation:none}}
+.mj-sab-chip{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:2500;background:var(--card-bg);color:var(--ink);border:2px solid var(--bordeaux);border-radius:20px;padding:6px 14px;font-size:13px;box-shadow:var(--shadow-md);white-space:nowrap}
+.mj-chancho-suelto{position:absolute;z-index:50;border:0;background:none;font-size:28px;cursor:pointer;padding:4px;animation:mj-chancho .6s ease-in-out infinite alternate}
+@keyframes mj-chancho{to{transform:translateX(8px) rotate(8deg)}}

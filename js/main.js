@@ -31,6 +31,7 @@ import { startVersionWatch, stopVersionWatch } from './services/version-check.se
 import { sincronizarMiRango } from './services/rangos.service.js';
 import { renderPerfilPanel, attachPerfilEvents } from './views/perfil.js';
 import { iniciarHuevos } from './components/huevos.js';
+import { saboteadorTrasRender } from './components/eventos.js';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -628,6 +629,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
   renderPanel = function(){
     var prevKey = lastPanelTabKey;
     try{ renderPanelImpl(); }catch(err){ renderFailure(err); return; }
+    saboteadorTrasRender();
     var newKey = AppState.activeDayId;
     lastPanelTabKey = newKey;
     if(newKey !== prevKey){

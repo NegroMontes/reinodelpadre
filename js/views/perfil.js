@@ -92,7 +92,7 @@ import { render } from '../main.js';
   // T10: bonus de minijuegos y huevos de pascua encontrados.
   function juegosCardHtml(){
     var u = AppState.currentUser, j = juegosDe(u), claves = Object.keys(j);
-    var huevos = claves.filter(function(k){ return /^huevo-|^lluvia-|^diana-/.test(k); }).length;
+    var huevos = claves.filter(function(k){ return /^(huevo|lluvia|diana|estrellas|zonda|saboteador)-/.test(k); }).length;
     var html = '<div class="home-card perfil-card">';
     html += '<h3>Minijuegos</h3>';
     html += '<p><strong>' + bonusDe(u) + '</strong> puntos bonus para tu comando</p>';

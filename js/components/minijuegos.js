@@ -12,8 +12,7 @@ export var MINIJUEGOS = {
   cuentas:     { titulo: 'Cuadre de cuentas', ayuda: 'Elegí cuánto queda en la caja después de cada movimiento. Acertá 4 de 5 antes de que se acabe el tiempo.' },
   red:         { titulo: 'Sintonizar la red', ayuda: 'Memorizá las frecuencias. Después uní de a dos las radios que transmiten en la misma.' },
   trivia15:    { titulo: 'Trivia de parábolas (Lucas 15)', ayuda: 'Preguntas rápidas sobre el capítulo 15 de Lucas. Acertá 5 de 7.' },
-  linterna:    { titulo: 'Guardia nocturna', ayuda: 'Está todo oscuro. Mové la linterna y tocá las 5 cosas escondidas.' },
-  zanjas:      { titulo: 'Zanjas de desagüe', ayuda: '¡Llueve! Tocá los charcos para cavar la zanja antes de que el agua llegue a las carpas. Aguantá 25 segundos sin inundar 2.' }
+  linterna:    { titulo: 'Guardia nocturna', ayuda: 'Está todo oscuro. Mové la linterna y tocá las 5 cosas escondidas.' }
 };
 
 var abierto = null;
@@ -363,46 +362,6 @@ JUEGOS.linterna = function(host, fin){
     };
   });
   return function(){};
-};
-
-// ---------- Zanjas (lluvia) ----------
-JUEGOS.zanjas = function(host, fin){
-  var COLS = 4, charcos = [], inundadas = 0, tiempo = 25, terminado = false, carpas = [0, 0, 0, 0];
-  var html = '<div class="mj-lluvia"><div class="mj-gotas"></div><div class="mj-charcos"></div><div class="mj-carpas">';
-  for(var c = 0; c < COLS; c++) html += '<span data-c="' + c + '">⛺</span>';
-  html += '</div></div><div class="mj-info"></div>';
-  host.innerHTML = html;
-  var gotas = host.querySelector('.mj-gotas'), g = '';
-  for(var k = 0; k < 30; k++) g += '<i style="left:' + rnd(0, 100) + '%;animation-delay:' + rnd(0, 1) + 's;animation-duration:' + rnd(.5, .9) + 's"></i>';
-  gotas.innerHTML = g;
-  var cont = host.querySelector('.mj-charcos'), info = host.querySelector('.mj-info'), carpasEl = host.querySelectorAll('.mj-carpas span');
-  function nuevo(){
-    var col = rndInt(0, COLS - 1);
-    if(carpas[col] < 0) return;
-    var b = document.createElement('button'); b.type = 'button'; b.className = 'mj-charco'; b.setAttribute('aria-label', 'Charco');
-    b.style.left = (col * 25 + 12.5) + '%';
-    var ch = { el: b, col: col, y: 0 }; charcos.push(ch);
-    b.onclick = function(){ b.classList.add('mj-cavado'); charcos = charcos.filter(function(x){ return x !== ch; }); setTimeout(function(){ b.remove(); }, 250); };
-    cont.appendChild(b);
-  }
-  function pintar(){ info.textContent = 'Tiempo: ' + Math.ceil(tiempo) + ' s · Carpas inundadas: ' + inundadas + ' / 2'; }
-  var t = setInterval(function(){
-    if(terminado) return;
-    tiempo -= 0.1;
-    if(Math.random() < 0.06 + (25 - tiempo) / 25 * 0.06) nuevo();
-    charcos.slice().forEach(function(ch){
-      ch.y += 0.9; ch.el.style.top = ch.y + '%';
-      if(ch.y >= 75){
-        ch.el.remove(); charcos = charcos.filter(function(x){ return x !== ch; });
-        if(carpas[ch.col] >= 0){ carpas[ch.col] = -1; inundadas++; carpasEl[ch.col].classList.add('mj-inundada'); }
-      }
-    });
-    pintar();
-    if(inundadas >= 2){ terminado = true; fin(false); }
-    else if(tiempo <= 0){ terminado = true; fin(true); }
-  }, 100);
-  pintar();
-  return function(){ clearInterval(t); };
 };
 
 // Juegos sumados desde otros archivos (minijuegos-secciones.js /

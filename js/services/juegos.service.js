@@ -6,6 +6,7 @@
 //   huevo-<id>       huevo de pascua encontrado (2)
 //   diana-<aaaammdd> toque de diana de ese día (1)
 //   lluvia-<aaaammdd> zanjas en un día de lluvia (2)
+//   estrellas-/zonda-/saboteador-<aaaammdd> eventos especiales (2), ver eventos.js
 // El bonus NO cambia el rango ni el % del Tablero: se muestra aparte.
 import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { db } from '../config/firebase.js';
@@ -16,7 +17,7 @@ export function juegosDe(u){ return (u && u.juegos && typeof u.juegos === 'objec
 export function juegoGanado(clave){ return !!juegosDe(AppState.currentUser)[clave]; }
 
 function valor(clave){
-  if(/^(huevo|lluvia)-/.test(clave)) return 2;
+  if(/^(huevo|lluvia|estrellas|zonda|saboteador)-/.test(clave)) return 2;
   return 1;
 }
 
