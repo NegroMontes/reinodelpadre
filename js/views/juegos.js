@@ -2,26 +2,43 @@
 //  - Mensaje: un desafío por día (lo elige quien edita la estructura; si no
 //    eligió, uno por default según el número de día). Puede «bloquear» el
 //    texto del día hasta ganarlo.
-//  - Departamentos: un juego propio de cada departamento.
+//  - Departamentos: un juego por día, al azar entre los de todos los deptos.
 //  - Huevos de pascua: ver huevos.js.
 import { AppState } from '../app-state.js';
 import { save } from '../services/state.service.js';
 import { canEditStructure } from '../services/permissions.js';
 import { escapeHtml } from '../utils/helpers.js';
 import { MINIJUEGOS, abrirMinijuego } from '../components/minijuegos.js';
+import '../components/minijuegos-secciones.js';
+import '../components/minijuegos-deptos.js';
 import { juegoGanado, registrarJuego, hoyClave } from '../services/juegos.service.js';
 import { renderPanel } from '../main.js';
 
-var JUEGOS_DIA = ['fogata', 'radio', 'trivia15', 'red', 'estacas', 'cuentas', 'proveeduria'];
-
-export var DEPTO_JUEGO = {
-  'Intendencia': 'estacas',
-  'Logística': 'proveeduria',
-  'Administración': 'cuentas',
-  'Comunicaciones': 'red',
-  'Formación': 'trivia15',
-  'Actividades': 'fogata'
+// Dos (o más) juegos propios de cada sección y departamento (07/11/2026).
+export var SECCION_JUEGOS = {
+  'Escuderos': ['obstaculos', 'huellas'],
+  'Templarios Menores': ['nudos', 'mochila'],
+  'Templarios Intermedios': ['azimut', 'rio'],
+  'Templarios Mayores': ['pira', 'rescate']
 };
+export var DEPTO_JUEGOS = {
+  'Formación': ['trivia15', 'rompecabezas'],
+  'Logística': ['ruta', 'carga', 'proveeduria'],
+  'Comunicaciones': ['radioperador', 'interferencia', 'red'],
+  'Administración': ['racionamiento', 'auditoria', 'cuentas'],
+  'Intendencia': ['estacas', 'lonas', 'residuos'],
+  'Actividades': ['laberinto', 'posta']
+};
+function aplanar(m){ return Object.keys(m).reduce(function(a, k){ return a.concat(m[k]); }, []); }
+// Mensaje: los de las secciones + fogata y radio. Departamentos: los de los deptos.
+var JUEGOS_DIA = ['fogata', 'radio'].concat(aplanar(SECCION_JUEGOS));
+export var JUEGOS_DEPTOS = aplanar(DEPTO_JUEGOS);
+
+// «Escuderos», «Logística»… del juego (para la tarjeta).
+function grupoDe(id){
+  var m = Object.assign({}, SECCION_JUEGOS, DEPTO_JUEGOS);
+  return Object.keys(m).find(function(k){ return m[k].indexOf(id) >= 0; }) || '';
+}
 
 // Sorteo estable por persona y fecha (cambia cada día).
 function sorteo(extra, n){
@@ -53,7 +70,8 @@ export function renderJuegoDelDiaHtml(day){
   if(j){
     var ganado = juegoGanado('dia-' + day.id), bloq = textoBloqueado(day);
     html += '<div class="mj-card' + (bloq ? ' mj-card-bloq' : '') + '">';
-    html += '<div><span class="mj-card-kicker">' + (bloq ? '🔒 Desafío para desbloquear la reflexión' : 'Desafío del día') + '</span>';
+    var g = grupoDe(j);
+    html += '<div><span class="mj-card-kicker">' + (bloq ? '🔒 Desafío para desbloquear la reflexión' : 'Desafío del día') + (g ? ' · ' + escapeHtml(g) : '') + '</span>';
     html += '<strong>' + escapeHtml(MINIJUEGOS[j].titulo) + '</strong>' + (ganado ? ' <span class="mj-hecho">✓ Superado</span>' : '') + '</div>';
     html += '<button type="button" class="btn small' + (ganado ? ' ghost' : '') + '" data-jugar-dia="' + escapeHtml(day.id) + '">' + (ganado ? 'Jugar otra vez' : 'Jugar') + '</button>';
     html += '</div>';
@@ -61,7 +79,9 @@ export function renderJuegoDelDiaHtml(day){
   if(canEditStructure()){
     var azar = day.minijuego === undefined || day.minijuego === 'azar';
     html += '<div class="mj-config"><label>Desafío del día <select id="dayJuegoSelect"><option value="azar"' + (azar ? ' selected' : '') + '>Al azar (cambia cada día)</option><option value=""' + (!j ? ' selected' : '') + '>Ninguno</option>' +
-      JUEGOS_DIA.map(function(id){ return '<option value="' + id + '"' + (!azar && id === j ? ' selected' : '') + '>' + escapeHtml(MINIJUEGOS[id].titulo) + '</option>'; }).join('') +
+      [['Generales', ['fogata', 'radio']]].concat(Object.keys(SECCION_JUEGOS).map(function(k){ return [k, SECCION_JUEGOS[k]]; }), Object.keys(DEPTO_JUEGOS).map(function(k){ return [k, DEPTO_JUEGOS[k]]; })).map(function(gr){
+        return '<optgroup label="' + escapeHtml(gr[0]) + '">' + gr[1].map(function(id){ return '<option value="' + id + '"' + (!azar && id === j ? ' selected' : '') + '>' + escapeHtml(MINIJUEGOS[id].titulo) + '</option>'; }).join('') + '</optgroup>';
+      }).join('') +
       '</select></label>' + (j ? '<label class="mj-config-check"><input type="checkbox" id="dayJuegoBloquea"' + (day.minijuegoBloquea ? ' checked' : '') + '> Tapar el texto del día hasta ganarlo</label>' : '') + '</div>';
   }
   return html;
@@ -78,27 +98,23 @@ export function attachJuegoDelDia(day){
   if(chk) chk.onchange = function(){ if(chk.checked) day.minijuegoBloquea = true; else delete day.minijuegoBloquea; save(); renderPanel(); };
 }
 
-// Departamentos (07/11/2026, pedido del usuario): ya no se ven los 6 juegos
-// juntos. A cada persona le toca UNO por día, al azar entre los juegos de
-// todos los departamentos (cualquiera puede jugar el de cualquier depto). El
-// sorteo sale de uid + fecha: estable todo el día, cambia al siguiente.
-// Puntos: solo la primera vez que se gana cada juego (`depto-<juego>`).
-function juegoDeptoDeHoy(){
-  var deptos = Object.keys(DEPTO_JUEGO);
-  return deptos[sorteo('', deptos.length)];
-}
+// Departamentos (07/11/2026, pedido del usuario): a cada persona le toca UN
+// juego por día, al azar entre los de todos los departamentos (cualquiera
+// puede jugar el de cualquier depto). Puntos: la primera vez que se gana cada
+// juego (`depto-<juego>`).
+function juegoDeptoDeHoy(){ return JUEGOS_DEPTOS[sorteo('', JUEGOS_DEPTOS.length)]; }
 
 export function renderJuegosDeptoHtml(){
-  var d = juegoDeptoDeHoy(), j = DEPTO_JUEGO[d], ganado = juegoGanado('depto-' + j);
-  return '<div class="mj-card"><div><span class="mj-card-kicker">Juego de hoy · ' + escapeHtml(d) + '</span><strong>' + escapeHtml(MINIJUEGOS[j].titulo) + '</strong>' +
+  var j = juegoDeptoDeHoy(), ganado = juegoGanado('depto-' + j);
+  return '<div class="mj-card"><div><span class="mj-card-kicker">Juego de hoy · ' + escapeHtml(grupoDe(j)) + '</span><strong>' + escapeHtml(MINIJUEGOS[j].titulo) + '</strong>' +
     (ganado ? ' <span class="mj-hecho">✓ Ya lo superaste</span>' : '') + '</div>' +
-    '<button type="button" class="btn small' + (ganado ? ' ghost' : '') + '" data-jugar-depto="' + escapeHtml(d) + '">' + (ganado ? 'Jugar otra vez' : 'Jugar') + '</button></div>';
+    '<button type="button" class="btn small' + (ganado ? ' ghost' : '') + '" data-jugar-depto="' + escapeHtml(j) + '">' + (ganado ? 'Jugar otra vez' : 'Jugar') + '</button></div>';
 }
 
 export function attachJuegosDepto(){
   document.querySelectorAll('[data-jugar-depto]').forEach(function(b){
     b.onclick = function(){
-      var j = DEPTO_JUEGO[b.getAttribute('data-jugar-depto')];
+      var j = b.getAttribute('data-jugar-depto');
       abrirMinijuego(j, { alGanar: function(){ return textoGanado('depto-' + j); }, alCerrar: renderPanel });
     };
   });

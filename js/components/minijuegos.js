@@ -11,7 +11,7 @@ export var MINIJUEGOS = {
   proveeduria: { titulo: 'Tetris de proveeduría', ayuda: 'Acomodá toda la carga en el baúl. Elegí una pieza, girala si hace falta y tocá la casilla donde va su esquina de arriba a la izquierda. Tocá una pieza puesta para sacarla.' },
   cuentas:     { titulo: 'Cuadre de cuentas', ayuda: 'Elegí cuánto queda en la caja después de cada movimiento. Acertá 4 de 5 antes de que se acabe el tiempo.' },
   red:         { titulo: 'Sintonizar la red', ayuda: 'Memorizá las frecuencias. Después uní de a dos las radios que transmiten en la misma.' },
-  trivia15:    { titulo: 'El camino de Lucas 15', ayuda: 'Preguntas rápidas sobre el capítulo 15 de Lucas. Acertá 5 de 7.' },
+  trivia15:    { titulo: 'Trivia de parábolas (Lucas 15)', ayuda: 'Preguntas rápidas sobre el capítulo 15 de Lucas. Acertá 5 de 7.' },
   linterna:    { titulo: 'Guardia nocturna', ayuda: 'Está todo oscuro. Mové la linterna y tocá las 5 cosas escondidas.' },
   zanjas:      { titulo: 'Zanjas de desagüe', ayuda: '¡Llueve! Tocá los charcos para cavar la zanja antes de que el agua llegue a las carpas. Aguantá 25 segundos sin inundar 2.' }
 };
@@ -404,3 +404,8 @@ JUEGOS.zanjas = function(host, fin){
   pintar();
   return function(){ clearInterval(t); };
 };
+
+// Juegos sumados desde otros archivos (minijuegos-secciones.js /
+// minijuegos-deptos.js, 07/11/2026).
+export function registrarMinijuego(id, def, fn){ MINIJUEGOS[id] = def; JUEGOS[id] = fn; }
+export { rnd, rndInt, barajar };

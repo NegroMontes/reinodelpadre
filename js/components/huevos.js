@@ -13,7 +13,7 @@
 import { AppState } from '../app-state.js';
 import { abrirMinijuego } from './minijuegos.js';
 import { registrarJuego, hoyClave, juegoGanado } from '../services/juegos.service.js';
-import { DEPTO_JUEGO } from '../views/juegos.js';
+import { JUEGOS_DEPTOS } from '../views/juegos.js';
 import { showToast } from './toast.js';
 
 var iniciado = false;
@@ -66,7 +66,7 @@ function engancharLogo(){
     toques = toques.filter(function(t){ return ahora - t < 900; }); toques.push(ahora);
     if(toques.length >= 3){
       toques = [];
-      var ids = Object.keys(DEPTO_JUEGO), j = DEPTO_JUEGO[ids[Math.floor(Math.random() * ids.length)]];
+      var j = JUEGOS_DEPTOS[Math.floor(Math.random() * JUEGOS_DEPTOS.length)];
       setTimeout(function(){ abrirMinijuego(j, { titulo: '¡Actividad sorpresa!', alGanar: function(){ return premio('huevo-actividad'); } }); }, 250);
     }
   });
