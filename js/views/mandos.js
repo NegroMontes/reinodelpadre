@@ -5,6 +5,7 @@
 // vivo de quien ya se registró, con foto/actividad favorita/ruca — ver
 // canSeeMiComandoSubtab() en services/permissions.js).
 
+import { HIJOS_BIBLICOS } from '../config/test-hijo-biblico.js';
 import { rangoGuardadoDe, rangoNombre, avanceGuardadoDe, obligPendientesDe, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_SVG_ICON } from '../config/constants.js';
@@ -176,6 +177,8 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     if(u.rucaFundacion){ html += '    <span class="mandos-sub">' + escapeHtml(u.rucaFundacion) + '</span>'; }
     var rg = rangoGuardadoDe(u);
     if(rg){ html += '    <span class="rango-chip rango-chip-sm rango-' + rg + '" title="Rango">' + escapeHtml(rangoNombre(rg)) + '</span>'; }
+    var hj = HIJOS_BIBLICOS[u.hijoBiblico];
+    if(hj){ html += '    <span class="mandos-sub micomando-hijo" title="Resultado del test «¿Qué hijo bíblico sos?»">' + escapeHtml(hj.nombre) + '</span>'; }
     html += '  </div>';
     html += '</div>';
     return html;

@@ -157,6 +157,11 @@ import { estaOculta } from '../utils/helpers.js';
   }
 
 
+  export function hijoDesbloqueado(k){
+    var u = AppState.currentUser;
+    return !!(u && Array.isArray(u.hijosDesbloqueados) && u.hijosDesbloqueados.indexOf(k) !== -1);
+  }
+
   export function canSeeEntry(entry){
     // Entrada "oculta" (borrador, pedido del usuario, 23/09/2026): solo la ve
     // quien podría editarla (admin, o el jefe de esa sección/depto puntual) —
@@ -171,6 +176,9 @@ import { estaOculta } from '../utils/helpers.js';
     // pestaña dedicada "Papelera" (que no pasa por canSeeEntry, lee
     // state.entries directo), así no ensucia Mensaje/Departamentos/Recursos.
     if(entry.deletedAt) return false;
+    // T8 E2 (07/11/2026): entrada «Conocé a <hijo>» — solo la ve quien sacó
+    // ese hijo en el test (queda desbloqueada aunque lo repita); el admin, todas.
+    if(entry.hijoBiblico && !isAdmin() && !hijoDesbloqueado(entry.hijoBiblico)) return false;
     if(isAdmin()) return true;
     // Modo "Lector" (pedido del usuario, 25/09/2026): lee absolutamente todo,
     // igual que un admin a efectos de visibilidad — es justo el propósito del

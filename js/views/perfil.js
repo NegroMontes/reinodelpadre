@@ -11,6 +11,8 @@ import { updateMyProfile } from '../services/auth.service.js';
 import { miRango, puntosDisponibles, alDia, rangoUmbrales, entradasQueCuentan, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { icon } from '../utils/icons.js';
 import { showAlert } from '../components/dialog.js';
+import { HIJOS_BIBLICOS } from '../config/test-hijo-biblico.js';
+import { render } from '../main.js';
 
   function draftActual(){
     var u = AppState.currentUser;
@@ -70,6 +72,22 @@ import { showAlert } from '../components/dialog.js';
     return html;
   }
 
+  // T8 E2: resultado del test «¿Qué hijo bíblico sos?».
+  function hijoCardHtml(){
+    var h = HIJOS_BIBLICOS[AppState.currentUser.hijoBiblico];
+    var html = '<div class="home-card perfil-card">';
+    html += '<h3>Tu hijo bíblico</h3>';
+    if(h){
+      html += '<p><strong>' + escapeHtml(h.nombre) + '</strong> <span class="mandos-sub">· ' + escapeHtml(h.cita) + '</span></p>';
+      html += '<p class="mandos-sub">' + escapeHtml(h.fortaleza) + '</p>';
+    } else {
+      html += '<p class="mandos-sub">Todavía no hiciste el test.</p>';
+    }
+    html += '<button class="btn small' + (h ? ' ghost' : '') + '" type="button" id="perfilTestHijoBtn">' + (h ? 'Ver resultado / repetir' : 'Hacer el test') + '</button>';
+    html += '</div>';
+    return html;
+  }
+
   function datosCardHtml(){
     var u = AppState.currentUser, draft = draftActual();
     var html = '<div class="home-card perfil-card">';
@@ -109,7 +127,7 @@ import { showAlert } from '../components/dialog.js';
     var u = AppState.currentUser;
     var html = '<div class="panel-head"><div><h2>Perfil</h2>';
     html += '<p class="mandos-sub">' + escapeHtml(u.displayName || '') + ' · ' + escapeHtml(roleLabelScoped(u)) + '</p></div></div>';
-    html += '<div class="perfil-grid">' + rangoCardHtml() + datosCardHtml() + '</div>';
+    html += '<div class="perfil-grid">' + rangoCardHtml() + hijoCardHtml() + datosCardHtml() + '</div>';
     return html;
   }
 
@@ -124,6 +142,16 @@ import { showAlert } from '../components/dialog.js';
     bind('userProfileDeptoIconSelect', 'deptoIconChoice', 'onchange');
     bind('userProfileCupulaIconSelect', 'cupulaIcon', 'onchange');
     bind('userProfileConsagradoIconSelect', 'consagradoIconChoice', 'onchange');
+    var testBtn = document.getElementById('perfilTestHijoBtn');
+    if(testBtn){
+      testBtn.onclick = function(){
+        AppState.activeDayId = 'RECURSOS';
+        AppState.recursosCategoria = 'test-hijo';
+        AppState.recursosGrupo = '';
+        AppState.testHijo = null;
+        render(); window.scrollTo(0, 0);
+      };
+    }
     var saveBtn = document.getElementById('userProfileSaveBtn');
     if(saveBtn){
       saveBtn.onclick = async function(){

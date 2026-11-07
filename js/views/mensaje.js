@@ -13,6 +13,7 @@ import { renderEntriesListHtml } from '../components/entry.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { renderForm, attachPanelEvents } from '../components/form.js';
 import { renderPanel } from '../main.js';
+import { renderTestHijoPanel, testHijoTileHtml } from './test-hijo.js';
 import { renderCancioneroPanel, cancioneroTileHtml, cantosRosarioTileHtml, abrirCantosRosario } from './cancionero.js';
 import { openFordoqueraBiblioteca } from '../components/fordoquera-embed.js';
 import { showConfirm, showAlert } from '../components/dialog.js';
@@ -393,6 +394,13 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       renderCancioneroPanel();
       return;
     }
+    // Test «¿Qué hijo bíblico sos?» (T8 E2): vista propia, desde Camino formativo.
+    if(AppState.recursosCategoria === 'test-hijo'){
+      AppState.formOpen = false;
+      renderTestHijoPanel();
+      return;
+    }
+    AppState.testHijo = null;
 
     // Categorías (27/10/2026): sin categoría abierta se ve la grilla; al
     // tocar una, la lista de sus entradas como tarjetas anchas.
@@ -405,7 +413,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
     function hijas(id){ return CATS.filter(function(c){ return c.parent === id; }); }
     // Categorías con contenido fijo (cancionero, biblioteca/links, cantos
     // del Rosario): nunca se ven vacías aunque no tengan entradas.
-    function conFijo(id){ return id === 'biblia' || id === 'textos' || id === 'rosario'; }
+    function conFijo(id){ return id === 'biblia' || id === 'textos' || id === 'rosario' || id === 'formacion'; }
     function tieneAlgo(id){ return conFijo(id) || entradasDe(id).length > 0; }
     function entradasDe(id){
       return hijas(id).reduce(function(acc, c){ return acc.concat(porCat[c.id] || []); }, (porCat[id] || []).slice());
@@ -481,12 +489,14 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       var conCancionero = !grupo && cat.id === 'biblia';
       var conLectura = !grupo && cat.id === 'textos';
       var conCantosRosario = !grupo && cat.id === 'rosario';
-      if(subs.length || conCancionero || conLectura || conCantosRosario){
+      var conTestHijo = !grupo && cat.id === 'formacion';
+      if(subs.length || conCancionero || conLectura || conCantosRosario || conTestHijo){
         html += '<div class="recursos-grid recursos-subcats">';
         subs.forEach(function(c){ html += catTileHtml(c); });
         if(conCancionero){ html += cancioneroTileHtml(); }
         if(conLectura){ html += lecturaTilesHtml(); }
         if(conCantosRosario){ html += cantosRosarioTileHtml() + popeTileHtml(); }
+        if(conTestHijo){ html += testHijoTileHtml(); }
         html += '</div>';
       }
       if(!grupo){
@@ -500,7 +510,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       }
       html += '<div class="entries">';
       if(lista.length === 0){
-        if(grupo || !(grupos.length && catItems.length) && !subs.length && !conCancionero && !conLectura && !conCantosRosario){
+        if(grupo || !(grupos.length && catItems.length) && !subs.length && !conCancionero && !conLectura && !conCantosRosario && !conTestHijo){
           html += '<p class="empty">' + (grupo ? 'Todavía no hay nada en este grupo.' : 'Todavía no hay nada en esta categoría.') + '</p>';
         }
       } else {

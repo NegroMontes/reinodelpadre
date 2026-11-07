@@ -13,6 +13,7 @@ import { icon } from '../utils/icons.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { entryScope, canEditEntry, isAdmin, isLectorLike, effectiveRole } from '../services/permissions.js';
 import { canSeeCompletions } from '../services/progress.service.js';
+import { HIJOS_BIBLICOS } from '../config/test-hijo-biblico.js';
 import { puntosDe, obligatoriaRangoDe, rangoNombre } from '../services/rangos.service.js';
 
   // Uno o más tags de ámbito para una entrada (antes era siempre uno solo) —
@@ -156,6 +157,10 @@ import { puntosDe, obligatoriaRangoDe, rangoNombre } from '../services/rangos.se
       var pts = puntosDe(entry), obl = obligatoriaRangoDe(entry);
       rangoTag = ' <span class="tag tag-muted" title="Puntos que suma al completarla (solo admin ve esto)">' + icon('star') + ' ' + pts + ' pt' + (pts === 1 ? '' : 's') + '</span>' +
         (obl ? ' <span class="tag tag-muted" title="Sin completarla no se llega a ese rango">Obligatoria · ' + escapeHtml(rangoNombre(obl)) + '</span>' : '');
+    }
+    // T8 E2: entrada que se desbloquea con el test (solo el admin ve la etiqueta).
+    if(isAdmin() && HIJOS_BIBLICOS[entry.hijoBiblico]){
+      rangoTag += ' <span class="tag tag-muted" title="Solo la ve quien sacó este hijo en el test">' + icon('lock') + ' Test: ' + escapeHtml(HIJOS_BIBLICOS[entry.hijoBiblico].nombre) + '</span>';
     }
     html += '      <div class="entry-meta">' +
       scopeTag + ocultaTag + anonimoTag + rangoTag +

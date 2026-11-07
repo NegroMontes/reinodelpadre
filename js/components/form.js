@@ -10,6 +10,7 @@
 import { AppState } from '../app-state.js';
 import { copiarLinkDeEntrada } from '../services/entry-link.js';
 import { SECCIONES, DEPARTAMENTOS, RANGOS } from '../config/constants.js';
+import { HIJOS_BIBLICOS } from '../config/test-hijo-biblico.js';
 import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recursoCategorias, recursoCategoriasOrdenadas, recursoGruposDe, recursoGrupoDe, mediodiaDe, isoDeFecha } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
@@ -139,7 +140,7 @@ import { attachEntryReorder } from './entry-reorder.js';
     AppState.formEntrySnapshot = null;
     AppState.formSecciones = []; AppState.formDeptos = []; AppState.formComandoGeneral = false; AppState.formSeccionComandoOnly = false;
     AppState.formAnonimo = false; AppState.formOculta = false; AppState.formPublishDate = ''; AppState.formBienvenida = false; AppState.formTambienDeptos = false;
-    AppState.formPuntos = ''; AppState.formObligRango = '';
+    AppState.formPuntos = ''; AppState.formObligRango = ''; AppState.formHijo = '';
     AppState.formAmbitoOpen = false;
     AppState.formCategoria = '';
     AppState.formGrupo = null;
@@ -214,6 +215,13 @@ import { attachEntryReorder } from './entry-reorder.js';
       // También en Departamentos (05/11/2026): la MISMA entrada (no una copia)
       // aparece además en la pestaña Departamentos, para todos los que la ven.
       html += '  <div class="signature-row switch-row"><label><input type="checkbox" class="switch" id="fTambienDeptos"' + (AppState.formTambienDeptos ? ' checked' : '') + '> También en Departamentos</label>' + helpTipHtml('Es la misma entrada: aparece en Recursos y en Departamentos. Editarla en un lado la cambia en los dos.') + '</div>';
+      // T8 E2 (07/11/2026): entrada «Conocé a <hijo>» que se desbloquea con el
+      // test «¿Qué hijo bíblico sos?» — solo la ve quien sacó ese hijo.
+      html += '  <div class="form-row rango-row"><label for="fHijo">Se desbloquea con el test</label><select id="fHijo"><option value="">(No, la ve todo el que corresponda)</option>';
+      Object.keys(HIJOS_BIBLICOS).forEach(function(k){
+        html += '<option value="' + k + '"' + (k === AppState.formHijo ? ' selected' : '') + '>' + escapeHtml(HIJOS_BIBLICOS[k].nombre) + '</option>';
+      });
+      html += '</select>' + helpTipHtml('Solo la ve quien sacó ese hijo en el test «¿Qué hijo bíblico sos?» (aunque después lo repita y le salga otro).') + '</div>';
       html += '  <div class="signature-row switch-row"><label><input type="checkbox" class="switch" id="fBienvenida"' + (AppState.formBienvenida ? ' checked' : '') + '> Entrada de bienvenida</label>' + helpTipHtml('Aparece arriba de todo en Inicio para quien todavía no la completó — comando y milicianos por igual.') + '</div>';
     }
     html += '  </div>';
@@ -362,6 +370,7 @@ import { attachEntryReorder } from './entry-reorder.js';
       if(pubAt && AppState.formOculta){ entry.publishAt = pubAt; } else { delete entry.publishAt; }
       entry.bienvenida = bienvenida;
       if(day === 'RESOURCES' && isAdmin()){ if(AppState.formTambienDeptos) entry.tambienDepartamentos = true; else delete entry.tambienDepartamentos; }
+      if(day === 'RESOURCES' && isAdmin()){ if(HIJOS_BIBLICOS[AppState.formHijo]) entry.hijoBiblico = AppState.formHijo; else delete entry.hijoBiblico; }
       if(isAdmin() && day !== 'INFO_GENERAL') aplicarRango(entry);
       if(categoria) entry.categoria = categoria;
       if(categoria){ if(grupo) entry.grupo = grupo; else delete entry.grupo; }
@@ -390,6 +399,7 @@ import { attachEntryReorder } from './entry-reorder.js';
       var pubAtNew = mediodiaDe(AppState.formPublishDate);
       if(pubAtNew && AppState.formOculta){ AppState.state.entries[AppState.state.entries.length - 1].publishAt = pubAtNew; }
       if(day === 'RESOURCES' && isAdmin() && AppState.formTambienDeptos){ AppState.state.entries[AppState.state.entries.length - 1].tambienDepartamentos = true; }
+      if(day === 'RESOURCES' && isAdmin() && HIJOS_BIBLICOS[AppState.formHijo]){ AppState.state.entries[AppState.state.entries.length - 1].hijoBiblico = AppState.formHijo; }
       if(isAdmin() && day !== 'INFO_GENERAL') aplicarRango(AppState.state.entries[AppState.state.entries.length - 1]);
       if(categoria){ AppState.state.entries[AppState.state.entries.length - 1].categoria = categoria; }
       if(grupo){ AppState.state.entries[AppState.state.entries.length - 1].grupo = grupo; }
@@ -637,6 +647,8 @@ import { attachEntryReorder } from './entry-reorder.js';
     if(puntosInput){ puntosInput.oninput = function(){ AppState.formPuntos = puntosInput.value; }; }
     var obligSelect = document.getElementById('fObligRango');
     if(obligSelect){ obligSelect.onchange = function(){ AppState.formObligRango = obligSelect.value; }; }
+    var hijoSelect = document.getElementById('fHijo');
+    if(hijoSelect){ hijoSelect.onchange = function(){ AppState.formHijo = hijoSelect.value; }; }
     var tambienDeptosCheck = document.getElementById('fTambienDeptos');
     if(tambienDeptosCheck){ tambienDeptosCheck.onchange = function(){ AppState.formTambienDeptos = tambienDeptosCheck.checked; }; }
     var categoriaSelect = document.getElementById('fCategoria');
@@ -815,6 +827,7 @@ import { attachEntryReorder } from './entry-reorder.js';
         AppState.formTambienDeptos = !!entry.tambienDepartamentos;
         AppState.formPuntos = entry.puntos != null ? String(entry.puntos) : '';
         AppState.formObligRango = entry.obligatoriaRango ? String(entry.obligatoriaRango) : '';
+        AppState.formHijo = entry.hijoBiblico || '';
         AppState.formCategoria = entry.dayId === 'RESOURCES' ? recursoCategoriaDe(entry) : '';
         AppState.formGrupo = entry.dayId === 'RESOURCES' ? recursoGrupoDe(AppState.state, entry) : null;
         AppState.formTitleDraft = null;
