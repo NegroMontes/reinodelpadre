@@ -4,6 +4,7 @@
 // (T13 E3).
 
 import { AppState } from '../app-state.js';
+import { juegosDe, bonusDe } from '../services/juegos.service.js';
 import { DEPARTAMENTO_ICONS, CONSAGRADO_ICONS } from '../config/constants.js';
 import { escapeHtml, roleLabelScoped } from '../utils/helpers.js';
 import { cupulaIconOptionsHtml } from '../utils/badge-icons.js';
@@ -88,6 +89,19 @@ import { render } from '../main.js';
     return html;
   }
 
+  // T10: bonus de minijuegos y huevos de pascua encontrados.
+  function juegosCardHtml(){
+    var u = AppState.currentUser, j = juegosDe(u), claves = Object.keys(j);
+    var huevos = claves.filter(function(k){ return /^huevo-|^lluvia-|^diana-/.test(k); }).length;
+    var html = '<div class="home-card perfil-card">';
+    html += '<h3>Minijuegos</h3>';
+    html += '<p><strong>' + bonusDe(u) + '</strong> puntos bonus para tu comando</p>';
+    html += '<p class="mandos-sub">' + (claves.length - huevos) + ((claves.length - huevos) === 1 ? ' desafío superado · ' : ' desafíos superados · ') + huevos + (huevos === 1 ? ' sorpresa encontrada' : ' sorpresas encontradas') + '</p>';
+    if(!huevos) html += '<p class="mandos-sub">Hay sorpresas escondidas en la página según la hora y el clima…</p>';
+    html += '</div>';
+    return html;
+  }
+
   function datosCardHtml(){
     var u = AppState.currentUser, draft = draftActual();
     var html = '<div class="home-card perfil-card">';
@@ -127,7 +141,7 @@ import { render } from '../main.js';
     var u = AppState.currentUser;
     var html = '<div class="panel-head"><div><h2>Perfil</h2>';
     html += '<p class="mandos-sub">' + escapeHtml(u.displayName || '') + ' · ' + escapeHtml(roleLabelScoped(u)) + '</p></div></div>';
-    html += '<div class="perfil-grid">' + rangoCardHtml() + hijoCardHtml() + datosCardHtml() + '</div>';
+    html += '<div class="perfil-grid">' + rangoCardHtml() + hijoCardHtml() + juegosCardHtml() + datosCardHtml() + '</div>';
     return html;
   }
 

@@ -30,6 +30,7 @@ import { icon } from './utils/icons.js';
 import { startVersionWatch, stopVersionWatch } from './services/version-check.service.js';
 import { sincronizarMiRango } from './services/rangos.service.js';
 import { renderPerfilPanel, attachPerfilEvents } from './views/perfil.js';
+import { iniciarHuevos } from './components/huevos.js';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -837,6 +838,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       if(AppState.currentUser && AppState.currentUser.role === 'admin'){ startVersionWatch(); }
       else { stopVersionWatch(); }
       sincronizarMiRango();
+      iniciarHuevos();
       renderAuthBar();
       renderFeedbackWidget();
       var gated = renderGate();

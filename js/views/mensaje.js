@@ -13,6 +13,7 @@ import { renderEntriesListHtml } from '../components/entry.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { renderForm, attachPanelEvents } from '../components/form.js';
 import { renderPanel } from '../main.js';
+import { renderJuegoDelDiaHtml, attachJuegoDelDia, textoBloqueado, renderJuegosDeptoHtml, attachJuegosDepto } from './juegos.js';
 import { renderTestHijoPanel, testHijoTileHtml } from './test-hijo.js';
 import { renderCancioneroPanel, cancioneroTileHtml, cantosRosarioTileHtml, abrirCantosRosario } from './cancionero.js';
 import { openFordoqueraBiblioteca } from '../components/fordoquera-embed.js';
@@ -48,6 +49,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
 
     var html = '';
     html += '<div class="panel-head"><div><h2>Departamentos</h2></div></div>';
+    var juegosDeptoHtml = renderJuegosDeptoHtml(AppState.activeDeptoFiltro);
 
     if(visibleDeptos.length > 1){
       html += '<div class="mensaje-dayswitch">';
@@ -58,6 +60,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       html += '</div>';
     }
 
+    html += juegosDeptoHtml;
     html += '<div class="entries">';
     if(shown.length === 0){
       html += '<p class="empty">' + (allDeptoEntries.length === 0 ? 'Todavía no hay contenido de departamentos.' : 'No hay contenido de ese departamento.') + '</p>';
@@ -76,6 +79,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
 
     panel.innerHTML = html;
     attachPanelEvents(null);
+    attachJuegosDepto();
 
     document.querySelectorAll('[data-depto-filtro]').forEach(function(btn){
       btn.onclick = function(){
@@ -809,7 +813,8 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       html += '<div class="cita-banner"><p class="cita-text">«' + linkify(day.citaTexto) + '»</p><p class="cita-ref">' + escapeHtml(day.citaRef||'') + '</p></div>';
     }
 
-    html += renderTextoDelDia(day);
+    html += renderJuegoDelDiaHtml(day);
+    if(!textoBloqueado(day)) html += renderTextoDelDia(day);
 
     if(isAdmin() && AppState.state.days.some(function(d){ return entradasDelDia(d.id).some(function(e){ return textoDeEntrada(e); }); })){
       html += '<div class="mensaje-pasar-row"><button class="btn small ghost" id="pasarEntradasTextoBtn" type="button">Pasar las entradas de los días a texto de la página</button></div>';
@@ -833,6 +838,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
 
     panel.innerHTML = html;
     attachPanelEvents(day);
+    attachJuegoDelDia(day);
 
     document.querySelectorAll('.day-pill[data-day]').forEach(function(btn){
       btn.onclick = function(){

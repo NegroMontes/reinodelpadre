@@ -6,6 +6,7 @@
 // canSeeMiComandoSubtab() en services/permissions.js).
 
 import { HIJOS_BIBLICOS } from '../config/test-hijo-biblico.js';
+import { bonusDe } from '../services/juegos.service.js';
 import { rangoGuardadoDe, rangoNombre, avanceGuardadoDe, obligPendientesDe, obligatoriaRangoDe } from '../services/rangos.service.js';
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_SVG_ICON } from '../config/constants.js';
@@ -300,7 +301,8 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       var total = Math.max(totRes[g] || 0, miembros.length);
       var suma = vals.reduce(function(x, y){ return x + y; }, 0);
       return { grupo: g, tipo: SECCIONES.indexOf(g) >= 0 ? 'seccion' : 'depto', total: total, conDatos: vals.length,
-        promedio: total ? Math.round(suma / total) : 0 };
+        promedio: total ? Math.round(suma / total) : 0,
+        bonus: miembros.reduce(function(s, u){ return s + bonusDe(u); }, 0) };
     }).sort(function(x, y){ return (y.promedio - x.promedio) || (y.conDatos - x.conDatos); });
     // Posición: empatados comparten el puesto.
     filas.forEach(function(f, i){ f.pos = (i && f.promedio === filas[i - 1].promedio) ? filas[i - 1].pos : i + 1; });
@@ -321,7 +323,8 @@ import { showAlert, showConfirm } from '../components/dialog.js';
 
   // «N de M con avance»: solo para el admin (pedido del usuario, 06/11/2026).
   function metaTxt(f){ return f.conDatos + ' de ' + f.total + ' con avance'; }
-  function metaHtml(f, tag){ return isAdmin() ? '<' + tag + ' class="tablero-meta">' + metaTxt(f) + '</' + tag + '>' : ''; }
+  // T10: el bonus de minijuegos se ve aparte (no cambia el puesto).
+  function metaHtml(f, tag){ return (isAdmin() ? '<' + tag + ' class="tablero-meta">' + metaTxt(f) + '</' + tag + '>' : '') + (f.bonus ? '<' + tag + ' class="tablero-bonus" title="Bonus de minijuegos">+' + f.bonus + ' bonus</' + tag + '>' : ''); }
 
   // T14 E3 (06/11/2026): mapa del hijo pródigo (Lc 15). Cada comando va
   // sobre el camino según su promedio: 0% = entre los chanchos, 100% = la

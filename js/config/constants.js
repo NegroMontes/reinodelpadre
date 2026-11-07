@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.07.7';
+  export var APP_VERSION = '2026.11.07.8';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,10 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.07.8', date: '07/11/2026', items: [
+      'Minijuegos: un desafío en el mensaje de cada día y un juego propio de cada departamento. Suman puntos bonus al comando (se ven en el Tablero).',
+      'Hay sorpresas escondidas según la hora, el tema y el clima…'
+    ]},
     { version: '2026.11.07.7', date: '07/11/2026', items: [
       'Test «¿Qué hijo bíblico sos?» en Recursos → Camino formativo: el resultado queda en el perfil y en Mi comando, y destraba una entrada «Conocé a…».'
     ]},
