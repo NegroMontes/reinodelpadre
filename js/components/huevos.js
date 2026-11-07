@@ -75,7 +75,8 @@ function engancharLogo(){
 var LAT = -32.89, LON = -68.84;
 function forzarLluvia(){
   try{
-    return /[?&]lluvia=1/.test(location.search);
+    var u = AppState.currentUser;
+    return !!u && u.role === 'admin' && /[?&]lluvia=1/.test(location.search);
   }catch(e){ return false; }
 }
 function llueve(){

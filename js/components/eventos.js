@@ -28,7 +28,10 @@ function minutos(){ var d = new Date(); return d.getHours() * 60 + d.getMinutes(
 // Forzar un evento para probarlo: solo mientras `?<nombre>=1` esté en la
 // dirección. Antes quedaba guardado en la pestaña y el evento seguía
 // saliendo a cualquier hora (reporte del usuario, 07/11/2026).
-function forzado(nombre){ return new RegExp('[?&]' + nombre + '=1').test(location.search); }
+// Solo el admin puede forzar (07/11/2026): si cualquiera escribía el
+// parámetro en la dirección, le salía el evento y sumaba puntos.
+function esAdmin(){ var u = AppState.currentUser; return !!u && u.role === 'admin'; }
+function forzado(nombre){ return esAdmin() && new RegExp('[?&]' + nombre + '=1').test(location.search); }
 try{ Object.keys(sessionStorage).forEach(function(k){ if(/^mj-|^mjLluvia$/.test(k)) sessionStorage.removeItem(k); }); }catch(e){}
 function vez(clave){ try{ if(localStorage.getItem(clave)) return false; localStorage.setItem(clave, '1'); return true; }catch(e){ return true; } }
 
@@ -45,7 +48,7 @@ function siguiente(){
 // forzados para probar): los demás quedan para otra apertura.
 var mostrados = 0;
 function aviso(clase, html, botones, siempre){
-  if(!siempre && mostrados >= 1 && !/[?&](estrellas|bandera|saboteador)=1/.test(location.search)) return;
+  if(!siempre && mostrados >= 1 && !(esAdmin() && /[?&](estrellas|bandera|saboteador)=1/.test(location.search))) return;
   if(!siempre) mostrados++;
   cola.push([clase, html, botones]); siguiente();
 }
