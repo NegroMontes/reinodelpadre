@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.07.19';
+  export var APP_VERSION = '2026.11.07.20';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.07.20', date: '07/11/2026', items: [
+      'Beneficios (esqueleto): el admin prende el evento desde su Perfil y aparece una pestaña debajo de Comando para gastar los puntos en beneficios o pujar en subastas.'
+    ]},
     { version: '2026.11.07.19', date: '07/11/2026', items: [
       'Juegos de fe en el desafío del Mensaje: «Hijos y herederos del Reino», «Las partes de la Misa» y «Los misterios del Rosario».'
     ]},

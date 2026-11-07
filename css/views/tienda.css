@@ -1,0 +1,25 @@
+/* T18 — pestaña de beneficios (tienda + subastas) */
+.tienda-head-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+.tienda-apagado{ margin:0 0 12px; }
+.tienda-nota{ margin:0 0 12px; }
+.tienda-saldo{ margin-bottom:16px; }
+.tienda-saldo p{ margin:4px 0; }
+.tienda-saldo-num{ font-size:1.5rem; color:var(--ink); }
+.tienda-saldo-num strong{ color:var(--teal); font-size:2rem; }
+.tienda-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px; margin-bottom:18px; }
+.tienda-item{ display:flex; flex-direction:column; gap:6px; }
+.tienda-item h3{ margin:2px 0; }
+.tienda-item p{ margin:0; }
+.tienda-item .btn{ align-self:flex-start; margin-top:auto; }
+.tienda-item.is-cerrada{ opacity:.7; }
+.tienda-item-head{ display:flex; justify-content:space-between; align-items:center; gap:6px; }
+.tienda-item-admin{ display:flex; gap:4px; }
+.tienda-pujar{ display:flex; gap:6px; align-items:center; margin-top:auto; }
+.tienda-pujar input{ width:90px; padding:6px 8px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--card-bg); color:var(--ink); font:inherit; }
+.tienda-pujar .btn{ margin-top:0; }
+.tienda-titulo{ margin:8px 0; }
+.tienda-canjes{ list-style:none; padding:0; margin:0 0 16px; display:flex; flex-direction:column; gap:6px; }
+.tienda-canjes li{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 10px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--card-bg); }
+.tienda-admin-canjes summary{ cursor:pointer; }
+.tienda-admin-canjes summary h3{ display:inline; }
+.tienda-admin-canjes .tienda-canjes{ margin-top:10px; }

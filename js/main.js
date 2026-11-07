@@ -32,6 +32,8 @@ import { sincronizarMiRango } from './services/rangos.service.js';
 import { renderPerfilPanel, attachPerfilEvents } from './views/perfil.js';
 import { iniciarHuevos } from './components/huevos.js';
 import { saboteadorTrasRender } from './components/eventos.js';
+import { ensureTiendaConfigSub, ensureTiendaSubs, stopTiendaSubs, puedeVerTienda, tiendaConfig } from './services/tienda.service.js';
+import { renderTiendaPanel, attachTiendaEvents } from './views/tienda.js';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -355,6 +357,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       if(AppState.unsubMandos){ AppState.unsubMandos(); AppState.unsubMandos = null; }
       AppState.mandosSubscribed = false; AppState.mandosLoaded = false; AppState.mandosData = null;
       stopCancioneroSub();
+      stopTiendaSubs();
       unsubAllProgress();
       unsubAllCompletions();
       AppState.secuencialCompletionsOpenId = null;
@@ -464,6 +467,16 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     mandosTab.innerHTML = icon('shield') + ' Comando';
     mandosTab.onclick = function(){ AppState.activeDayId = 'MANDOS'; AppState.formOpen = false; render(); };
     rail.appendChild(mandosTab);
+    // T18: tienda de beneficios, debajo de Comando. Sale cuando el admin
+    // prende el evento (Perfil); el admin la ve siempre, para prepararla.
+    if(puedeVerTienda()){
+      var tiendaTab = document.createElement('div');
+      var tcfg = tiendaConfig();
+      tiendaTab.className = 'day-tab mandos-tab' + (AppState.activeDayId === 'TIENDA' ? ' active' : '');
+      tiendaTab.innerHTML = icon('gift') + ' ' + escapeHtml(tcfg.titulo) + (tcfg.activa ? '' : ' <span class="tag badge-neutral" style="margin-left:6px">apagado</span>');
+      tiendaTab.onclick = function(){ AppState.activeDayId = 'TIENDA'; AppState.formOpen = false; render(); };
+      rail.appendChild(tiendaTab);
+    }
     if(isAdmin()){
       var usersTab = document.createElement('div');
       usersTab.className = 'day-tab mandos-tab' + (AppState.activeDayId === 'USERS' ? ' active' : '');
@@ -594,6 +607,14 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     if(AppState.activeDayId === 'PERFIL'){
       panel.innerHTML = renderPerfilPanel();
       attachPerfilEvents();
+      return;
+    }
+    if(AppState.activeDayId === 'TIENDA'){
+      // Entrando por link (#beneficios): esperar la config antes de decidir.
+      if(!AppState.tiendaConfigLoaded && AppState.currentUser && AppState.currentUser.role !== 'pendiente'){ panel.innerHTML = '<p class="mandos-sub">Cargando…</p>'; return; }
+      if(!puedeVerTienda()){ AppState.activeDayId = 'HOME'; renderPanel(); return; }
+      panel.innerHTML = renderTiendaPanel();
+      attachTiendaEvents();
       return;
     }
     if(AppState.activeDayId === 'MANDOS'){
@@ -761,6 +782,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     if(AppState.activeDayId === 'MANDOS') return 'Comando — ' + (AppState.mandosActiveSubTab === 'micomando' ? 'Mi comando' : 'Cuadro de mandos');
     if(AppState.activeDayId === 'USERS') return 'Usuarios';
     if(AppState.activeDayId === 'PERFIL') return 'Perfil';
+    if(AppState.activeDayId === 'TIENDA') return tiendaConfig().titulo;
     if(AppState.activeDayId === 'FEEDBACK') return 'Comentarios';
     if(AppState.activeDayId === 'PAPELERA') return 'Papelera';
     return 'la página';
@@ -840,6 +862,8 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       if(AppState.currentUser && AppState.currentUser.role === 'admin'){ startVersionWatch(); }
       else { stopVersionWatch(); }
       sincronizarMiRango();
+      ensureTiendaConfigSub();
+      ensureTiendaSubs();
       iniciarHuevos();
       renderAuthBar();
       renderFeedbackWidget();

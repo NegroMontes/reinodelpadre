@@ -45,6 +45,9 @@ export const AppState = {
   misas: [], // misas armadas (colección `misas`)
   misasLoaded: false,
   unsubMisas: null,
+  // T18 — tienda de beneficios (ver tienda.service.js)
+  tiendaConfig: null, tiendaConfigLoaded: false, beneficios: [], beneficiosLoaded: false, canjes: [], pujas: [], tiendaCanjesOpen: false,
+  unsubTiendaConfig: null, unsubBeneficios: null, unsubCanjes: null, unsubPujas: null,
   misaId: null, // misa abierta
   misaDraft: null, // misa en edición
   misaOpenIdx: null, // desplegable abierto en la misa que se está viendo

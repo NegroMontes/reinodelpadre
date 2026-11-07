@@ -18,7 +18,8 @@
     USERS: 'usuarios',
     FEEDBACK: 'comentarios',
     PAPELERA: 'papelera',
-    PERFIL: 'perfil'
+    PERFIL: 'perfil',
+    TIENDA: 'beneficios'
   };
   var SLUG_TO_TAB = {};
   Object.keys(TAB_TO_SLUG).forEach(function(tab){ SLUG_TO_TAB[TAB_TO_SLUG[tab]] = tab; });

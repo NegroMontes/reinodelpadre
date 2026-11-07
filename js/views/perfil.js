@@ -18,6 +18,7 @@ import { realIsAdmin } from '../services/permissions.js';
 import { MINIJUEGOS, abrirMinijuego } from '../components/minijuegos.js';
 import '../views/juegos.js';
 import '../components/eventos.js';
+import { tiendaConfig, guardarConfigTienda } from '../services/tienda.service.js';
 
   function draftActual(){
     var u = AppState.currentUser;
@@ -117,6 +118,16 @@ import '../components/eventos.js';
       '</div><p style="margin-top:10px"><button type="button" class="btn small neutral" id="borrarMisJuegosBtn">Borrar mis puntos bonus</button></p></details></div>';
   }
 
+  // T18: solo admin real — prende/apaga el evento de beneficios (la pestaña
+  // nueva debajo de Comando).
+  function tiendaCardHtml(){
+    if(!realIsAdmin()) return '';
+    var c = tiendaConfig();
+    return '<div class="home-card perfil-card"><h3>Evento: ' + escapeHtml(c.titulo) + '</h3>' +
+      '<p class="mandos-sub">' + (c.activa ? 'Activo: todos ven la pestaña «' + escapeHtml(c.titulo) + '» debajo de Comando y pueden gastar sus ' + escapeHtml(c.moneda) + '.' : 'Apagado: solo vos ves la pestaña, para ir cargando los beneficios.') + '</p>' +
+      '<button type="button" class="btn small' + (c.activa ? ' neutral' : '') + '" id="tiendaToggleBtn">' + (c.activa ? 'Desactivar evento' : 'Activar evento') + '</button></div>';
+  }
+
   function datosCardHtml(){
     var u = AppState.currentUser, draft = draftActual();
     var html = '<div class="home-card perfil-card">';
@@ -156,7 +167,7 @@ import '../components/eventos.js';
     var u = AppState.currentUser;
     var html = '<div class="panel-head"><div><h2>Perfil</h2>';
     html += '<p class="mandos-sub">' + escapeHtml(u.displayName || '') + ' · ' + escapeHtml(roleLabelScoped(u)) + '</p></div></div>';
-    html += '<div class="perfil-grid">' + rangoCardHtml() + hijoCardHtml() + juegosCardHtml() + probarJuegosHtml() + datosCardHtml() + '</div>';
+    html += '<div class="perfil-grid">' + rangoCardHtml() + hijoCardHtml() + juegosCardHtml() + tiendaCardHtml() + probarJuegosHtml() + datosCardHtml() + '</div>';
     return html;
   }
 
@@ -171,6 +182,14 @@ import '../components/eventos.js';
     bind('userProfileDeptoIconSelect', 'deptoIconChoice', 'onchange');
     bind('userProfileCupulaIconSelect', 'cupulaIcon', 'onchange');
     bind('userProfileConsagradoIconSelect', 'consagradoIconChoice', 'onchange');
+    var tiendaBtn = document.getElementById('tiendaToggleBtn');
+    if(tiendaBtn) tiendaBtn.onclick = function(){
+      var activar = !tiendaConfig().activa;
+      showConfirm(activar ? '¿Activar el evento? Todos van a ver la pestaña nueva y van a poder gastar sus puntos.' : '¿Desactivar el evento? La pestaña deja de verse y nadie puede canjear ni pujar.').then(function(ok){
+        if(!ok) return;
+        guardarConfigTienda({ activa: activar }).then(render).catch(function(e){ console.error(e); showAlert('No se pudo guardar.'); });
+      });
+    };
     var borrarBtn = document.getElementById('borrarMisJuegosBtn');
     if(borrarBtn) borrarBtn.onclick = function(){
       showConfirm('¿Borrar todos tus puntos bonus de minijuegos y eventos? No se puede deshacer.').then(function(ok){
