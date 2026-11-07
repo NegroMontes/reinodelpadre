@@ -12,7 +12,6 @@ import { MINIJUEGOS, abrirMinijuego } from '../components/minijuegos.js';
 import { juegoGanado, registrarJuego, hoyClave } from '../services/juegos.service.js';
 import { renderPanel } from '../main.js';
 
-var DIA_DEFAULT = ['fogata', 'radio', 'trivia15', 'red', 'fogata', 'radio', 'trivia15'];
 var JUEGOS_DIA = ['fogata', 'radio', 'trivia15', 'red', 'estacas', 'cuentas', 'proveeduria'];
 
 export var DEPTO_JUEGO = {
@@ -24,10 +23,18 @@ export var DEPTO_JUEGO = {
   'Actividades': 'fogata'
 };
 
+// Sorteo estable por persona y fecha (cambia cada día).
+function sorteo(extra, n){
+  var u = AppState.currentUser, semilla = (u && u.uid || '') + hoyClave() + extra, h = 0;
+  for(var i = 0; i < semilla.length; i++){ h = (h * 31 + semilla.charCodeAt(i)) | 0; }
+  return Math.abs(h) % n;
+}
+
+// Sin elegir (o «azar») = rota: cada persona, cada día, uno al azar
+// (pedido del usuario, 07/11/2026). El admin puede fijar uno o ninguno.
 export function juegoDelDia(day){
-  if(day.minijuego !== undefined) return MINIJUEGOS[day.minijuego] ? day.minijuego : '';
-  var i = AppState.state.days.indexOf(day);
-  return DIA_DEFAULT[i] || '';
+  if(day.minijuego === undefined || day.minijuego === 'azar') return JUEGOS_DIA[sorteo(day.id, JUEGOS_DIA.length)];
+  return MINIJUEGOS[day.minijuego] ? day.minijuego : '';
 }
 
 // true = el texto del día queda tapado hasta ganar.
@@ -52,8 +59,9 @@ export function renderJuegoDelDiaHtml(day){
     html += '</div>';
   }
   if(canEditStructure()){
-    html += '<div class="mj-config"><label>Desafío del día <select id="dayJuegoSelect"><option value="">Ninguno</option>' +
-      JUEGOS_DIA.map(function(id){ return '<option value="' + id + '"' + (id === j ? ' selected' : '') + '>' + escapeHtml(MINIJUEGOS[id].titulo) + '</option>'; }).join('') +
+    var azar = day.minijuego === undefined || day.minijuego === 'azar';
+    html += '<div class="mj-config"><label>Desafío del día <select id="dayJuegoSelect"><option value="azar"' + (azar ? ' selected' : '') + '>Al azar (cambia cada día)</option><option value=""' + (!j ? ' selected' : '') + '>Ninguno</option>' +
+      JUEGOS_DIA.map(function(id){ return '<option value="' + id + '"' + (!azar && id === j ? ' selected' : '') + '>' + escapeHtml(MINIJUEGOS[id].titulo) + '</option>'; }).join('') +
       '</select></label>' + (j ? '<label class="mj-config-check"><input type="checkbox" id="dayJuegoBloquea"' + (day.minijuegoBloquea ? ' checked' : '') + '> Tapar el texto del día hasta ganarlo</label>' : '') + '</div>';
   }
   return html;
@@ -76,10 +84,8 @@ export function attachJuegoDelDia(day){
 // sorteo sale de uid + fecha: estable todo el día, cambia al siguiente.
 // Puntos: solo la primera vez que se gana cada juego (`depto-<juego>`).
 function juegoDeptoDeHoy(){
-  var u = AppState.currentUser, semilla = (u && u.uid || '') + hoyClave(), h = 0;
-  for(var i = 0; i < semilla.length; i++){ h = (h * 31 + semilla.charCodeAt(i)) | 0; }
   var deptos = Object.keys(DEPTO_JUEGO);
-  return deptos[Math.abs(h) % deptos.length];
+  return deptos[sorteo('', deptos.length)];
 }
 
 export function renderJuegosDeptoHtml(){
