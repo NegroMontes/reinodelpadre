@@ -327,12 +327,23 @@ import { showAlert, showConfirm } from '../components/dialog.js';
   // ubicarMapa()). Los que están cerca (≤4 puntos) se agrupan en un racimo.
   var MAPA_CAMINO = 'M150 345 C 225 352, 255 300, 212 250 S 140 125, 285 145 S 430 270, 470 190 S 470 110, 515 95';
   var MAPA_ESTACIONES = [
-    { pct: 0, label: 'El valle de los cerdos', lado: 'abajo' },
-    { pct: 25, label: 'La encrucijada', lado: 'der' },
-    { pct: 50, label: 'El camino de retorno', lado: 'arriba' },
-    { pct: 75, label: 'La Tranquera', lado: 'abajo' },
-    { pct: 100, label: 'La casa del Padre', lado: 'izq' }
+    { pct: 0, label: 'El valle de los cerdos', lado: 'abajo', lugar: 'valle' },
+    { pct: 25, label: 'La encrucijada', lado: 'der', lugar: 'encrucijada' },
+    { pct: 50, label: 'El camino de retorno', lado: 'arriba', lugar: 'retorno' },
+    { pct: 75, label: 'La Tranquera', lado: 'abajo', lugar: 'tranquera' },
+    { pct: 100, label: 'La casa del Padre', lado: 'izq', lugar: 'casa' }
   ];
+  // Qué es cada lugar del mapa (se ve al tocarlo).
+  var MAPA_LUGARES = {
+    valle: { t: 'El valle de los cerdos', cita: 'Lc 15, 15-16', d: 'Lejos de casa, el hijo termina cuidando cerdos y con hambre. Es el punto de partida: con los primeros puntos, el comando arranca acá el camino de vuelta.' },
+    encrucijada: { t: 'La encrucijada', cita: 'Lc 15, 17-18', d: '«Entonces recapacitó». El momento de decidir: seguir lejos o levantarse e ir a la casa del Padre. De acá sale el desvío a los pueblos extranjeros.' },
+    retorno: { t: 'El camino de retorno', cita: 'Lc 15, 20', d: '«Se levantó y volvió a la casa de su padre». El regreso se hace paso a paso: cada entrada completada es un tramo más.' },
+    tranquera: { t: 'La Tranquera', cita: 'Lc 15, 20', d: '«Cuando todavía estaba lejos, su padre lo vio y corrió a su encuentro». La entrada a las tierras del Padre: el portón está abierto.' },
+    casa: { t: 'La casa del Padre', cita: 'Lc 15, 22-24', d: 'El abrazo, el anillo, las sandalias y la fiesta. La meta del camino: volver a casa como hijos.' },
+    extranjeros: { t: 'Pueblos extranjeros', cita: 'Lc 15, 13', d: '«Se fue a un país lejano». Acá esperan los comandos que todavía no arrancaron (0%): con el primer punto pasan al camino.' },
+    lago: { t: 'El lago', cita: '', d: 'El camino de vuelta no siempre es en línea recta: a veces hay que rodear obstáculos, pero se sigue avanzando.' },
+    tierras: { t: 'Las tierras del Padre', cita: 'Lc 15, 17', d: '«¡Cuántos jornaleros de mi padre tienen pan en abundancia!». Viñas, trigo, olivos y ganado: la abundancia de la casa del Padre.' }
+  };
 
   // Ilustraciones del mapa (06/11/2026): trazo redondeado como los íconos
   // Lucide de la página, con relleno suave; colores por variables CSS.
@@ -542,13 +553,17 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       '<path class="mapa-cerca-riel"/><path class="mapa-cerca-poste"/><g class="mapa-mojones"></g>' +
       '<g class="mapa-tranquera"></g>' +
       '</svg>' +
-      '<span class="mapa-deco mapa-chancho" title="El valle de los cerdos">' + MAPA_SVG_CHANCHO + '</span>' +
-      '<span class="mapa-deco mapa-casa" title="La casa del Padre">' + MAPA_SVG_CASA + '</span>' +
-      '<span class="mapa-zona-label">Pueblos extranjeros</span>';
+      '<span class="mapa-deco mapa-chancho" data-lugar="valle" role="button" tabindex="0" aria-label="El valle de los cerdos">' + MAPA_SVG_CHANCHO + '</span>' +
+      '<span class="mapa-deco mapa-casa" data-lugar="casa" role="button" tabindex="0" aria-label="La casa del Padre">' + MAPA_SVG_CASA + '</span>' +
+      '<button type="button" class="mapa-zona-label" data-lugar="extranjeros">Pueblos extranjeros</button>' +
+      // Zonas tocables sin etiqueta propia (invisibles).
+      '<button type="button" class="mapa-hit" data-lugar="extranjeros" style="left:14%;top:46%" aria-label="Pueblos extranjeros"></button>' +
+      '<button type="button" class="mapa-hit" data-lugar="lago" style="left:40%;top:48%" aria-label="El lago"></button>' +
+      '<button type="button" class="mapa-hit mapa-hit-grande" data-lugar="tierras" style="left:90%;top:64%" aria-label="Las tierras del Padre"></button>';
     MAPA_ESTACIONES.forEach(function(e, i){
       html += '<div class="mapa-estacion mapa-lado-' + e.lado + '" data-pct="' + e.pct + '">' +
         '<span class="mapa-punto"></span>' +
-        '<span class="mapa-label"><b>' + (i + 1) + '</b><span class="mapa-label-txt">' + escapeHtml(e.label) + '</span></span></div>';
+        '<button type="button" class="mapa-label" data-lugar="' + e.lugar + '"><b>' + (i + 1) + '</b><span class="mapa-label-txt">' + escapeHtml(e.label) + '</span></button></div>';
     });
     // Pueblos extranjeros (Lc 15, 13): los comandos en 0% (nadie avanzó
     // todavía) esperan ahí, en el desvío de La Encrucijada; con el primer
@@ -565,7 +580,8 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       html += mapaGrupoHtml(r, mio, 'data-pct="' + pct + '"');
     });
     if(lejos.length) html += mapaGrupoHtml(lejos, mio, 'data-zona="extranjeros"');
-    html += '<div class="mapa-pop" role="dialog" hidden></div></div>';
+    html += '<div class="mapa-pop" role="dialog" hidden></div></div>' +
+      '<p class="tablero-meta mapa-ayuda">Tocá los lugares del mapa para saber qué son.</p>';
     // Referencia numerada (solo en celular, donde las etiquetas no entran).
     html += '<ol class="mapa-leyenda">' + MAPA_ESTACIONES.map(function(e){ return '<li>' + escapeHtml(e.label) + '</li>'; }).join('') +
       '<li class="mapa-leyenda-zona">Pueblos extranjeros (sin avance)</li></ol></section>';
@@ -598,7 +614,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
   function cerrarMapaPop(){
     var pop = document.querySelector('.mapa-pop');
     if(pop) pop.hidden = true;
-    document.querySelectorAll('.mapa-grupo.abierto').forEach(function(g){ g.classList.remove('abierto'); });
+    document.querySelectorAll('.mapa-grupo.abierto, .mapa-lienzo .abierto').forEach(function(g){ g.classList.remove('abierto'); });
   }
 
   // Cierra el globito al tocar afuera o con Escape (instalado una sola vez).
@@ -688,6 +704,14 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       '<path class="mt-cuerda" d="M' + f(pT.x - 6) + ' ' + f(tope + 2.5) + 'v1M' + f(pT.x + 6) + ' ' + f(tope + 2.5) + 'v1"/>';
     lienzo.querySelector('.mapa-tranquera').innerHTML = g;
     var pop = lienzo.querySelector('.mapa-pop');
+    // Arriba o abajo del punto (x,y) según dónde está; sin salirse del mapa.
+    function ubicarPop(x, y, alto){
+      var W = lienzo.clientWidth, H = lienzo.clientHeight, w = pop.offsetWidth, h = pop.offsetHeight;
+      pop.style.left = Math.max(4, Math.min(W - w - 4, x - w / 2)) + 'px';
+      var arriba = y - alto - h >= 0 || (y + alto + h > H && y > H - y);
+      var top = arriba ? y - alto - h : y + alto;
+      pop.style.top = Math.max(-h + 40, Math.min(H - 40, top)) + 'px';
+    }
     lienzo.querySelectorAll('.mapa-grupo').forEach(function(g){
       g.querySelector('.mapa-pila').onclick = function(ev){
         ev.stopPropagation();
@@ -696,15 +720,26 @@ import { showAlert, showConfirm } from '../components/dialog.js';
         g.classList.add('abierto');
         pop.innerHTML = g.querySelector('.mapa-pop-content').innerHTML;
         pop.hidden = false;
-        // Arriba o abajo del escudo según dónde está; sin salirse del mapa.
-        var W = lienzo.clientWidth, H = lienzo.clientHeight;
-        var x = g.offsetLeft, y = g.offsetTop, w = pop.offsetWidth, h = pop.offsetHeight;
-        var alto = g.querySelector('.mapa-pila').offsetHeight / 2 + 8;
-        pop.style.left = Math.max(4, Math.min(W - w - 4, x - w / 2)) + 'px';
-        var arriba = y - alto - h >= 0 || (y + alto + h > H && y > H - y);
-        var top = arriba ? y - alto - h : y + alto;
-        pop.style.top = Math.max(-h + 40, Math.min(H - 40, top)) + 'px';
+        ubicarPop(g.offsetLeft, g.offsetTop, g.querySelector('.mapa-pila').offsetHeight / 2 + 8);
       };
+    });
+    // Lugares: al tocarlos, qué son y por qué están (Lc 15).
+    lienzo.querySelectorAll('[data-lugar]').forEach(function(el){
+      var abrir = function(ev){
+        ev.stopPropagation();
+        if(el.classList.contains('abierto')){ cerrarMapaPop(); return; }
+        cerrarMapaPop();
+        var l = MAPA_LUGARES[el.getAttribute('data-lugar')];
+        if(!l) return;
+        el.classList.add('abierto');
+        pop.innerHTML = '<div class="mapa-lugar-pop"><strong>' + escapeHtml(l.t) + '</strong>' +
+          (l.cita ? '<small>' + escapeHtml(l.cita) + '</small>' : '') + '<p>' + escapeHtml(l.d) + '</p></div>';
+        pop.hidden = false;
+        var r = el.getBoundingClientRect(), base = lienzo.getBoundingClientRect();
+        ubicarPop(r.left - base.left + r.width / 2, r.top - base.top + r.height / 2, r.height / 2 + 6);
+      };
+      el.onclick = abrir;
+      el.onkeydown = function(ev){ if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); abrir(ev); } };
     });
     if(!mapaDocListo){
       mapaDocListo = true;
