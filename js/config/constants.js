@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.07.18';
+  export var APP_VERSION = '2026.11.07.19';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.07.19', date: '07/11/2026', items: [
+      'Juegos de fe en el desafío del Mensaje: «Hijos y herederos del Reino», «Las partes de la Misa» y «Los misterios del Rosario».'
+    ]},
     { version: '2026.11.07.18', date: '07/11/2026', items: [
       'Minijuegos un poco más fáciles, sobre todo con mouse. Con la compu, la barra espaciadora sirve de botón en los juegos de reflejos.'
     ]},

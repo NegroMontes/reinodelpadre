@@ -113,11 +113,11 @@ function(host, fin){
 
 // ===================== EL DESPERTAR DE LA BANDERA =====================
 registrarMinijuego('bandera', { titulo: 'El despertar de la bandera',
-  ayuda: 'Mantené apretado «Tirar de la driza» para tensar la soga. La bandera solo sube con la tensión en la zona verde: si aflojás, se frena; si tirás de más, se corta. Izala en 25 segundos.' },
+  ayuda: 'Mantené apretado «Tirar de la driza» para tensar la soga. La bandera solo sube con la tensión en la zona verde: si aflojás, se frena; si tirás de más, se corta. Izala en 30 segundos.' },
 function(host, fin){
-  var tension = 0, altura = 0, tirando = false, tiempo = 25, terminado = false, ctx = null;
+  var tension = 0, altura = 0, tirando = false, tiempo = 30, terminado = false, ctx = null;
   host.innerHTML = '<div class="mj-mastil"><div class="mj-palo"></div><div class="mj-bandera-izada"><i></i></div></div>' +
-    '<div class="mj-barra"><div class="mj-barra-zona" style="left:45%;width:30%"></div><div class="mj-barra-nivel"></div></div>' +
+    '<div class="mj-barra"><div class="mj-barra-zona" style="left:35%;width:45%"></div><div class="mj-barra-nivel"></div></div>' +
     '<div class="mj-fila"><button type="button" class="btn mj-driza">Tirar de la driza</button></div><div class="mj-info"></div>';
   var band = host.querySelector('.mj-bandera-izada'), barra = host.querySelector('.mj-barra-nivel'), info = host.querySelector('.mj-info'), boton = host.querySelector('.mj-driza');
   boton.addEventListener('pointerdown', function(e){ e.preventDefault(); tirando = true; clarin(); });
@@ -138,7 +138,7 @@ function(host, fin){
     tiempo -= 0.05;
     tension += tirando ? 1.7 + Math.random() * 1.1 : -2.2;
     tension = Math.max(0, tension);
-    if(tension >= 45 && tension <= 75) altura += 0.75;
+    if(tension >= 35 && tension <= 80) altura += 1;
     band.style.bottom = (8 + altura * 0.78) + '%';
     barra.style.width = Math.min(100, tension) + '%';
     info.textContent = 'Altura: ' + Math.min(100, Math.round(altura)) + '% · ' + Math.ceil(tiempo) + ' s';

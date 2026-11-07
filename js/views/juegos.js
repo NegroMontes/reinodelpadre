@@ -11,6 +11,7 @@ import { escapeHtml } from '../utils/helpers.js';
 import { MINIJUEGOS, abrirMinijuego } from '../components/minijuegos.js';
 import '../components/minijuegos-secciones.js';
 import '../components/minijuegos-deptos.js';
+import '../components/minijuegos-fe.js';
 import { juegoGanado, registrarJuego, hoyClave } from '../services/juegos.service.js';
 import { renderPanel } from '../main.js';
 
@@ -31,12 +32,15 @@ export var DEPTO_JUEGOS = {
 };
 function aplanar(m){ return Object.keys(m).reduce(function(a, k){ return a.concat(m[k]); }, []); }
 // Mensaje: los de las secciones + fogata y radio. Departamentos: los de los deptos.
-var JUEGOS_DIA = ['fogata', 'radio'].concat(aplanar(SECCION_JUEGOS));
+// Juegos de fe (07/11/2026): entran en el sorteo del Mensaje, junto a los de secciones.
+export var FE_JUEGOS = ['fundamento', 'partesMisa', 'misterios'];
+var JUEGOS_DIA = ['fogata', 'radio'].concat(FE_JUEGOS, aplanar(SECCION_JUEGOS));
 export var JUEGOS_DEPTOS = aplanar(DEPTO_JUEGOS);
 
 // «Escuderos», «Logística»… del juego (para la tarjeta).
 function grupoDe(id){
   var m = Object.assign({}, SECCION_JUEGOS, DEPTO_JUEGOS);
+  if(FE_JUEGOS.indexOf(id) >= 0) return 'Fe';
   return Object.keys(m).find(function(k){ return m[k].indexOf(id) >= 0; }) || '';
 }
 
@@ -79,7 +83,7 @@ export function renderJuegoDelDiaHtml(day){
   if(canEditStructure()){
     var azar = day.minijuego === undefined || day.minijuego === 'azar';
     html += '<div class="mj-config"><label>Desafío del día <select id="dayJuegoSelect"><option value="azar"' + (azar ? ' selected' : '') + '>Al azar (cambia cada día)</option><option value=""' + (!j ? ' selected' : '') + '>Ninguno</option>' +
-      [['Generales', ['fogata', 'radio']]].concat(Object.keys(SECCION_JUEGOS).map(function(k){ return [k, SECCION_JUEGOS[k]]; }), Object.keys(DEPTO_JUEGOS).map(function(k){ return [k, DEPTO_JUEGOS[k]]; })).map(function(gr){
+      [['Generales', ['fogata', 'radio']], ['Fe', FE_JUEGOS]].concat(Object.keys(SECCION_JUEGOS).map(function(k){ return [k, SECCION_JUEGOS[k]]; }), Object.keys(DEPTO_JUEGOS).map(function(k){ return [k, DEPTO_JUEGOS[k]]; })).map(function(gr){
         return '<optgroup label="' + escapeHtml(gr[0]) + '">' + gr[1].map(function(id){ return '<option value="' + id + '"' + (!azar && id === j ? ' selected' : '') + '>' + escapeHtml(MINIJUEGOS[id].titulo) + '</option>'; }).join('') + '</optgroup>';
       }).join('') +
       '</select></label>' + (j ? '<label class="mj-config-check"><input type="checkbox" id="dayJuegoBloquea"' + (day.minijuegoBloquea ? ' checked' : '') + '> Tapar el texto del día hasta ganarlo</label>' : '') + '</div>';

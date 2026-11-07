@@ -258,3 +258,9 @@ html{touch-action:manipulation}
 .mj-probar>summary h3{display:inline}
 .mj-probar>summary::after{content:" ▾";color:var(--ink-soft)}
 .mj-probar-lista{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+/* Juegos de fe (07/11/2026). */
+.mj-cita{font-style:italic}
+.mj-orden{margin:6px 0 10px 20px;padding:0;font-size:14px}
+.mj-orden li{margin:2px 0;color:var(--sage);font-weight:600}
+.mj-grupos4{grid-template-columns:repeat(2,1fr)}
