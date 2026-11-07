@@ -505,6 +505,15 @@ import { showAlert, showConfirm } from '../components/dialog.js';
     mapaAlamo(470, 262, 30) + mapaAlamo(478, 250, 26) + mapaAlamo(590, 296, 34) + mapaAlamo(578, 290, 30) +
     mapaArbusto(596, 186, 4) + mapaArbusto(530, 100, 4) + mapaArbusto(505, 112, 3.5) + mapaArbusto(588, 262, 4.5);
 
+  // Lago entre La Encrucijada y El camino de retorno: explica la vuelta que
+  // da el camino (lo rodea por la izquierda). Orilla, agua, reflejos y juncos.
+  var MAPA_SVG_LAGO =
+    '<path class="ml-orilla" d="M210 230C197 221,188 206,188 188S195 159,214 154S256 150,272 161S285 197,268 213S228 236,210 230Z"/>' +
+    '<path class="ml-agua" d="M213 224C202 217,194 203,194 188S200 165,216 160S252 157,266 166S277 195,263 208S230 229,213 224Z"/>' +
+    '<path class="ml-reflejo" d="M208 186h20M222 196h26M214 207h16"/>' +
+    '<path class="ml-junco" d="M268 206v-9M271 203v-12M274 199v-8M228 232v-8M231 233v-11M234 232v-7"/>' +
+    '<ellipse class="ml-espiga" cx="271" cy="190" rx="1.2" ry="2.6"/><ellipse class="ml-espiga" cx="231" cy="221" rx="1.2" ry="2.6"/>';
+
   // Cresta de la cordillera de atrás, de izquierda a la cerca (440,118).
   var MAPA_CRESTA_IZQ = 'M0 235 C 50 205, 85 150, 140 168 S 225 105, 290 145 S 375 85, 440 118';
 
@@ -523,7 +532,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       MAPA_SVG_RELIEVE + MAPA_SVG_PUEBLO +
       '<path fill="url(#mapaG2)" d="M0 318 C 75 280, 145 302, 215 272 S 355 228, 430 258 S 535 215, 600 238 L600 400 L0 400 Z"/>' +
       '<path class="mapa-afuera"/><path class="mapa-dominio-verde mapa-dominio"/><path class="mapa-dominio-luz mapa-dominio" fill="url(#mapaCalido)"/>' +
-      MAPA_SVG_ESTANCIA +
+      MAPA_SVG_ESTANCIA + MAPA_SVG_LAGO +
       // Bordes primero y centros después: el desvío y el camino se funden
       // en La Encrucijada, sin una línea que los separe.
       '<path class="mapa-desvio-borde mapa-desvio"/>' +
