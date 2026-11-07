@@ -2,7 +2,7 @@
 // Lo que cada persona ganó se guarda en su perfil: `users/{uid}.juegos`
 // (mapa clave → fecha en ms). Claves:
 //   dia-<dayId>      minijuego del día de Mensaje (1 punto bonus)
-//   depto-<juego>    minijuego de un departamento (1)
+//   depto-<juego>    juego de departamento que tocó ese día (1, solo la primera vez por juego)
 //   huevo-<id>       huevo de pascua encontrado (2)
 //   diana-<aaaammdd> toque de diana de ese día (1)
 //   lluvia-<aaaammdd> zanjas en un día de lluvia (2)

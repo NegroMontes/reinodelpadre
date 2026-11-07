@@ -9,7 +9,7 @@ import { save } from '../services/state.service.js';
 import { canEditStructure } from '../services/permissions.js';
 import { escapeHtml } from '../utils/helpers.js';
 import { MINIJUEGOS, abrirMinijuego } from '../components/minijuegos.js';
-import { juegoGanado, registrarJuego } from '../services/juegos.service.js';
+import { juegoGanado, registrarJuego, hoyClave } from '../services/juegos.service.js';
 import { renderPanel } from '../main.js';
 
 var DIA_DEFAULT = ['fogata', 'radio', 'trivia15', 'red', 'fogata', 'radio', 'trivia15'];
@@ -70,25 +70,30 @@ export function attachJuegoDelDia(day){
   if(chk) chk.onchange = function(){ if(chk.checked) day.minijuegoBloquea = true; else delete day.minijuegoBloquea; save(); renderPanel(); };
 }
 
-export function renderJuegosDeptoHtml(filtro){
-  var deptos = filtro ? [filtro] : Object.keys(DEPTO_JUEGO);
-  deptos = deptos.filter(function(d){ return DEPTO_JUEGO[d]; });
-  if(!deptos.length) return '';
-  var html = '<div class="mj-deptos">';
-  deptos.forEach(function(d){
-    var j = DEPTO_JUEGO[d], ganado = juegoGanado('depto-' + d);
-    html += '<button type="button" class="mj-depto' + (ganado ? ' mj-depto-hecho' : '') + '" data-jugar-depto="' + escapeHtml(d) + '">' +
-      '<span class="mj-card-kicker">' + escapeHtml(d) + '</span><strong>' + escapeHtml(MINIJUEGOS[j].titulo) + '</strong>' +
-      (ganado ? '<span class="mj-hecho">✓ Superado</span>' : '<span class="mj-jugar">Jugar ›</span>') + '</button>';
-  });
-  return html + '</div>';
+// Departamentos (07/11/2026, pedido del usuario): ya no se ven los 6 juegos
+// juntos. A cada persona le toca UNO por día, al azar entre los juegos de
+// todos los departamentos (cualquiera puede jugar el de cualquier depto). El
+// sorteo sale de uid + fecha: estable todo el día, cambia al siguiente.
+// Puntos: solo la primera vez que se gana cada juego (`depto-<juego>`).
+function juegoDeptoDeHoy(){
+  var u = AppState.currentUser, semilla = (u && u.uid || '') + hoyClave(), h = 0;
+  for(var i = 0; i < semilla.length; i++){ h = (h * 31 + semilla.charCodeAt(i)) | 0; }
+  var deptos = Object.keys(DEPTO_JUEGO);
+  return deptos[Math.abs(h) % deptos.length];
+}
+
+export function renderJuegosDeptoHtml(){
+  var d = juegoDeptoDeHoy(), j = DEPTO_JUEGO[d], ganado = juegoGanado('depto-' + j);
+  return '<div class="mj-card"><div><span class="mj-card-kicker">Juego de hoy · ' + escapeHtml(d) + '</span><strong>' + escapeHtml(MINIJUEGOS[j].titulo) + '</strong>' +
+    (ganado ? ' <span class="mj-hecho">✓ Ya lo superaste</span>' : '') + '</div>' +
+    '<button type="button" class="btn small' + (ganado ? ' ghost' : '') + '" data-jugar-depto="' + escapeHtml(d) + '">' + (ganado ? 'Jugar otra vez' : 'Jugar') + '</button></div>';
 }
 
 export function attachJuegosDepto(){
   document.querySelectorAll('[data-jugar-depto]').forEach(function(b){
     b.onclick = function(){
-      var d = b.getAttribute('data-jugar-depto');
-      abrirMinijuego(DEPTO_JUEGO[d], { alGanar: function(){ return textoGanado('depto-' + d); }, alCerrar: renderPanel });
+      var j = DEPTO_JUEGO[b.getAttribute('data-jugar-depto')];
+      abrirMinijuego(j, { alGanar: function(){ return textoGanado('depto-' + j); }, alCerrar: renderPanel });
     };
   });
 }

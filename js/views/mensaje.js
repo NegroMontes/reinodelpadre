@@ -49,7 +49,7 @@ import { showConfirm, showAlert } from '../components/dialog.js';
 
     var html = '';
     html += '<div class="panel-head"><div><h2>Departamentos</h2></div></div>';
-    var juegosDeptoHtml = renderJuegosDeptoHtml(AppState.activeDeptoFiltro);
+    var juegosDeptoHtml = renderJuegosDeptoHtml();
 
     if(visibleDeptos.length > 1){
       html += '<div class="mensaje-dayswitch">';
