@@ -251,3 +251,10 @@ html{touch-action:manipulation}
 .mj-sab-chip{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:2500;background:var(--card-bg);color:var(--ink);border:2px solid var(--bordeaux);border-radius:20px;padding:6px 14px;font-size:13px;box-shadow:var(--shadow-md);white-space:nowrap}
 .mj-chancho-suelto{position:absolute;z-index:50;border:0;background:none;font-size:28px;cursor:pointer;padding:4px;animation:mj-chancho .6s ease-in-out infinite alternate}
 @keyframes mj-chancho{to{transform:translateX(8px) rotate(8deg)}}
+
+/* Perfil (admin): probar minijuegos. */
+.mj-probar>summary{cursor:pointer;list-style:none}
+.mj-probar>summary::-webkit-details-marker{display:none}
+.mj-probar>summary h3{display:inline}
+.mj-probar>summary::after{content:" ▾";color:var(--ink-soft)}
+.mj-probar-lista{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
