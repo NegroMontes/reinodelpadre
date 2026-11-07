@@ -25,6 +25,7 @@ import { AppState } from './app-state.js';
 import { uid, escapeHtml, linkify, alignStyleAttr, roleLabel } from './utils/helpers.js';
 import { saveNovedadesSeenAt, saveUsersSeenAt, saveTheme } from './utils/storage.js';
 import { encodeHash, decodeHash, applyHashNav } from './utils/hash-router.js';
+import { irAEntrada } from './services/entry-link.js';
 import { icon } from './utils/icons.js';
 import { startVersionWatch, stopVersionWatch } from './services/version-check.service.js';
 import { sincronizarMiRango } from './services/rangos.service.js';
@@ -676,6 +677,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
   window.addEventListener('hashchange', function(){
     if(!AppState.currentUser || effectiveRole() === 'pendiente') return;
     var target = decodeHash(window.location.hash);
+    if(target.entryId){ irAEntrada(target.entryId); return; }
     var days = AppState.state.days || [];
     var resolvedDayId = target.tab === 'MENSAJE'
       ? ((target.dayId && days.some(function(d){ return d.id === target.dayId; })) ? target.dayId : (days.length ? days[0].id : null))

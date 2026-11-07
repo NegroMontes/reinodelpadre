@@ -69,6 +69,7 @@
     var out = { tab: 'HOME', dayId: null, recursosCategoria: '', recursosGrupo: '', cancioneroVista: '', cancioneroCantoId: null, misaId: null, deptoFiltro: '', mandosSub: 'mandos', usersSub: 'comando' };
     if(!h) return out;
     var parts = h.split('/').map(function(p){ try{ return decodeURIComponent(p); }catch(e){ return p; } });
+    if(parts[0] === 'entrada' && parts[1]){ out.entryId = parts[1]; return out; }
     var tab = SLUG_TO_TAB[parts[0]];
     if(!tab) return out;
     out.tab = tab;

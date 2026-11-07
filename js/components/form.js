@@ -8,6 +8,7 @@
 // y si es la entrada de bienvenida.
 
 import { AppState } from '../app-state.js';
+import { copiarLinkDeEntrada } from '../services/entry-link.js';
 import { SECCIONES, DEPARTAMENTOS, RANGOS } from '../config/constants.js';
 import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recursoCategorias, recursoCategoriasOrdenadas, recursoGruposDe, recursoGrupoDe, mediodiaDe, isoDeFecha } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
@@ -769,6 +770,9 @@ import { attachEntryReorder } from './entry-reorder.js';
     // igual que "la fordoquera" porque literalmente es ella, embebida.
     document.querySelectorAll('[data-action="view"]').forEach(function(btn){
       btn.onclick = function(){ openFordoqueraViewer(btn.getAttribute('data-id')); };
+    });
+    document.querySelectorAll('[data-action="copyLink"]').forEach(function(btn){
+      btn.onclick = function(e){ e.stopPropagation(); copiarLinkDeEntrada(btn.getAttribute('data-id')); };
     });
 
     // "Ver quién la completó" (admin-only) — togglea el panel y marca como

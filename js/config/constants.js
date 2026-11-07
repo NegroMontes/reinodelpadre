@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.07.5';
+  export var APP_VERSION = '2026.11.07.6';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.07.6', date: '07/11/2026', items: [
+      'Cada entrada tiene su link: el botón de cadena la copia, y al abrir el link se va directo a la entrada.'
+    ]},
     { version: '2026.11.07.5', date: '07/11/2026', items: [
       'Cada lugar de la página tiene su propia dirección (categorías y grupos de Recursos, Cancionero y misas, subpestañas de Comando y Usuarios, filtro de Departamentos): «Atrás», recargar y compartir el link llevan ahí.'
     ]},

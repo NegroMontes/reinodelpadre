@@ -168,6 +168,8 @@ import { puntosDe, obligatoriaRangoDe, rangoNombre } from '../services/rangos.se
     if(AppState.secuencialCompletionsOpenId === entry.id){ html += completionsPanelHtml(entry); }
     html += '    </div>';
     html += '    <div class="entry-actions">';
+    // Copiar el link directo a la entrada (07/11/2026), para mandárselo a alguien.
+    html += '      <button class="entry-icon-btn" data-action="copyLink" data-id="' + entry.id + '" title="Copiar link" aria-label="Copiar link">' + icon('link') + '</button>';
     if(canEdit){
       // Publicar de un click, sin tener que abrir el editor (pedido del
       // usuario, 23/09/2026: "que se publique en un momento a elección").

@@ -7,6 +7,7 @@ import { stateDocRef, db } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { uid } from '../utils/helpers.js';
 import { decodeHash, applyHashNav } from '../utils/hash-router.js';
+import { irAEntrada } from './entry-link.js';
 import { canEditStructure, canEditConsigna } from './permissions.js';
 import { ensureProgressSubs, ensureCompletionsSubs } from './progress.service.js';
 import { render, renderPanel, showStatus } from '../main.js';
@@ -163,6 +164,8 @@ import { showConfirm } from '../components/dialog.js';
         AppState.firstSnapshot = false;
         applyInitialNavFromHash();
         render();
+        var linkEntrada = decodeHash(window.location.hash).entryId;
+        if(linkEntrada){ irAEntrada(linkEntrada); }
         return;
       }
       // Actualización remota (otro jefe cargó/editó algo). Si hay un
