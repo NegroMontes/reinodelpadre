@@ -162,8 +162,14 @@ import { puntosDe, obligatoriaRangoDe, rangoNombre } from '../services/rangos.se
     if(isAdmin() && HIJOS_BIBLICOS[entry.hijoBiblico]){
       rangoTag += ' <span class="tag tag-muted" title="Solo la ve quien sacó este hijo en el test">' + icon('lock') + ' Test: ' + escapeHtml(HIJOS_BIBLICOS[entry.hijoBiblico].nombre) + '</span>';
     }
+    // Con más de dos tags se juntan en uno que se abre al tocarlo (07/11/2026).
+    var todosTags = scopeTag + ocultaTag + anonimoTag + rangoTag;
+    var nTags = (todosTags.match(/<span class="tag[ "]/g) || []).length;
+    if(nTags > 2){
+      todosTags = '<details class="tags-fold"><summary class="tag tag-muted" title="Ver etiquetas">' + icon('tag') + ' ' + nTags + ' etiquetas</summary><span class="tags-fold-body">' + todosTags + '</span></details> ';
+    }
     html += '      <div class="entry-meta">' +
-      scopeTag + ocultaTag + anonimoTag + rangoTag +
+      todosTags +
       (entry.anonimo ? '' : (entry.author ? '<span class="entry-author">' + escapeHtml(entry.author) + '</span>' : '')) + '</div>';
     html += '      <div class="entry-start-row">';
     html += '        <button class="btn small entry-start-btn" data-action="view" data-id="' + entry.id + '">Comenzar</button>';

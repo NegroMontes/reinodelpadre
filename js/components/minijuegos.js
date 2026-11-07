@@ -5,7 +5,7 @@
 import { escapeHtml } from '../utils/helpers.js';
 
 export var MINIJUEGOS = {
-  fogata:      { titulo: 'La fogata de la guardia', ayuda: 'Echá leña para que el fuego quede en la zona verde. Si se apaga o se desborda, se pierde. Aguantá 15 segundos en la zona.' },
+  fogata:      { titulo: 'La fogata de la guardia', ayuda: 'Echá leña para que el fuego quede en la zona verde. Si se apaga o se desborda, se pierde. Aguantá 20 segundos en la zona.' },
   radio:       { titulo: 'Sintonizar la transmisión', ayuda: 'Mové el dial hasta que la señal quede al máximo y descifrá la palabra en morse.' },
   estacas:     { titulo: 'El clavado de estacas', ayuda: 'El viento afloja las estacas de la carpa. Tocá cada estaca que se levanta antes de que se suelte. Aguantá 30 segundos sin perder 3.' },
   proveeduria: { titulo: 'Tetris de proveeduría', ayuda: 'Acomodá toda la carga en el baúl. Elegí una pieza, girala si hace falta y tocá la casilla donde va su esquina de arriba a la izquierda. Tocá una pieza puesta para sacarla.' },
@@ -70,12 +70,13 @@ var JUEGOS = {};
 
 // ---------- Fogata ----------
 JUEGOS.fogata = function(host, fin){
-  var nivel = 50, enZona = 0, META = 15, viento = 0, terminado = false;
+  var nivel = 50, enZona = 0, META = 20, viento = 0, terminado = false, t0 = Date.now();
   host.innerHTML = '<div class="mj-fogata"><div class="mj-llama">🔥</div>' +
-    '<div class="mj-barra"><div class="mj-barra-zona" style="left:35%;width:45%"></div><div class="mj-barra-nivel"></div></div>' +
+    '<div class="mj-barra"><div class="mj-barra-zona" style="left:45%;width:25%"></div><div class="mj-barra-nivel"></div></div>' +
     '<div class="mj-info"></div><button type="button" class="btn" data-leña>🪵 Echar leña</button></div>';
   var llama = host.querySelector('.mj-llama'), nivelEl = host.querySelector('.mj-barra-nivel'), info = host.querySelector('.mj-info');
-  host.querySelector('[data-leña]').onclick = function(){ nivel = Math.min(100, nivel + 13); pintar(); };
+  // Cada tronco suma distinto (troncos más secos o más verdes): no alcanza con un ritmo fijo.
+  host.querySelector('[data-leña]').onclick = function(){ nivel = Math.min(100, nivel + rnd(9, 19)); pintar(); };
   function pintar(){
     nivelEl.style.width = nivel + '%';
     llama.style.transform = 'scale(' + (0.4 + nivel / 70) + ')';
@@ -84,10 +85,11 @@ JUEGOS.fogata = function(host, fin){
   }
   var t = setInterval(function(){
     if(terminado) return;
-    if(Math.random() < 0.03) viento = rnd(0.5, 1.4);
-    viento = Math.max(0, viento - 0.01);
-    nivel -= 0.9 + viento * 1.2;
-    if(nivel >= 35 && nivel <= 80) enZona += 0.1;
+    var seg = (Date.now() - t0) / 1000;
+    if(Math.random() < 0.05) viento = rnd(0.6, 1.6) + seg / 25;
+    viento = Math.max(0, viento - 0.012);
+    nivel -= 1.4 + seg / 30 + viento * 1.6;
+    if(nivel >= 45 && nivel <= 70) enZona += 0.1;
     pintar();
     if(nivel <= 0 || nivel >= 100){ terminado = true; fin(false); }
     else if(enZona >= META){ terminado = true; fin(true); }
@@ -161,10 +163,11 @@ JUEGOS.estacas = function(host, fin){
   var t = setInterval(function(){
     if(terminado) return;
     tiempo -= 0.1;
-    var fuerza = 0.6 + (30 - tiempo) / 30 * 1.4;
+    var avance = (30 - tiempo) / 30;
+    var fuerza = 0.8 + avance * 2.6 + avance * avance * 1.5;
     flojas.forEach(function(f, i){
       if(f < 0) return;
-      if(f > 0 || Math.random() < 0.012 * fuerza) flojas[i] = f + fuerza * 2.2;
+      if(f > 0 || Math.random() < 0.016 * fuerza) flojas[i] = f + fuerza * 2.4;
       if(flojas[i] >= 100){ flojas[i] = -1; perdidas++; }
     });
     pintar();

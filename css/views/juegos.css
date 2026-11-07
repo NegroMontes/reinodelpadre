@@ -1,4 +1,6 @@
 /* T10 — Minijuegos y huevos de pascua (07/11/2026). */
+/* Sin zoom por doble toque en el celular (se sigue pudiendo pellizcar). */
+html{touch-action:manipulation}
 .mj-card{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:var(--radius);padding:12px 14px;margin:14px 0}
 .mj-card strong{display:block;color:var(--ink)}
 .mj-card-bloq{border-left-color:var(--bordeaux)}
@@ -13,7 +15,7 @@
 .mj-depto-hecho{border-top-color:var(--sage)}
 .mj-jugar{font-size:13px;color:var(--teal);font-weight:600}
 
-.mj-overlay{position:fixed;inset:0;z-index:3000;background:rgba(10,20,28,.55);display:flex;align-items:center;justify-content:center;padding:12px}
+.mj-overlay{position:fixed;inset:0;z-index:3000;touch-action:manipulation;background:rgba(10,20,28,.55);display:flex;align-items:center;justify-content:center;padding:12px}
 .mj-box{background:var(--card-bg);color:var(--ink);border-radius:var(--radius-lg);box-shadow:var(--shadow-lift);width:min(440px,100%);max-height:94vh;overflow:auto;padding:14px 16px}
 .mj-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .mj-close{background:none;border:0;font-size:18px;color:var(--ink-soft);cursor:pointer;padding:4px 8px}
@@ -24,7 +26,7 @@
 .mj-perdio{color:var(--bordeaux)}
 .mj-info{font-size:13px;color:var(--ink-soft);text-align:center;margin:8px 0}
 .mj-fila{display:flex;gap:8px;justify-content:center;margin-top:8px}
-.mj-input{flex:1;max-width:180px;text-transform:uppercase}
+.mj-input{flex:1;max-width:180px;text-transform:uppercase;font-size:16px}
 .mj-opciones{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .mj-col{flex-direction:column}
 .mj-col .btn{white-space:normal;text-align:left}
@@ -40,6 +42,7 @@
 .mj-radio{text-align:center}
 .mj-radio-frec{font-family:ui-monospace,monospace;font-size:28px;font-weight:700;color:var(--teal)}
 .mj-dial{width:100%}
+.mj-fogata .btn{user-select:none;-webkit-user-select:none}
 .mj-morse{display:flex;gap:14px;justify-content:center;font-family:ui-monospace,monospace;font-size:24px;font-weight:700;letter-spacing:2px;flex-wrap:wrap}
 .mj-leyenda{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-family:ui-monospace,monospace;font-size:13px;color:var(--ink-soft);margin:10px 0}
 
@@ -88,20 +91,27 @@
 .mj-carpas .mj-inundada{filter:grayscale(1) opacity(.4)}
 
 /* Huevos de pascua */
-.mj-cielo{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;display:none}
+.mj-cielo{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;display:none;overflow:hidden}
 .theme-dark-active .mj-cielo{display:block}
 .mj-constelacion{position:fixed;left:10px;bottom:10px;z-index:900;width:46px;height:36px;border:0;background:none;cursor:pointer;padding:4px;opacity:.75}
 .mj-constelacion svg{width:100%;height:100%;fill:#ffa41d;stroke:rgba(255,164,29,.6);stroke-width:.8}
 .mj-constelacion-tenue{opacity:.22}
 .mj-constelacion:hover{opacity:1}
-.mj-diana{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;background:linear-gradient(#162937,#162937);transition:background 1.6s,opacity .8s}
+.mj-diana{position:fixed;inset:0;z-index:3000;overflow:hidden;display:flex;align-items:center;justify-content:center;background:linear-gradient(#162937,#162937);transition:background 1.6s,opacity .8s}
 .mj-diana.mj-amanece{background:linear-gradient(#e1eef2 0%,#ffa41d 70%,#db6829 100%)}
 .mj-diana.mj-sale{opacity:0}
 .mj-sol{position:absolute;left:50%;bottom:-120px;width:200px;height:200px;margin-left:-100px;border-radius:50%;background:#ffd27a;box-shadow:0 0 80px #ffa41d;transition:bottom 2s}
 .mj-amanece .mj-sol{bottom:-40px}
 .mj-diana-box{position:relative;background:var(--card-bg);color:var(--ink);border-radius:var(--radius-lg);padding:18px 22px;text-align:center;box-shadow:var(--shadow-lift);max-width:320px}
-.mj-lluvia-fondo{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.55}
+.mj-lluvia-fondo{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.55;overflow:hidden}
 .mj-charco-btn{position:fixed;left:12px;bottom:56px;z-index:900;width:58px;height:22px;border-radius:50%;border:0;cursor:pointer;background:rgba(0,155,179,.65);box-shadow:0 0 0 4px rgba(0,155,179,.2);animation:mj-onda 2.2s infinite}
 @keyframes mj-onda{50%{box-shadow:0 0 0 9px rgba(0,155,179,.08)}}
 @media (prefers-reduced-motion:reduce){.mj-cielo i,.mj-lluvia-fondo i,.mj-gotas i,.mj-charco-btn{animation:none}}
 .tablero-bonus{display:inline-block;font-size:11px;color:#b36b00;background:rgba(255,164,29,.15);border-radius:10px;padding:1px 7px;margin-left:6px;font-weight:600}
+
+/* Tags de una entrada: con más de dos se juntan en uno que se abre tocándolo. */
+.tags-fold{display:inline-block;position:relative}
+.tags-fold>summary{list-style:none;cursor:pointer;white-space:nowrap}
+.tags-fold>summary::-webkit-details-marker{display:none}
+.tags-fold[open]>summary{background:var(--teal);color:#fff}
+.tags-fold-body{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
