@@ -1194,3 +1194,21 @@ a.user-menu-item{ text-decoration:none; display:block; }
   .mapa-label b{ width:15px; height:15px; font-size:9.5px; }
   .mapa-leyenda{ display:grid; }
 }
+
+/* Texto del mensaje del día como contenido de la página (07/11/2026). */
+.mensaje-texto{
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 22px;
+    margin:0 0 20px;
+    box-shadow:var(--shadow-sm);
+    color:var(--ink);
+    line-height:1.6;
+    font-size:15px;
+  }
+.mensaje-texto-titulo{ margin:0 0 10px; font-family:'Baloo 2',serif; font-size:20px; color:var(--indigo); }
+.mensaje-texto p{ margin:0 0 12px; }
+.mensaje-texto p:last-child{ margin-bottom:0; }
+.mensaje-texto-titulo-input{ margin-top:0; }
+.mensaje-pasar-row{ display:flex; justify-content:flex-end; margin:0 0 12px; }

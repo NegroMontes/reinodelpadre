@@ -13,7 +13,7 @@ import { escapeHtml, uid, isoToDayDate, entrySortKey, recursoCategoriaDe, recurs
 import { icon } from '../utils/icons.js';
 import { isAdmin, isJefeSeccion, isJefeSeccionEditing, effectiveDepto, effectiveSeccion, entryScope, canEditEntry, canCreateRecurso, canCreateInfoGeneral } from '../services/permissions.js';
 import { rangoNombre } from '../services/rangos.service.js';
-import { save, renameDay, setDayDate, setDayCita, setConsigna, deleteDay } from '../services/state.service.js';
+import { save, renameDay, setDayDate, setDayCita, setDayTexto, setConsigna, deleteDay } from '../services/state.service.js';
 import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { openFordoqueraEditor, openFordoqueraViewer, openFordoqueraTraer, embeddableUrlForUpload } from './fordoquera-embed.js';
 import { parseEncuentrosHtml } from '../utils/encuentros-interop.js';
@@ -509,6 +509,21 @@ import { attachEntryReorder } from './entry-reorder.js';
       var citaFold = dayCitaTextoInput.closest('details');
       if(citaFold){ citaFold.addEventListener('toggle', function(){ if(citaFold.open){ fitCita(); } }); }
       dayCitaRefInput.addEventListener('blur', saveCita);
+    }
+    var dayTextoInput = document.getElementById('dayTextoInput');
+    var dayTextoTituloInput = document.getElementById('dayTextoTituloInput');
+    if(dayTextoInput && dayTextoTituloInput){
+      var saveTexto = function(){
+        if(dayTextoInput.value.trim() === (day.texto || '') && dayTextoTituloInput.value.trim() === (day.textoTitulo || '')) return;
+        setDayTexto(day.id, dayTextoTituloInput.value.trim(), dayTextoInput.value.trim());
+      };
+      var fitTexto = function(){ dayTextoInput.style.height = 'auto'; dayTextoInput.style.height = dayTextoInput.scrollHeight + 'px'; };
+      dayTextoInput.addEventListener('input', fitTexto);
+      dayTextoInput.addEventListener('blur', saveTexto);
+      dayTextoTituloInput.addEventListener('blur', saveTexto);
+      fitTexto();
+      var textoFold = dayTextoInput.closest('details');
+      if(textoFold){ textoFold.addEventListener('toggle', function(){ if(textoFold.open){ fitTexto(); } }); }
     }
     if(day && typeof day === 'object'){
       document.querySelectorAll('.consignaInput').forEach(function(inp){

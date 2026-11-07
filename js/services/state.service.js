@@ -230,6 +230,18 @@ import { showConfirm } from '../components/dialog.js';
   }
 
 
+  // Texto del mensaje del día (07/11/2026): contenido propio de la página,
+  // en vez de una entrada del día.
+  export function setDayTexto(id, titulo, texto){
+    if(!canEditStructure()) return;
+    var day = AppState.state.days.find(function(d){ return d.id === id; });
+    if(!day) return;
+    if(titulo){ day.textoTitulo = titulo; } else { delete day.textoTitulo; }
+    if(texto){ day.texto = texto; } else { delete day.texto; }
+    save(); renderPanel();
+  }
+
+
   export function setConsigna(dayId, seccion, text){
     if(!canEditConsigna(seccion)) return;
     var day = AppState.state.days.find(function(d){ return d.id === dayId; });

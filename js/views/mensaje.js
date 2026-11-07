@@ -10,6 +10,7 @@ import { icon } from '../utils/icons.js';
 import { entryScope, canSeeEntry, isAdmin, isJefeSeccionEditing, isJefeSeccion, effectiveDepto, effectiveSeccion, effectiveRole, lectorModeActive, isLectorLike, canEditStructure, canCreateRecurso } from '../services/permissions.js';
 import { addDay, save } from '../services/state.service.js';
 import { renderEntriesListHtml } from '../components/entry.js';
+import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { renderForm, attachPanelEvents } from '../components/form.js';
 import { renderPanel } from '../main.js';
 import { renderCancioneroPanel, cancioneroTileHtml, cantosRosarioTileHtml, abrirCantosRosario } from './cancionero.js';
@@ -630,6 +631,93 @@ import { showConfirm, showAlert } from '../components/dialog.js';
   }
 
 
+  // Texto del mensaje del día como contenido de la página (07/11/2026, pedido
+  // del usuario): `day.textoTitulo` + `day.texto` (párrafos separados por una
+  // línea en blanco, mismo markdown liviano que la cita). Las entradas del
+  // día se pasan con `pasarEntradasATexto()` (admin): su texto queda en el
+  // día y la entrada va a la papelera.
+  function parrafosHtml(texto){
+    return String(texto || '').split(/\n\s*\n/).map(function(p){ return p.trim(); }).filter(Boolean)
+      .map(function(p){ return '<p>' + linkify(p).replace(/\n/g, '<br>') + '</p>'; }).join('');
+  }
+
+  function limpiarTexto(t){
+    return String(t || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>\s*<p[^>]*>/gi, '\n\n').replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').trim();
+  }
+
+  function textoDeEntrada(e){
+    var partes = [];
+    function agregar(t){ t = limpiarTexto(t); if(t) partes.push(t); }
+    function recorrer(steps){
+      (steps || []).forEach(function(st){
+        if(!st || typeof st !== 'object') return;
+        agregar(st.pre); agregar(st.body); agregar(st.question); agregar(st.post);
+        if(Array.isArray(st.steps)) recorrer(st.steps);
+        if(Array.isArray(st.items)) recorrer(st.items);
+      });
+    }
+    var esp = entryToEspacio(e);
+    agregar(esp.intro);
+    recorrer(esp.steps);
+    return partes.join('\n\n');
+  }
+
+  function entradasDelDia(dayId){
+    return AppState.state.entries.filter(function(e){ return e.dayId === dayId && !e.deletedAt; }).sort(compareEntryOrder);
+  }
+
+  async function pasarEntradasATexto(){
+    if(!isAdmin()) return;
+    var plan = [];
+    AppState.state.days.forEach(function(d){
+      var es = entradasDelDia(d.id).filter(function(e){ return textoDeEntrada(e); });
+      if(es.length) plan.push({ day: d, entries: es });
+    });
+    if(!plan.length){ showAlert('No hay entradas con texto en los días del Mensaje.'); return; }
+    var lista = plan.map(function(p){ return p.day.label + ': ' + p.entries.map(function(e){ return '«' + (entryToEspacio(e).title || e.title || 'Sin título') + '»'; }).join(', '); }).join('\n');
+    var ok = await showConfirm('Se pasa el texto de estas entradas a la página de cada día, y las entradas van a la papelera (se pueden recuperar):\n\n' + lista);
+    if(!ok) return;
+    var ahora = Date.now();
+    plan.forEach(function(p){
+      var d = p.day;
+      var bloques = [];
+      if(d.texto) bloques.push(d.texto);
+      var soloUna = p.entries.length === 1 && !d.texto && !d.textoTitulo;
+      p.entries.forEach(function(e){
+        var titulo = entryToEspacio(e).title || e.title || '';
+        var t = textoDeEntrada(e);
+        if(soloUna){ if(titulo) d.textoTitulo = titulo; bloques.push(t); }
+        else { bloques.push((titulo ? '**' + titulo + '**\n\n' : '') + t); }
+        e.deletedAt = ahora; e.deletedBy = AppState.currentUser.displayName;
+      });
+      d.texto = bloques.join('\n\n');
+    });
+    save(); renderPanel();
+    showAlert('Listo: ' + plan.length + (plan.length === 1 ? ' día actualizado.' : ' días actualizados.'));
+  }
+
+  function renderTextoDelDia(day){
+    var html = '';
+    if(day.texto || day.textoTitulo){
+      html += '<div class="mensaje-texto">';
+      if(day.textoTitulo){ html += '<h3 class="mensaje-texto-titulo">' + escapeHtml(day.textoTitulo) + '</h3>'; }
+      html += parrafosHtml(day.texto);
+      html += '</div>';
+    }
+    if(canEditStructure()){
+      html += foldOpen('texto', 'cita-banner cita-banner-edit mensaje-texto-edit', '<span class="cita-edit-label">Texto del día</span><span class="mensaje-fold-hint">' + (day.texto ? 'Cargado' : 'Sin cargar') + '</span>');
+      html += '  <label class="cita-edit-label" for="dayTextoTituloInput">Título (opcional)</label>';
+      html += '  <input type="text" id="dayTextoTituloInput" class="cita-ref-input mensaje-texto-titulo-input" placeholder="Ej: La originalidad de la dignidad de hijos" value="' + escapeHtml(day.textoTitulo || '') + '">';
+      html += '  <div class="cita-edit-head" style="margin-top:10px"><label class="cita-edit-label" for="dayTextoInput">Texto</label>';
+      html += '    <details class="md-hint"><summary title="Formato" aria-label="Ayuda de formato">' + icon('info') + '</summary><div class="md-hint-body">Dejá una línea en blanco entre párrafos. <code>**palabra**</code> sale en <strong>negrita</strong> y <code>*palabra*</code> en <em>cursiva</em>.</div></details></div>';
+      html += '  <textarea id="dayTextoInput" class="cita-edit-textarea" rows="4" placeholder="Texto del mensaje del día...">' + escapeHtml(day.texto || '') + '</textarea>';
+      html += '</div></details>';
+    }
+    return html;
+  }
+
+
   export function renderMensajePanel(){
     var panel = document.getElementById('panel');
     if(!AppState.state.days || !AppState.state.days.length){
@@ -711,9 +799,15 @@ import { showConfirm, showAlert } from '../components/dialog.js';
       html += '<div class="cita-banner"><p class="cita-text">«' + linkify(day.citaTexto) + '»</p><p class="cita-ref">' + escapeHtml(day.citaRef||'') + '</p></div>';
     }
 
+    html += renderTextoDelDia(day);
+
+    if(isAdmin() && AppState.state.days.some(function(d){ return entradasDelDia(d.id).some(function(e){ return textoDeEntrada(e); }); })){
+      html += '<div class="mensaje-pasar-row"><button class="btn small ghost" id="pasarEntradasTextoBtn" type="button">Pasar las entradas de los días a texto de la página</button></div>';
+    }
+
     html += '<div class="entries">';
     if(dayEntries.length === 0){
-      html += '<p class="empty">Todavía no hay contenido cargado para este día.</p>';
+      if(!day.texto) html += '<p class="empty">Todavía no hay contenido cargado para este día.</p>';
     } else {
       html += renderEntriesListHtml(dayEntries, canAddHere);
     }
@@ -739,6 +833,8 @@ import { showConfirm, showAlert } from '../components/dialog.js';
     });
     var addBtn = document.getElementById('mensajeAddDayBtn');
     if(addBtn){ addBtn.onclick = addDay; }
+    var pasarBtn = document.getElementById('pasarEntradasTextoBtn');
+    if(pasarBtn){ pasarBtn.onclick = pasarEntradasATexto; }
 
     // Bug reportado por Julian Ahumada (24/09/2026): "cuando elegiste día 8
     // no se ve que está seleccionado". Causa real: `panel.innerHTML = html`
