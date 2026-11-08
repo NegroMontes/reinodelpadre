@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.08.3';
+  export var APP_VERSION = '2026.11.08.4';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.08.4', date: '08/11/2026', items: [
+      'PDF de la misa: si algo falla, ahora aparece un aviso con el motivo.'
+    ]},
     { version: '2026.11.08.3', date: '08/11/2026', items: [
       'El PDF de una misa sale en dos columnas (ocupa menos hojas).'
     ]},

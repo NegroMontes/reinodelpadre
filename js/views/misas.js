@@ -245,6 +245,10 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
   // Antes era window.print() («Guardar como PDF»), pero en la página
   // instalada en el celular no anda (08/11/2026).
   function exportarPdf(m){
+    try { exportarPdfIntento(m); }
+    catch(e){ console.error(e); showAlert('No se pudo armar el PDF (' + (e && (e.name + ': ' + e.message)) + ').'); }
+  }
+  function exportarPdfIntento(m){
     var pdf = nuevoPdf({ columnas: 2 });
     var cab = [{ texto: m.nombre, fuente: 'bold', tam: 20, interlinea: 1.25 }];
     if(m.subtitulo) cab.push({ texto: m.subtitulo, fuente: 'bold', tam: 13 });
@@ -291,9 +295,12 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
       });
       if(cab2) pdf.bloque(cab2, 16);
     });
-    entregarPdf(pdf.blob(m.nombre), m.nombre).catch(function(e){
+    entregarPdf(pdf.blob(m.nombre), m.nombre).then(function(r){
+      // En el celular sin menú de compartir, la descarga puede no hacer nada.
+      if(r === 'descarga-celular') showStatus('Si no se descargó, abrí la página desde el navegador (no la instalada) y probá de nuevo.');
+    }).catch(function(e){
       console.error(e);
-      showAlert('No se pudo armar el PDF.');
+      showAlert('No se pudo compartir el PDF (' + (e && (e.name + ': ' + e.message)) + ').');
     });
   }
 

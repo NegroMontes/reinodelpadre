@@ -149,15 +149,16 @@
     var archivo = nombre.replace(/[\\/:*?"<>|]+/g, '').trim() || 'misa';
     archivo += '.pdf';
     var tactil = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    if(tactil && typeof File === 'function' && navigator.canShare){
-      try {
-        var f = new File([blob], archivo, { type: 'application/pdf' });
-        if(navigator.canShare({ files: [f] })){
+    if(tactil && typeof File === 'function' && navigator.share){
+      var f = new File([blob], archivo, { type: 'application/pdf' });
+      if(!navigator.canShare || navigator.canShare({ files: [f] })){
+        try {
           await navigator.share({ files: [f], title: nombre });
-          return;
+          return 'compartido';
+        } catch(e){
+          if(e && e.name === 'AbortError') return 'cancelado';   // cerró el menú
+          throw e;                                              // que se vea el error
         }
-      } catch(e){
-        if(e && e.name === 'AbortError') return;   // cerró el menú
       }
     }
     var url = URL.createObjectURL(blob);
@@ -167,4 +168,5 @@
     a.click();
     a.remove();
     setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+    return tactil ? 'descarga-celular' : 'descarga';
   }
