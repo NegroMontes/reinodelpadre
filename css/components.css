@@ -1470,6 +1470,25 @@ a.recurso-cat{ text-decoration:none; }
     .entry-wide .entry-lead-icon{ width:38px; height:38px; font-size:18px; }
 }
 
+/* Tarjeta de entrada en mobile (07/11/2026, reporte del usuario con
+   captura): `.entry-top` es un flex row con 3 items (`.entry-lead-icon`
+   opcional, `.entry-head-main` con `flex:1 1 auto`, `.entry-actions` con
+   `flex-shrink:0`) — en una pantalla angosta, el ícono y las acciones
+   (link/Publicar/lápiz/tacho) se quedan con su ancho fijo y le dejan a
+   `.entry-head-main` una columna muy angosta, así que hasta un título
+   corto ("Perfil del Escudero") terminaba partido en 3 renglones, y cada
+   tag/botón de abajo quedaba solo en su propia fila por falta de ancho —
+   mucho espacio vertical desperdiciado. En mobile, `.entry-top` pasa a
+   columna: el título queda con el ancho completo de la tarjeta para
+   envolver (casi siempre 1-2 líneas en vez de 3+), y las acciones bajan a
+   su propia fila angosta, alineadas a la derecha, en vez de pelear por
+   espacio con el título. */
+@media (max-width:600px){
+.entry-top{ flex-direction:column; align-items:stretch; gap:8px; }
+.entry-wide .entry-top{ align-items:stretch; }
+.entry-actions{ justify-content:flex-end; }
+}
+
 /* Editor de categorías de Recursos (05/11/2026, admin) */
 .cat-admin-list{ display:flex; flex-direction:column; gap:6px; }
 .cat-admin-row{ display:flex; align-items:center; gap:6px; padding:6px 8px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--card-bg); }
