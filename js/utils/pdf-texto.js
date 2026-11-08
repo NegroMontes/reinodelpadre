@@ -60,39 +60,54 @@
 
   function esc(s){ return aWinAnsi(s).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'); }
 
-  // Documento: se le agregan "bloques" (grupos de renglones que no se parten
-  // entre páginas) y al final se pide el archivo.
-  export function nuevoPdf(){
-    var paginas = [[]], y = H - M;
+  // Documento: se le agregan "bloques" (grupos de renglones que no se parten)
+  // y al final se pide el archivo. Con columnas:2 el texto va en dos columnas
+  // (08/11/2026); los bloques con {completo:true} (encabezado) ocupan todo el
+  // ancho y solo se usan al principio.
+  var SEP = 22;                              // espacio entre columnas
+  export function nuevoPdf(opts){
+    var ncol = (opts && opts.columnas) || 1;
+    var anchoCol = (ANCHO - SEP * (ncol - 1)) / ncol;
+    var paginas = [[]], y = H - M, yTop = H - M, col = 0, vacio = true;
 
     function pagina(){ return paginas[paginas.length - 1]; }
-    function nueva(){ paginas.push([]); y = H - M; }
+    function x0(){ return M + col * (anchoCol + SEP); }
+    function siguiente(){
+      if(col < ncol - 1){ col++; y = yTop; }
+      else { paginas.push([]); col = 0; y = yTop = H - M; }
+      vacio = true;
+    }
 
-    // items: [{texto, fuente, tam, gris, sangria, mono (no corta), barra}]
-    // antes: espacio previo. Si el bloque no entra en lo que queda, va a la
-    // página siguiente (salvo que no entre ni en una página entera).
-    function bloque(items, antes){
+    // items: [{texto, fuente, tam, gris, sangria, mono (no corta), barra, lineaDebajo}]
+    // antes: espacio previo. Si el bloque no entra en lo que queda de la
+    // columna, pasa a la siguiente (salvo que no entre ni en una entera).
+    function bloque(items, antes, o){
+      var completo = o && o.completo;
+      var ancho = completo ? ANCHO : anchoCol;
       var renglones = [];
       items.forEach(function(it){
         var tam = it.tam || 11, fuente = it.fuente || 'normal', sang = it.sangria || 0;
-        var partes = it.mono ? [it.texto] : cortar(it.texto, fuente, tam, ANCHO - sang);
+        var partes = it.mono ? [it.texto] : cortar(it.texto, fuente, tam, ancho - sang);
         partes.forEach(function(t){
           renglones.push({ t: t, fuente: fuente, tam: tam, gris: it.gris || 0, sang: sang, alto: tam * (it.interlinea || 1.35), barra: it.barra, linea: it.lineaDebajo });
         });
       });
       var alto = renglones.reduce(function(s, r){ return s + r.alto; }, 0);
-      var esp = (pagina().length ? (antes || 0) : 0);
-      if(y - esp - alto < M && alto <= H - 2 * M && pagina().length){ nueva(); esp = 0; }
+      var esp = (vacio && !completo) ? 0 : (antes || 0);
+      if(!completo && !vacio && y - esp - alto < M && alto <= yTop - M){ siguiente(); esp = 0; }
       y -= esp;
       renglones.forEach(function(r){
-        if(y - r.alto < M){ nueva(); }
+        if(y - r.alto < M){ siguiente(); }
         y -= r.alto;
+        var x = completo ? M : x0();
         var base = y + r.alto * 0.25;
         var ops = pagina();
-        ops.push(r.gris.toFixed(2) + ' g BT /' + FUENTES[r.fuente] + ' ' + r.tam + ' Tf ' + (M + r.sang).toFixed(1) + ' ' + base.toFixed(1) + ' Td (' + esc(r.t) + ') Tj ET');
-        if(r.barra) ops.push('0.4 G 1.5 w ' + (M + 2) + ' ' + y.toFixed(1) + ' m ' + (M + 2) + ' ' + (y + r.alto).toFixed(1) + ' l S');
-        if(r.linea) ops.push('0.6 G 0.7 w ' + M + ' ' + (y + 1).toFixed(1) + ' m ' + (W - M) + ' ' + (y + 1).toFixed(1) + ' l S');
+        ops.push(r.gris.toFixed(2) + ' g BT /' + FUENTES[r.fuente] + ' ' + r.tam + ' Tf ' + (x + r.sang).toFixed(1) + ' ' + base.toFixed(1) + ' Td (' + esc(r.t) + ') Tj ET');
+        if(r.barra) ops.push('0.4 G 1.5 w ' + (x + 2) + ' ' + y.toFixed(1) + ' m ' + (x + 2) + ' ' + (y + r.alto).toFixed(1) + ' l S');
+        if(r.linea) ops.push('0.6 G 0.7 w ' + x.toFixed(1) + ' ' + (y + 1).toFixed(1) + ' m ' + (x + ancho).toFixed(1) + ' ' + (y + 1).toFixed(1) + ' l S');
       });
+      vacio = !!completo;                    // las columnas arrancan parejas
+      if(completo) yTop = y;                 // y debajo del encabezado
     }
 
     function blob(titulo){
@@ -124,7 +139,7 @@
       return new Blob([bytes], { type: 'application/pdf' });
     }
 
-    return { bloque: bloque, blob: blob, ancho: ANCHO };
+    return { bloque: bloque, blob: blob, ancho: anchoCol };
   }
 
   // Entrega el archivo: en celular, con el menú de compartir (anda en la

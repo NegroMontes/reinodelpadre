@@ -245,23 +245,24 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
   // Antes era window.print() («Guardar como PDF»), pero en la página
   // instalada en el celular no anda (08/11/2026).
   function exportarPdf(m){
-    var pdf = nuevoPdf();
+    var pdf = nuevoPdf({ columnas: 2 });
     var cab = [{ texto: m.nombre, fuente: 'bold', tam: 20, interlinea: 1.25 }];
     if(m.subtitulo) cab.push({ texto: m.subtitulo, fuente: 'bold', tam: 13 });
     cab.push({ texto: tipoLabel(m.tipo) + ' · Creada por ' + (m.autor || '—'), tam: 10, gris: 0.3 });
-    pdf.bloque(cab);
+    pdf.bloque(cab, 0, { completo: true });
     var filas = filasDe(m);
     var indice = filas.filter(function(f){ return !f.nota; }).map(function(f, i){
       return { texto: (i + 1) + '. ' + f.momento.label + ': ' + (f.canto ? f.canto.titulo : 'Rezado'), tam: 11, sangria: 10 };
     });
-    if(indice.length) pdf.bloque(indice, 10);
+    if(indice.length) pdf.bloque(indice, 10, { completo: true });
+    pdf.bloque([{ texto: ' ', tam: 6, interlinea: 1 }], 0, { completo: true });
     filas.forEach(function(f){
       if(f.nota){ pdf.bloque([{ texto: f.nota, fuente: 'italic', tam: 10, gris: 0.3 }], 8); return; }
       if(!f.canto){ pdf.bloque([{ texto: f.momento.label + ': rezado.', fuente: 'italic', tam: 10, gris: 0.3 }], 8); return; }
       var c = f.canto;
       var acordes = AppState.cancioneroAcordes && !!c.conAcordes;
       var cab2 = [{ texto: f.momento.label.toUpperCase(), fuente: 'bold', tam: 9, gris: 0.35, interlinea: 1.2 },
-                  { texto: c.titulo, fuente: 'bold', tam: 14, lineaDebajo: true }];
+                  { texto: c.titulo, fuente: 'bold', tam: 12.5, lineaDebajo: true }];
       if((c.nota || '').trim()) cab2.push({ texto: c.nota, fuente: 'italic', tam: 10, gris: 0.3 });
       var estrofas = c.estrofas || [];
       if(!estrofas.length){ cab2.push({ texto: 'Este canto todavía no tiene letra.', fuente: 'italic', tam: 10, gris: 0.3 }); pdf.bloque(cab2, 16); return; }
@@ -270,14 +271,17 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
         var items = [];
         var lineas = e.lineas || [];
         if(acordes && e.acordes){
+          var largo = 0;
+          lineas.forEach(function(l, k){ largo = Math.max(largo, (l || '').length, (e.acordes[k] || '').length); });
+          var tm = Math.min(9.5, (pdf.ancho - (estribillo ? 10 : 0)) / (Math.max(largo, 1) * 0.6));
           lineas.forEach(function(l, k){
             var ac = e.acordes[k] || '';
-            if(ac) items.push({ texto: ac, fuente: 'monoBold', tam: 9.5, mono: true, gris: 0.15, sangria: estribillo ? 10 : 0, barra: estribillo, interlinea: 1.15 });
-            if(l) items.push({ texto: l, fuente: 'mono', tam: 9.5, mono: true, sangria: estribillo ? 10 : 0, barra: estribillo, interlinea: 1.3 });
+            if(ac) items.push({ texto: ac, fuente: 'monoBold', tam: tm, mono: true, gris: 0.15, sangria: estribillo ? 10 : 0, barra: estribillo, interlinea: 1.15 });
+            if(l) items.push({ texto: l, fuente: 'mono', tam: tm, mono: true, sangria: estribillo ? 10 : 0, barra: estribillo, interlinea: 1.3 });
           });
         } else {
           lineas.filter(Boolean).forEach(function(l){
-            items.push({ texto: l, fuente: estribillo ? 'bold' : (trad ? 'italic' : 'normal'), tam: 11, gris: trad ? 0.3 : 0, sangria: estribillo ? 10 : 0, barra: estribillo });
+            items.push({ texto: l, fuente: estribillo ? 'bold' : (trad ? 'italic' : 'normal'), tam: 10, gris: trad ? 0.3 : 0, sangria: estribillo ? 10 : 0, barra: estribillo });
           });
         }
         if(!items.length) return;
