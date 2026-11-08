@@ -11,6 +11,7 @@ import { icon } from '../utils/icons.js';
 import { isAdmin } from '../services/permissions.js';
 import { ensureMisasSub, saveMisa, deleteMisa } from '../services/cancionero.service.js';
 import { showAlert, showConfirm } from '../components/dialog.js';
+import { nuevoPdf, entregarPdf } from '../utils/pdf-texto.js';
 import { renderPanel, showStatus } from '../main.js';
 import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordesToggleHtml, bindAcordesToggle } from './cancionero.js';
 
@@ -240,52 +241,56 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     });
   }
 
-  // ---- PDF: diálogo de impresión con solo la misa ("Guardar como PDF") ----
+  // ---- PDF: archivo armado a mano (js/utils/pdf-texto.js) ----
+  // Antes era window.print() («Guardar como PDF»), pero en la página
+  // instalada en el celular no anda (08/11/2026).
   function exportarPdf(m){
-    var old = document.getElementById('misaPrint');
-    if(old) old.remove();
-    var div = document.createElement('div');
-    div.id = 'misaPrint';
-    var html = '<h1>' + escapeHtml(m.nombre) + '</h1>';
-    if(m.subtitulo) html += '<p class="misa-print-sub">' + escapeHtml(m.subtitulo) + '</p>';
-    html += '<p class="misa-print-meta">' + escapeHtml(tipoLabel(m.tipo)) + ' · Creada por ' + escapeHtml(m.autor || '—') + '</p>';
-    // Índice al principio, para ubicar cada canto rápido en papel.
+    var pdf = nuevoPdf();
+    var cab = [{ texto: m.nombre, fuente: 'bold', tam: 20, interlinea: 1.25 }];
+    if(m.subtitulo) cab.push({ texto: m.subtitulo, fuente: 'bold', tam: 13 });
+    cab.push({ texto: tipoLabel(m.tipo) + ' · Creada por ' + (m.autor || '—'), tam: 10, gris: 0.3 });
+    pdf.bloque(cab);
     var filas = filasDe(m);
-    html += '<ol class="misa-print-indice">';
-    filas.forEach(function(f){
-      if(f.nota) return;
-      html += '<li><strong>' + escapeHtml(f.momento.label) + ':</strong> ' + (f.canto ? escapeHtml(f.canto.titulo) : 'Rezado') + '</li>';
+    var indice = filas.filter(function(f){ return !f.nota; }).map(function(f, i){
+      return { texto: (i + 1) + '. ' + f.momento.label + ': ' + (f.canto ? f.canto.titulo : 'Rezado'), tam: 11, sangria: 10 };
     });
-    html += '</ol>';
+    if(indice.length) pdf.bloque(indice, 10);
     filas.forEach(function(f){
-      if(f.nota){ html += '<p class="misa-print-nota">' + escapeHtml(f.nota) + '</p>'; return; }
-      if(!f.canto){ html += '<p class="misa-print-nota"><strong>' + escapeHtml(f.momento.label) + ':</strong> rezado.</p>'; return; }
-      html += '<section class="misa-print-canto"><h2><span>' + escapeHtml(f.momento.label) + '</span> ' + escapeHtml(f.canto.titulo) + '</h2>' + letraHtml(f.canto) + '</section>';
+      if(f.nota){ pdf.bloque([{ texto: f.nota, fuente: 'italic', tam: 10, gris: 0.3 }], 8); return; }
+      if(!f.canto){ pdf.bloque([{ texto: f.momento.label + ': rezado.', fuente: 'italic', tam: 10, gris: 0.3 }], 8); return; }
+      var c = f.canto;
+      var acordes = AppState.cancioneroAcordes && !!c.conAcordes;
+      var cab2 = [{ texto: f.momento.label.toUpperCase(), fuente: 'bold', tam: 9, gris: 0.35, interlinea: 1.2 },
+                  { texto: c.titulo, fuente: 'bold', tam: 14, lineaDebajo: true }];
+      if((c.nota || '').trim()) cab2.push({ texto: c.nota, fuente: 'italic', tam: 10, gris: 0.3 });
+      var estrofas = c.estrofas || [];
+      if(!estrofas.length){ cab2.push({ texto: 'Este canto todavía no tiene letra.', fuente: 'italic', tam: 10, gris: 0.3 }); pdf.bloque(cab2, 16); return; }
+      estrofas.forEach(function(e, i){
+        var estribillo = e.tipo === 'estribillo', trad = e.tipo === 'traduccion';
+        var items = [];
+        var lineas = e.lineas || [];
+        if(acordes && e.acordes){
+          lineas.forEach(function(l, k){
+            var ac = e.acordes[k] || '';
+            if(ac) items.push({ texto: ac, fuente: 'monoBold', tam: 9.5, mono: true, gris: 0.15, sangria: estribillo ? 10 : 0, barra: estribillo, interlinea: 1.15 });
+            if(l) items.push({ texto: l, fuente: 'mono', tam: 9.5, mono: true, sangria: estribillo ? 10 : 0, barra: estribillo, interlinea: 1.3 });
+          });
+        } else {
+          lineas.filter(Boolean).forEach(function(l){
+            items.push({ texto: l, fuente: estribillo ? 'bold' : (trad ? 'italic' : 'normal'), tam: 11, gris: trad ? 0.3 : 0, sangria: estribillo ? 10 : 0, barra: estribillo });
+          });
+        }
+        if(!items.length) return;
+        // El encabezado del canto va pegado a su primera estrofa.
+        if(i === 0 || cab2){ pdf.bloque(cab2.concat(items), 16); cab2 = null; }
+        else pdf.bloque(items, 7);
+      });
+      if(cab2) pdf.bloque(cab2, 16);
     });
-    div.innerHTML = html;
-    document.body.appendChild(div);
-    var prevTitle = document.title;
-    document.title = m.nombre; // nombre sugerido del PDF
-    document.body.classList.add('printing-misa');
-    var done = false;
-    function cleanup(){
-      if(done) return;
-      done = true;
-      document.body.classList.remove('printing-misa');
-      document.title = prevTitle;
-      div.remove();
-      document.removeEventListener('pointerdown', cleanup, true);
-      document.removeEventListener('keydown', cleanup, true);
-    }
-    // En celular (Chrome Android, Safari) window.print() no espera: arma el
-    // PDF después. Antes se borraba #misaPrint al segundo y salía vacío o no
-    // salía. Ahora se limpia recién cuando la persona vuelve a tocar la página
-    // (o al exportar otro PDF, que borra el anterior arriba).
-    setTimeout(function(){
-      document.addEventListener('pointerdown', cleanup, true);
-      document.addEventListener('keydown', cleanup, true);
-    }, 1500);
-    window.print();
+    entregarPdf(pdf.blob(m.nombre), m.nombre).catch(function(e){
+      console.error(e);
+      showAlert('No se pudo armar el PDF.');
+    });
   }
 
   // ---- Editor ----
