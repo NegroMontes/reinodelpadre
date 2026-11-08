@@ -274,11 +274,18 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
       document.body.classList.remove('printing-misa');
       document.title = prevTitle;
       div.remove();
-      window.removeEventListener('afterprint', cleanup);
+      document.removeEventListener('pointerdown', cleanup, true);
+      document.removeEventListener('keydown', cleanup, true);
     }
-    window.addEventListener('afterprint', cleanup);
+    // En celular (Chrome Android, Safari) window.print() no espera: arma el
+    // PDF después. Antes se borraba #misaPrint al segundo y salía vacío o no
+    // salía. Ahora se limpia recién cuando la persona vuelve a tocar la página
+    // (o al exportar otro PDF, que borra el anterior arriba).
+    setTimeout(function(){
+      document.addEventListener('pointerdown', cleanup, true);
+      document.addEventListener('keydown', cleanup, true);
+    }, 1500);
     window.print();
-    setTimeout(cleanup, 1000);
   }
 
   // ---- Editor ----
