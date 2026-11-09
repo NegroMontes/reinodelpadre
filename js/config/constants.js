@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.09.1';
+  export var APP_VERSION = '2026.11.09.2';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.09.2', date: '09/11/2026', items: [
+      'PDF de la misa con nuevo diseño: letra con serifa, estrofas numeradas, estribillo marcado, indicaciones del rito como guía y número de página.'
+    ]},
     { version: '2026.11.09.1', date: '09/11/2026', items: [
       'Cancionero más lindo y fácil de leer: letra con serifa, estrofas numeradas, el estribillo marcado, botones para agrandar o achicar la letra y «anterior / siguiente» entre cantos.',
       'En la misa, las indicaciones del rito van como una guía entre los cantos.'

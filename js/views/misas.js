@@ -11,7 +11,7 @@ import { icon } from '../utils/icons.js';
 import { isAdmin } from '../services/permissions.js';
 import { ensureMisasSub, saveMisa, deleteMisa } from '../services/cancionero.service.js';
 import { showAlert, showConfirm } from '../components/dialog.js';
-import { nuevoPdf, entregarPdf } from '../utils/pdf-texto.js';
+import { nuevoPdf, entregarPdf, PDF_COLOR } from '../utils/pdf-texto.js';
 import { renderPanel, showStatus } from '../main.js';
 import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordesToggleHtml, bindAcordesToggle, tamLetraHtml, bindTamLetra } from './cancionero.js';
 
@@ -252,51 +252,67 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     catch(e){ console.error(e); showAlert('No se pudo armar el PDF (' + (e && (e.name + ': ' + e.message)) + ').'); }
   }
   function exportarPdfIntento(m){
-    var pdf = nuevoPdf({ columnas: 2 });
-    var cab = [{ texto: m.nombre, fuente: 'bold', tam: 20, interlinea: 1.25 }];
-    if(m.subtitulo) cab.push({ texto: m.subtitulo, fuente: 'bold', tam: 13 });
-    cab.push({ texto: tipoLabel(m.tipo) + ' · Creada por ' + (m.autor || '—'), tam: 10, gris: 0.3 });
+    // Rediseño 09/11/2026: mismo estilo que la página (letra con serifa,
+    // rótulos turquesa, estrofas numeradas, estribillo marcado, notas del
+    // rito como guía punteada) y número de página al pie.
+    var C = PDF_COLOR;
+    var pdf = nuevoPdf({ columnas: 2, pie: m.nombre + ' · Reino del Padre MDZ 2027' });
+    var cab = [{ texto: 'SANTA MISA · ' + tipoLabel(m.tipo).toUpperCase(), fuente: 'bold', tam: 7.5, tracking: 1.2, color: C.turquesa, align: 'center', interlinea: 1.6 },
+               { texto: m.nombre, fuente: 'bold', tam: 22, color: C.tinta, align: 'center', interlinea: 1.25 }];
+    if(m.subtitulo) cab.push({ texto: m.subtitulo, fuente: 'serifItal', tam: 13, color: C.tinta, align: 'center', interlinea: 1.4 });
+    cab.push({ texto: 'Creada por ' + (m.autor || '—'), fuente: 'normal', tam: 8.5, color: C.suave, align: 'center', interlinea: 1.8, lineaDebajo: true });
     pdf.bloque(cab, 0, { completo: true });
+    pdf.bloque([{ texto: ' ', tam: 8, interlinea: 1 }], 0, { completo: true });
+
     var filas = filasDe(m);
-    var indice = filas.filter(function(f){ return !f.nota; }).map(function(f, i){
-      return { texto: (i + 1) + '. ' + f.momento.label + ': ' + (f.canto ? f.canto.titulo : 'Rezado'), tam: 11, sangria: 10 };
+    // Orden de la misa (índice), al principio de la primera columna.
+    var indice = [{ texto: 'ORDEN DE LOS CANTOS', fuente: 'bold', tam: 7.5, tracking: 1.1, color: C.turquesa, interlinea: 1.7 }];
+    filas.filter(function(f){ return !f.nota; }).forEach(function(f){
+      indice.push({ texto: f.momento.label + ':  ' + (f.canto ? f.canto.titulo : 'rezado'), fuente: f.canto ? 'serif' : 'serifItal', tam: 9.5, color: f.canto ? C.tinta : C.suave, interlinea: 1.35 });
     });
-    if(indice.length) pdf.bloque(indice, 10, { completo: true });
-    pdf.bloque([{ texto: ' ', tam: 6, interlinea: 1 }], 0, { completo: true });
+    if(indice.length > 1){ indice[indice.length - 1].lineaDebajo = true; pdf.bloque(indice, 0); }
+
     filas.forEach(function(f){
-      if(f.nota){ pdf.bloque([{ texto: f.nota, fuente: 'italic', tam: 10, gris: 0.3 }], 8); return; }
-      if(!f.canto){ pdf.bloque([{ texto: f.momento.label + ': rezado.', fuente: 'italic', tam: 10, gris: 0.3 }], 8); return; }
+      if(f.nota){ pdf.bloque([{ texto: f.nota, fuente: 'serifItal', tam: 9, color: C.suave, sangria: 14, punteado: true, interlinea: 1.35 }], 6); return; }
+      if(!f.canto){
+        pdf.bloque([{ texto: f.momento.label.toUpperCase() + '  —  rezado', fuente: 'bold', tam: 7.5, tracking: 0.8, color: C.suave, interlinea: 1.6 }], 8);
+        return;
+      }
       var c = f.canto;
       var acordes = AppState.cancioneroAcordes && !!c.conAcordes;
-      var cab2 = [{ texto: f.momento.label.toUpperCase(), fuente: 'bold', tam: 9, gris: 0.35, interlinea: 1.2 },
-                  { texto: c.titulo, fuente: 'bold', tam: 12.5, lineaDebajo: true }];
-      if((c.nota || '').trim()) cab2.push({ texto: c.nota, fuente: 'italic', tam: 10, gris: 0.3 });
+      var cab2 = [{ texto: f.momento.label.toUpperCase(), fuente: 'bold', tam: 7.5, tracking: 1.1, color: C.turquesa, interlinea: 1.5 },
+                  { texto: c.titulo, fuente: 'bold', tam: 12.5, color: C.tinta, interlinea: 1.3, lineaDebajo: true }];
+      if((c.nota || '').trim()) cab2.push({ texto: c.nota, fuente: 'serifItal', tam: 9, color: C.suave, interlinea: 1.5, espacioAntes: 2 });
       var estrofas = c.estrofas || [];
-      if(!estrofas.length){ cab2.push({ texto: 'Este canto todavía no tiene letra.', fuente: 'italic', tam: 10, gris: 0.3 }); pdf.bloque(cab2, 16); return; }
+      if(!estrofas.length){ cab2.push({ texto: 'Este canto todavía no tiene letra.', fuente: 'serifItal', tam: 9.5, color: C.suave }); pdf.bloque(cab2, 18); return; }
+      var num = 0;
       estrofas.forEach(function(e, i){
         var estribillo = e.tipo === 'estribillo', trad = e.tipo === 'traduccion';
+        var sang = estribillo ? 12 : 14;
         var items = [];
         var lineas = e.lineas || [];
+        if(estribillo) items.push({ texto: 'ESTRIBILLO', fuente: 'bold', tam: 6.5, tracking: 1, color: C.turquesa, sangria: sang, barra: true, interlinea: 1.5 });
+        var numero = (!estribillo && !trad) ? ++num : null;
         if(acordes && e.acordes){
           var largo = 0;
           lineas.forEach(function(l, k){ largo = Math.max(largo, (l || '').length, (e.acordes[k] || '').length); });
-          var tm = Math.min(9.5, (pdf.ancho - (estribillo ? 10 : 0)) / (Math.max(largo, 1) * 0.6));
+          var tm = Math.min(9, (pdf.ancho - sang) / (Math.max(largo, 1) * 0.6));
           lineas.forEach(function(l, k){
             var ac = e.acordes[k] || '';
-            if(ac) items.push({ texto: ac, fuente: 'monoBold', tam: tm, mono: true, gris: 0.15, sangria: estribillo ? 10 : 0, barra: estribillo, interlinea: 1.15 });
-            if(l) items.push({ texto: l, fuente: 'mono', tam: tm, mono: true, sangria: estribillo ? 10 : 0, barra: estribillo, interlinea: 1.3 });
+            if(ac) items.push({ texto: ac, fuente: 'monoBold', tam: tm, mono: true, color: C.turquesa, sangria: sang, barra: estribillo, interlinea: 1.15, numero: k === 0 ? numero : null });
+            if(l) items.push({ texto: l, fuente: estribillo ? 'monoBold' : 'mono', tam: tm, mono: true, color: C.tinta, sangria: sang, barra: estribillo, interlinea: 1.3, numero: (k === 0 && !ac) ? numero : null });
           });
         } else {
-          lineas.filter(Boolean).forEach(function(l){
-            items.push({ texto: l, fuente: estribillo ? 'bold' : (trad ? 'italic' : 'normal'), tam: 10, gris: trad ? 0.3 : 0, sangria: estribillo ? 10 : 0, barra: estribillo });
+          lineas.filter(Boolean).forEach(function(l, k){
+            items.push({ texto: l, fuente: estribillo ? 'serifBold' : (trad ? 'serifItal' : 'serif'), tam: trad ? 9.5 : 10.5, color: trad ? C.suave : C.tinta, sangria: sang, barra: estribillo, interlinea: 1.32, numero: k === 0 ? numero : null });
           });
         }
-        if(!items.length) return;
+        if(items.length <= (estribillo ? 1 : 0)) return;
         // El encabezado del canto va pegado a su primera estrofa.
-        if(i === 0 || cab2){ pdf.bloque(cab2.concat(items), 16); cab2 = null; }
+        if(cab2){ items[0].espacioAntes = 6; pdf.bloque(cab2.concat(items), 18); cab2 = null; }
         else pdf.bloque(items, 7);
       });
-      if(cab2) pdf.bloque(cab2, 16);
+      if(cab2) pdf.bloque(cab2, 18);
     });
     entregarPdf(pdf.blob(m.nombre), m.nombre).then(function(r){
       // En el celular sin menú de compartir, la descarga puede no hacer nada.
