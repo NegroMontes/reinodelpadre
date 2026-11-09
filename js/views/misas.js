@@ -13,7 +13,7 @@ import { ensureMisasSub, saveMisa, deleteMisa } from '../services/cancionero.ser
 import { showAlert, showConfirm } from '../components/dialog.js';
 import { nuevoPdf, entregarPdf } from '../utils/pdf-texto.js';
 import { renderPanel, showStatus } from '../main.js';
-import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordesToggleHtml, bindAcordesToggle } from './cancionero.js';
+import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordesToggleHtml, bindAcordesToggle, tamLetraHtml, bindTamLetra } from './cancionero.js';
 
   // Según la Instrucción General del Misal Romano: el Gloria va los
   // domingos, solemnidades y fiestas (IGMR 53); el Credo, solo domingos y
@@ -178,12 +178,14 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     if(m.subtitulo) html += '<p class="misa-subtitulo">' + escapeHtml(m.subtitulo) + '</p>';
     html += '<p class="mandos-sub">Creada por ' + escapeHtml(m.autor || '—') + ' · ' + fecha(m.createdAt) + '<br>' + escapeHtml(tipoLabel(m.tipo)) + '</p></div>';
     var hayAcordes = filasDe(m).some(function(f){ return f.canto && f.canto.conAcordes; });
-    html += '<div class="recursos-head-actions">' + acordesToggleHtml(hayAcordes) + '<button type="button" class="btn ghost small" id="misaPdfBtn">' + icon('download') + ' PDF</button>';
+    html += '</div>';
+    html += '<div class="canto-tools misa-tools">' + acordesToggleHtml(hayAcordes) + tamLetraHtml() + '<button type="button" class="btn small canto-tool" id="misaPdfBtn">' + icon('download') + ' PDF</button>';
     if(canEditMisa(m)){
-      html += '<button type="button" class="btn ghost small" id="misaEditBtn">' + icon('pencil') + ' Editar</button>' +
-        '<button type="button" class="btn ghost small" id="misaDeleteBtn" aria-label="Eliminar misa" title="Eliminar">' + icon('trash') + '</button>';
+      html += '<span class="canto-tools-sep"></span>' +
+        '<button type="button" class="btn small canto-tool" id="misaEditBtn" aria-label="Editar misa" title="Editar">' + icon('pencil') + '</button>' +
+        '<button type="button" class="btn small canto-tool" id="misaDeleteBtn" aria-label="Eliminar misa" title="Eliminar">' + icon('trash') + '</button>';
     }
-    html += '</div></div>';
+    html += '</div>';
     if(!AppState.cancioneroLoaded){ html += '<p class="empty">Cargando cantos…</p>'; }
     html += '<div class="misa-momentos">';
     filasDe(m).forEach(function(f, idx){
@@ -192,7 +194,7 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
         return;
       }
       if(!f.canto){
-        html += '<div class="misa-momento misa-momento-rezado"><span class="misa-momento-label">' + escapeHtml(f.momento.label) + '</span><span class="misa-momento-titulo">Rezado</span></div>';
+        html += '<div class="misa-momento misa-momento-rezado"><span class="misa-momento-label">' + escapeHtml(f.momento.label) + '</span><span class="misa-momento-titulo">rezado</span></div>';
         return;
       }
       // Si llega un cambio de Firestore mientras se canta, el que estaba abierto sigue abierto.
@@ -207,6 +209,7 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     document.getElementById('misasBackBtn').onclick = function(){ AppState.cancioneroVista = 'misas'; renderPanel(); };
     document.getElementById('misaPdfBtn').onclick = function(){ exportarPdf(m); };
     bindAcordesToggle(panel);
+    bindTamLetra(panel);
     var edit = document.getElementById('misaEditBtn');
     if(edit) edit.onclick = function(){
       AppState.misaDraft = JSON.parse(JSON.stringify(m));

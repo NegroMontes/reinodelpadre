@@ -26,13 +26,20 @@
 .cancionero-cats{ margin-bottom:12px; }
 .cancionero-import{ margin-bottom:16px; }
 
+/* Lista (rediseño 09/11/2026): encabezado de categoría discreto con el
+   conteo, filas con título claro y primera línea en cursiva. */
 .canto-cat-title{
-    margin:18px 0 8px;
-    font-size:15px;
-    color:var(--ink-soft);
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin:22px 2px 8px;
+    font-size:12px;
+    font-weight:700;
+    color:var(--teal);
     text-transform:uppercase;
-    letter-spacing:.04em;
+    letter-spacing:.08em;
 }
+.canto-cat-title span{ font-weight:600; color:var(--ink-soft); letter-spacing:0; }
 .canto-list{
     display:flex;
     flex-direction:column;
@@ -44,9 +51,9 @@
 .canto-item{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:12px;
     width:100%;
-    padding:11px 14px;
+    padding:12px 14px 12px 16px;
     background:none;
     border:0;
     border-top:1px solid var(--line);
@@ -54,47 +61,183 @@
     font:inherit;
     text-align:left;
     cursor:pointer;
+    transition:background .12s;
 }
 .canto-item:first-child{ border-top:0; }
-.canto-item:hover, .canto-item:focus-visible{ background:color-mix(in srgb, var(--teal) 8%, transparent); }
-.canto-item > svg{ flex:0 0 auto; width:18px; height:18px; color:var(--ink-soft); }
-.canto-item-text{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
-.canto-item-title{ font-weight:600; }
+.canto-item:hover, .canto-item:focus-visible{ background:color-mix(in srgb, var(--teal) 7%, transparent); }
+.canto-item > svg{ flex:0 0 auto; width:16px; height:16px; color:var(--ink-soft); opacity:.6; }
+.canto-item-text{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.canto-item-title{ font-weight:600; font-size:15.5px; line-height:1.3; }
 .canto-item-sub{
-    font-size:13px;
+    font-family:'Lora', Georgia, serif;
+    font-style:italic;
+    font-size:13.5px;
     color:var(--ink-soft);
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
 }
 
+/* Barra de herramientas del canto / la misa: botones neutros, sin color. */
+.canto-tools{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+    gap:6px;
+    margin:0 0 14px;
+}
+.canto-tools .canto-tool{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    min-height:34px;
+    padding:6px 11px;
+    background:var(--card-bg);
+    color:var(--ink);
+    border:1px solid var(--line);
+    box-shadow:none;
+    font-weight:600;
+}
+.canto-tools .canto-tool:hover{ background:var(--bg-alt); box-shadow:none; }
+.canto-tools .canto-tool:disabled{ opacity:.4; cursor:default; }
+.canto-tools .canto-tool svg{ width:16px; height:16px; }
+.canto-tools .canto-tool small{ font-size:11px; margin-left:1px; }
+.canto-tam{ display:inline-flex; }
+.canto-tam .canto-tool:first-child{ border-radius:var(--radius-sm) 0 0 var(--radius-sm); }
+.canto-tam .canto-tool:last-child{ border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-left:-1px; }
+.canto-tools-sep{ width:1px; height:22px; background:var(--line); margin:0 2px; }
+#cantoDeleteBtn:hover, #misaDeleteBtn:hover{ color:var(--bordeaux); }
+
+/* Hoja del canto: encabezado centrado y letra en serifa, cómoda de leer. */
+.canto-hoja{
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg, var(--radius));
+    padding:26px 28px 30px;
+}
+.canto-head{ text-align:center; margin:0 0 20px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.canto-head-cat{
+    margin:0 0 6px;
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--teal);
+}
+.canto-head-titulo{
+    margin:0;
+    font-family:'Baloo 2', 'Raleway', sans-serif;
+    font-size:28px;
+    font-weight:700;
+    line-height:1.15;
+    color:var(--ink);
+}
+.canto-hoja .canto-letra{ border:0; padding:0; background:none; width:fit-content; max-width:100%; margin:0 auto; }
+/* En compu, la hoja no se estira a todo el ancho. */
+.canto-hoja, .canto-hoja ~ .canto-nav, .canto-tools:has(+ .canto-hoja){ max-width:760px; margin-left:auto; margin-right:auto; }
+.canto-tools:has(+ .canto-hoja){ margin-bottom:14px; }
+
 .canto-letra{
+    --canto-fs:calc(18px * var(--canto-escala, 1));
+    counter-reset:estrofa;
     background:var(--card-bg);
     border:1px solid var(--line);
     border-radius:var(--radius);
-    padding:20px 22px;
-    font-size:17px;
-    line-height:1.6;
+    padding:20px 22px 20px 44px;
+    font-family:'Lora', Georgia, serif;
+    font-size:var(--canto-fs);
+    line-height:1.65;
+    color:var(--ink);
 }
-.canto-nota{ margin:0 0 14px; font-size:14px; color:var(--ink-soft); font-style:italic; }
-.canto-estrofa{ margin:0 0 18px; }
+.canto-hoja .canto-letra{ padding-left:30px; }
+.canto-nota{
+    margin:0 0 18px;
+    font-family:'Raleway', sans-serif;
+    font-size:13.5px;
+    font-style:italic;
+    color:var(--ink-soft);
+    text-align:center;
+}
+.canto-estrofa{ position:relative; margin:0 0 1.15em; }
 .canto-estrofa:last-child{ margin-bottom:0; }
-.canto-estribillo{
+/* Número de estrofa en el margen (las estrofas comunes, no el estribillo). */
+.canto-estrofa:not(.canto-estribillo):not(.canto-traduccion){ counter-increment:estrofa; }
+.canto-estrofa:not(.canto-estribillo):not(.canto-traduccion)::before{
+    content:counter(estrofa);
+    position:absolute;
+    left:-28px;
+    top:.15em;
+    width:20px;
+    text-align:right;
+    font-family:'Raleway', sans-serif;
+    font-size:12px;
     font-weight:700;
-    padding-left:12px;
-    border-left:3px solid var(--teal);
+    color:var(--ink-soft);
+    opacity:.7;
 }
-.canto-traduccion{ font-style:italic; color:var(--ink-soft); font-size:15px; }
+.canto-estribillo{
+    font-weight:600;
+    padding:10px 0 10px 16px;
+    border-left:2px solid var(--teal);
+    background:linear-gradient(90deg, color-mix(in srgb, var(--teal) 7%, transparent), transparent 85%);
+    border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+}
+.canto-estribillo::before{
+    content:'Estribillo';
+    display:block;
+    margin-bottom:2px;
+    font-family:'Raleway', sans-serif;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--teal);
+}
+.canto-traduccion{ font-style:italic; color:var(--ink-soft); font-size:.88em; }
+
+/* Anterior / siguiente. */
+.canto-nav{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+.canto-nav-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+    padding:10px 12px;
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    color:var(--ink);
+    font:inherit;
+    font-weight:600;
+    font-size:14px;
+    text-align:left;
+    cursor:pointer;
+}
+.canto-nav-btn:hover{ background:var(--bg-alt); }
+.canto-nav-btn svg{ flex:0 0 auto; width:16px; height:16px; color:var(--ink-soft); }
+.canto-nav-btn span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.canto-nav-btn small{ display:block; font-size:11px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; }
+.canto-nav-sig{ justify-content:flex-end; text-align:right; }
+
 .canto-dialog{ max-width:560px; max-height:90vh; overflow-y:auto; }
 .canto-dialog textarea{ font-family:inherit; }
 
 @media (max-width:600px){
-    .canto-letra{ padding:16px; font-size:16px; }
+    .canto-hoja{ padding:20px 16px 24px; }
+    .canto-head-titulo{ font-size:24px; }
+    .canto-letra{ --canto-fs:calc(17px * var(--canto-escala, 1)); padding:16px 16px 16px 36px; }
+    .canto-hoja .canto-letra{ padding:0 0 0 22px; }
+    .canto-estrofa:not(.canto-estribillo):not(.canto-traduccion)::before{ left:-24px; width:16px; }
+    .canto-tools{ justify-content:flex-start; gap:5px; }
+    .canto-tools .canto-tool{ padding:6px 9px; }
+    .canto-tools-sep{ display:none; }
+    .misa-tools .canto-tool-txt{ display:none; }
 }
 
 /* Misas (30/10/2026) — ver js/views/misas.js. */
 .misa-subtitulo{ margin:2px 0 4px; font-weight:600; color:var(--ink); }
-.misa-momentos{ display:flex; flex-direction:column; gap:8px; }
+.misa-momentos{ display:flex; flex-direction:column; gap:6px; }
 .misa-momento{
     background:var(--card-bg);
     border:1px solid var(--line);
@@ -117,21 +260,36 @@
 .misa-momento-label{
     flex:0 0 auto;
     min-width:120px;
-    font-size:12px;
+    font-size:11.5px;
     font-weight:700;
     text-transform:uppercase;
-    letter-spacing:.03em;
+    letter-spacing:.07em;
     color:var(--teal);
 }
 .misa-momento-titulo{ font-weight:600; min-width:0; }
+/* Notas del rito: guía discreta entre los cantos, con una línea punteada
+   que une los momentos (09/11/2026). */
 .misa-nota{
-    margin:4px 2px 0;
-    font-size:13px;
+    margin:0 0 0 18px;
+    padding:4px 0 4px 14px;
+    border-left:2px dotted var(--line);
+    font-family:'Lora', Georgia, serif;
+    font-size:13.5px;
     font-style:italic;
+    line-height:1.45;
     color:var(--ink-soft);
 }
-.misa-momento-rezado{ display:flex; align-items:center; gap:10px; padding:12px 14px; opacity:.7; }
-.misa-momento-rezado .misa-momento-titulo{ font-weight:400; font-style:italic; }
+.misa-momento-rezado{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 14px;
+    background:transparent;
+    border-style:dashed;
+}
+.misa-momento-rezado .misa-momento-label{ color:var(--ink-soft); }
+.misa-momento-rezado .misa-momento-titulo{ font-weight:400; font-style:italic; color:var(--ink-soft); }
+.misa-momento .canto-letra{ padding:18px 18px 20px 44px; }
 
 .misa-tipos{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; }
 .misa-tipo{
@@ -189,6 +347,7 @@
 .misa-picker-lista .canto-cat-title{ margin:12px 0 6px; font-size:13px; }
 
 @media (max-width:600px){
+    .misa-momento .canto-letra{ padding:14px 14px 16px 36px; }
     .misa-momento-label{ min-width:0; }
     .misa-momento summary{ flex-wrap:wrap; row-gap:2px; }
     .misa-momento summary .misa-momento-label{ flex-basis:calc(100% - 30px); }
@@ -218,12 +377,14 @@
    que la alineación con espacios se respete. */
 .canto-acordes-badge{ display:inline-flex; vertical-align:-2px; margin-left:6px; color:var(--teal); }
 .canto-acordes-badge svg{ width:14px; height:14px; }
-.btn.ghost.canto-acordes-toggle.active, .btn.ghost.canto-acordes-toggle.active:hover{ background:var(--teal); border-color:var(--teal); color:var(--card-bg); }
+.canto-tools .canto-acordes-toggle.active, .canto-tools .canto-acordes-toggle.active:hover{ background:color-mix(in srgb, var(--teal) 14%, var(--card-bg)); border-color:var(--teal); color:var(--teal); }
 .canto-letra.con-acordes{ overflow-x:auto; }
-.canto-acordes{ font-family:ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size:14px; line-height:1.35; }
+.canto-acordes{ font-family:ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size:calc(14px * var(--canto-escala, 1)); line-height:1.4; }
+.canto-acordes.canto-estribillo{ font-weight:600; }
+@media (max-width:600px){ .canto-acordes{ font-size:calc(12.5px * var(--canto-escala, 1)); } }
 .canto-acordes .canto-linea{ white-space:pre; }
 .canto-acordes .canto-linea + .canto-linea{ margin-top:4px; }
-.canto-acorde{ display:block; color:var(--teal); font-weight:700; }
+.canto-acorde{ display:block; color:var(--teal); font-weight:700; font-size:.92em; }
 .canto-acordes.canto-estribillo .canto-acorde{ font-weight:700; }
 .canto-letra-input{ font-family:ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size:13px; white-space:pre; overflow-x:auto; }
 @media print{

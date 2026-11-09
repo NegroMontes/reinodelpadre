@@ -67,7 +67,8 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
       if(c.categoria !== lastCat){
         if(lastCat !== null) html += '</div>';
         lastCat = c.categoria;
-        html += '<h3 class="canto-cat-title">' + escapeHtml(catLabel(c.categoria)) + '</h3><div class="canto-list">';
+        var n = cantos.filter(function(x){ return x.categoria === c.categoria; }).length;
+        html += '<h3 class="canto-cat-title">' + escapeHtml(catLabel(c.categoria)) + ' <span>' + n + '</span></h3><div class="canto-list">';
       }
       // Si se buscó algo que está en la letra (no en el título), se muestra esa línea.
       var sub = primeraLinea(c);
@@ -84,17 +85,62 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
     return html + '</div>';
   }
 
+  // Vista de un canto (rediseño 09/11/2026): encabezado centrado tipo hoja de
+  // cancionero, barra de herramientas sobria (acordes, tamaño de letra,
+  // editar) y «anterior / siguiente» dentro de la lista filtrada.
   function cantoHtml(c, canEdit){
     var html = '<button type="button" class="recursos-back" id="cancioneroBackBtn">' + icon('chevron-left') + ' Cancionero</button>';
-    html += '<div class="panel-head"><div><h2>' + escapeHtml(c.titulo) + '</h2>';
-    html += '<p class="mandos-sub">' + escapeHtml(catLabel(c.categoria)) + '</p></div>';
-    html += '<div class="recursos-head-actions">' + acordesToggleHtml(c.conAcordes);
+    html += '<div class="canto-tools">' + acordesToggleHtml(c.conAcordes) + tamLetraHtml();
     if(canEdit){
-      html += '<button type="button" class="btn ghost small" id="cantoEditBtn">' + icon('pencil') + ' Editar</button>' +
-        '<button type="button" class="btn ghost small" id="cantoDeleteBtn" aria-label="Eliminar canto" title="Eliminar">' + icon('trash') + '</button>';
+      html += '<span class="canto-tools-sep"></span>' +
+        '<button type="button" class="btn small canto-tool" id="cantoEditBtn" aria-label="Editar canto" title="Editar">' + icon('pencil') + '</button>' +
+        '<button type="button" class="btn small canto-tool" id="cantoDeleteBtn" aria-label="Eliminar canto" title="Eliminar">' + icon('trash') + '</button>';
     }
-    html += '</div></div>';
-    return html + '<div class="canto-letra' + (verAcordes(c) ? ' con-acordes' : '') + '">' + letraHtml(c) + '</div>';
+    html += '</div>';
+    html += '<article class="canto-hoja">';
+    html += '<header class="canto-head"><p class="canto-head-cat">' + escapeHtml(catLabel(c.categoria)) + '</p>' +
+      '<h2 class="canto-head-titulo">' + escapeHtml(c.titulo) + '</h2></header>';
+    html += '<div class="canto-letra' + (verAcordes(c) ? ' con-acordes' : '') + '">' + letraHtml(c) + '</div>';
+    html += '</article>';
+    // Anterior / siguiente, en el orden de la lista que se venía mirando.
+    var lista = filtrar();
+    var i = lista.findIndex(function(x){ return x.id === c.id; });
+    if(i !== -1 && lista.length > 1){
+      var ant = lista[i - 1], sig = lista[i + 1];
+      html += '<nav class="canto-nav">' +
+        (ant ? '<button type="button" class="canto-nav-btn" data-canto-ir="' + escapeHtml(ant.id) + '">' + icon('chevron-left') + '<span><small>Anterior</small>' + escapeHtml(ant.titulo) + '</span></button>' : '<span></span>') +
+        (sig ? '<button type="button" class="canto-nav-btn canto-nav-sig" data-canto-ir="' + escapeHtml(sig.id) + '"><span><small>Siguiente</small>' + escapeHtml(sig.titulo) + '</span>' + icon('chevron-right') + '</button>' : '<span></span>') +
+        '</nav>';
+    }
+    return html;
+  }
+
+  // Tamaño de la letra de los cantos (09/11/2026): 5 pasos, se recuerda en
+  // el dispositivo. Vale para el canto suelto y para la vista de una misa.
+  var TAMS = [0.85, 0.93, 1, 1.12, 1.25];
+  function tamIdx(){
+    var v = parseInt(localStorage.getItem('cancioneroTam'), 10);
+    return isNaN(v) ? 2 : Math.max(0, Math.min(TAMS.length - 1, v));
+  }
+  function aplicarTam(){ document.documentElement.style.setProperty('--canto-escala', TAMS[tamIdx()]); }
+  try { aplicarTam(); } catch(e){}
+  export function tamLetraHtml(){
+    var i = tamIdx();
+    return '<span class="canto-tam" role="group" aria-label="Tamaño de letra">' +
+      '<button type="button" class="btn small canto-tool" data-canto-tam="-1" aria-label="Letra más chica" title="Letra más chica"' + (i === 0 ? ' disabled' : '') + '>A<small>−</small></button>' +
+      '<button type="button" class="btn small canto-tool" data-canto-tam="1" aria-label="Letra más grande" title="Letra más grande"' + (i === TAMS.length - 1 ? ' disabled' : '') + '>A<small>+</small></button>' +
+      '</span>';
+  }
+  export function bindTamLetra(root){
+    root.querySelectorAll('[data-canto-tam]').forEach(function(b){
+      b.onclick = function(){
+        var i = Math.max(0, Math.min(TAMS.length - 1, tamIdx() + parseInt(b.getAttribute('data-canto-tam'), 10)));
+        try { localStorage.setItem('cancioneroTam', String(i)); } catch(e){}
+        aplicarTam();
+        root.querySelectorAll('[data-canto-tam="-1"]').forEach(function(x){ x.disabled = i === 0; });
+        root.querySelectorAll('[data-canto-tam="1"]').forEach(function(x){ x.disabled = i === TAMS.length - 1; });
+      };
+    });
   }
 
   // Acordes (30/10/2026): cada estrofa puede traer `acordes`, un texto por
@@ -107,7 +153,7 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
 
   export function acordesToggleHtml(mostrar){
     if(!mostrar) return '';
-    return '<button type="button" class="btn ghost small canto-acordes-toggle' + (AppState.cancioneroAcordes ? ' active' : '') + '" data-acordes-toggle aria-pressed="' + AppState.cancioneroAcordes + '">' + icon('guitar') + ' Acordes</button>';
+    return '<button type="button" class="btn small canto-tool canto-acordes-toggle' + (AppState.cancioneroAcordes ? ' active' : '') + '" data-acordes-toggle title="Mostrar acordes" aria-pressed="' + AppState.cancioneroAcordes + '">' + icon('guitar') + '<span class="canto-tool-txt"> Acordes</span></button>';
   }
 
   export function bindAcordesToggle(root){
@@ -325,7 +371,16 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
       AppState.cancioneroCantoId = null;
       renderPanel();
     };
-    bindAcordesToggle(document.getElementById('panel'));
+    var panel = document.getElementById('panel');
+    bindAcordesToggle(panel);
+    bindTamLetra(panel);
+    panel.querySelectorAll('[data-canto-ir]').forEach(function(b){
+      b.onclick = function(){
+        AppState.cancioneroCantoId = b.getAttribute('data-canto-ir');
+        renderPanel();
+        window.scrollTo(0, 0);
+      };
+    });
     var edit = document.getElementById('cantoEditBtn');
     if(edit) edit.onclick = function(){ openCantoDialog(canto); };
     var del = document.getElementById('cantoDeleteBtn');
