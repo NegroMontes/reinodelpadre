@@ -33,19 +33,23 @@ export function codigoCocinaValido(codigo){
 
 export function linkDeCodigo(codigo){ return location.origin + location.pathname + '?cocina=' + codigo; }
 
-// Solo admin (las reglas no dejan listar a nadie más).
-export function codigoCocinaActual(){
-  return getDocs(collection(db, 'codigosCocina')).then(function(q){ return q.docs.length ? q.docs[0].id : ''; });
-}
+// Links de un solo uso (12/11/2026): cada link sirve para una sola persona.
+// Al registrarse, el perfil y el borrado del código van en el mismo lote
+// (ver submitOnboarding()), así que el link queda gastado sí o sí.
+export function codigoCocinaRef(codigo){ return doc(db, 'codigosCocina', codigo); }
 
-function borrarTodos(){
-  return getDocs(collection(db, 'codigosCocina')).then(function(q){ return Promise.all(q.docs.map(function(d){ return deleteDoc(doc(db, 'codigosCocina', d.id)); })); });
+// Solo admin (las reglas no dejan listar a nadie más): los links sin usar.
+export function codigosCocinaSinUsar(){
+  return getDocs(collection(db, 'codigosCocina')).then(function(q){
+    return q.docs.map(function(d){ return { codigo: d.id, createdAt: (d.data() || {}).createdAt || 0 }; })
+      .sort(function(a, b){ return a.createdAt - b.createdAt; });
+  });
 }
 
 export function generarCodigoCocina(){
   var b = new Uint8Array(12); crypto.getRandomValues(b);
   var codigo = Array.from(b, function(x){ return ('0' + x.toString(16)).slice(-2); }).join('');
-  return borrarTodos().then(function(){ return setDoc(doc(db, 'codigosCocina', codigo), { createdAt: Date.now() }); }).then(function(){ return codigo; });
+  return setDoc(doc(db, 'codigosCocina', codigo), { createdAt: Date.now() }).then(function(){ return codigo; });
 }
 
-export function desactivarCodigoCocina(){ return borrarTodos(); }
+export function borrarCodigoCocina(codigo){ return deleteDoc(doc(db, 'codigosCocina', codigo)); }

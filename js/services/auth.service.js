@@ -3,8 +3,8 @@
 // (incluye el onboarding — crear el perfil la primera vez).
 
 import { GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-import { codigoCocina, codigoCocinaValido, olvidarCodigoCocina } from './cocina-link.service.js';
-import { doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { codigoCocina, codigoCocinaValido, olvidarCodigoCocina, codigoCocinaRef } from './cocina-link.service.js';
+import { doc, setDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { auth, db, DRIVE_UPLOAD_SCOPE } from '../config/firebase.js';
 import { BOOTSTRAP_ADMIN_EMAIL, CONSAGRADO_ICONS } from '../config/constants.js';
 import { isValidCupulaIconValue } from '../utils/badge-icons.js';
@@ -150,7 +150,7 @@ import { render } from '../main.js';
       // subjefe de sección/depto").
       if(!(await codigoCocinaValido(codigoCocina()))){
         olvidarCodigoCocina();
-        throw new Error('El link de cocina ya no es válido. Pedile uno nuevo a un admin.');
+        throw new Error('Este link de cocina ya se usó o no es válido. Pedile uno nuevo a un admin.');
       }
       profile.role = 'subjefe';
       profile.seccion = null;
@@ -222,8 +222,16 @@ import { render } from '../main.js';
     }
 
     try{
-      await setDoc(doc(db, 'users', fbUser.uid), profile);
-      if(profile.declaradoComo === 'Comando de cocina'){ olvidarCodigoCocina(); }
+      if(profile.declaradoComo === 'Comando de cocina'){
+        // Un solo uso: el perfil y el borrado del código van juntos.
+        var lote = writeBatch(db);
+        lote.set(doc(db, 'users', fbUser.uid), profile);
+        lote.delete(codigoCocinaRef(codigoCocina()));
+        await lote.commit();
+        olvidarCodigoCocina();
+      } else {
+        await setDoc(doc(db, 'users', fbUser.uid), profile);
+      }
     }catch(e){
       console.error('No se pudo guardar tu perfil:', e);
       showAlert('No se pudo guardar: ' + e.message);

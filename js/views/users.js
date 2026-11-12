@@ -11,7 +11,7 @@ import { copyTextToClipboard } from './feedback.js';
 import { render, renderPanel, showStatus } from '../main.js';
 import { showAlert, showConfirm } from '../components/dialog.js';
 import { icon } from '../utils/icons.js';
-import { codigoCocinaActual, generarCodigoCocina, desactivarCodigoCocina, linkDeCodigo } from '../services/cocina-link.service.js';
+import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCodigo } from '../services/cocina-link.service.js';
 
   // Filtra `usersList` según los filtros activos de la pestaña "Usuarios"
   // (pedido del usuario, 23/09/2026: filtrar por rol, sección, fecha y nombre).
@@ -109,18 +109,24 @@ import { codigoCocinaActual, generarCodigoCocina, desactivarCodigoCocina, linkDe
     // Link de ingreso del comando de cocina (12/11/2026, ver
     // services/cocina-link.service.js).
     if(AppState.usersActiveSubTab === 'comando'){
-      if(AppState.cocinaCodigo === undefined){
-        AppState.cocinaCodigo = null;
-        codigoCocinaActual().then(function(c){ AppState.cocinaCodigo = c; if(AppState.activeDayId === 'USERS'){ renderPanel(); } }).catch(function(e){ console.error('No se pudo leer el link de cocina:', e); AppState.cocinaCodigo = ''; });
+      if(AppState.cocinaCodigos === undefined){
+        AppState.cocinaCodigos = null;
+        codigosCocinaSinUsar().then(function(l){ AppState.cocinaCodigos = l; if(AppState.activeDayId === 'USERS'){ renderPanel(); } }).catch(function(e){ console.error('No se pudieron leer los links de cocina:', e); AppState.cocinaCodigos = []; });
       }
-      var cc = AppState.cocinaCodigo;
-      html += '<div class="mandos-sub" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">';
-      html += '  <span>Link de ingreso para cocina: <strong>' + (cc === null ? '…' : (cc ? 'activo' : 'sin link')) + '</strong></span>';
-      if(cc){ html += '  <button class="btn ghost small" id="cocinaCopiarBtn" type="button">Copiar link</button>'; }
-      html += '  <button class="btn ghost small" id="cocinaNuevoBtn" type="button">' + (cc ? 'Generar otro' : 'Generar link') + '</button>';
-      if(cc){ html += '  <button class="btn ghost small" id="cocinaOffBtn" type="button">Desactivar</button>'; }
+      var cl = AppState.cocinaCodigos;
+      html += '<div class="mandos-sub" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">';
+      html += '  <span>Links de cocina sin usar: <strong>' + (cl === null ? '…' : cl.length) + '</strong></span>';
+      html += '  <button class="btn ghost small" id="cocinaNuevoBtn" type="button">Generar link</button>';
       html += '</div>';
-      html += '<p class="mandos-sub" style="margin:-4px 0 10px">Quien entra por primera vez con ese link queda como comando de cocina, sin pasar por pendiente. «Generar otro» anula el anterior.</p>';
+      (cl || []).forEach(function(c, i){
+        var f = c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : '';
+        html += '<div class="mandos-sub" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 6px 12px">';
+        html += '  <span>Link ' + (i + 1) + (f ? ' · creado el ' + f : '') + '</span>';
+        html += '  <button class="btn ghost small" data-cocina-copiar="' + c.codigo + '" type="button">Copiar</button>';
+        html += '  <button class="btn ghost small" data-cocina-borrar="' + c.codigo + '" type="button">Borrar</button>';
+        html += '</div>';
+      });
+      html += '<p class="mandos-sub" style="margin:0 0 10px">Cada link sirve para <strong>una sola persona</strong>: entra directo como comando de cocina y el link se gasta. Generá uno por cada cocinero.</p>';
     }
 
     if(AppState.usersActiveSubTab === 'milicianos'){
@@ -295,24 +301,20 @@ import { codigoCocinaActual, generarCodigoCocina, desactivarCodigoCocina, linkDe
       };
     });
 
-    var cocinaCopiarBtn = document.getElementById('cocinaCopiarBtn');
-    if(cocinaCopiarBtn){
-      cocinaCopiarBtn.onclick = function(){
-        copyTextToClipboard(linkDeCodigo(AppState.cocinaCodigo), cocinaCopiarBtn);
+    document.querySelectorAll('[data-cocina-copiar]').forEach(function(btn){
+      btn.onclick = function(){ copyTextToClipboard(linkDeCodigo(btn.getAttribute('data-cocina-copiar')), btn); };
+    });
+    document.querySelectorAll('[data-cocina-borrar]').forEach(function(btn){
+      btn.onclick = async function(){
+        if(!(await showConfirm('¿Borrar este link? Nadie va a poder entrar con él.'))) return;
+        var c = btn.getAttribute('data-cocina-borrar');
+        borrarCodigoCocina(c).then(function(){ AppState.cocinaCodigos = (AppState.cocinaCodigos || []).filter(function(x){ return x.codigo !== c; }); renderPanel(); }).catch(function(e){ showAlert('No se pudo borrar: ' + e.message); });
       };
-    }
+    });
     var cocinaNuevoBtn = document.getElementById('cocinaNuevoBtn');
     if(cocinaNuevoBtn){
-      cocinaNuevoBtn.onclick = async function(){
-        if(AppState.cocinaCodigo && !(await showConfirm('¿Generar un link nuevo? El anterior deja de funcionar.'))) return;
-        generarCodigoCocina().then(function(c){ AppState.cocinaCodigo = c; renderPanel(); }).catch(function(e){ showAlert('No se pudo generar: ' + e.message); });
-      };
-    }
-    var cocinaOffBtn = document.getElementById('cocinaOffBtn');
-    if(cocinaOffBtn){
-      cocinaOffBtn.onclick = async function(){
-        if(!(await showConfirm('¿Desactivar el link de cocina? Nadie más va a poder entrar con él.'))) return;
-        desactivarCodigoCocina().then(function(){ AppState.cocinaCodigo = ''; renderPanel(); }).catch(function(e){ showAlert('No se pudo desactivar: ' + e.message); });
+      cocinaNuevoBtn.onclick = function(){
+        generarCodigoCocina().then(function(c){ (AppState.cocinaCodigos = AppState.cocinaCodigos || []).push({ codigo: c, createdAt: Date.now() }); renderPanel(); }).catch(function(e){ showAlert('No se pudo generar: ' + e.message); });
       };
     }
     var toggleMiliBtn = document.getElementById('toggleMilicianosLoginBtn');
