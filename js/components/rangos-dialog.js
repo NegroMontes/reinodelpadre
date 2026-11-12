@@ -40,6 +40,7 @@ import { showAlert, showConfirm } from './dialog.js';
       '  <p class="mandos-sub" style="margin:12px 0 0">' + entradas.length + ' entradas cuentan para vos (publicadas y programadas): ' + conPuntaje + ' con puntaje, ' + obligatorias + ' obligatoria' + (obligatorias === 1 ? '' : 's') + '.</p>' +
       '  <p style="margin:6px 0 0">' + prueba + '</p>' +
       '  <button type="button" class="rango-link" id="rangoCalendarioBtn">Poner puntos según el calendario de publicación</button>' +
+      '  <button type="button" class="rango-link" id="rangoMigrarBtn">Pasar los puntos al sistema nuevo (libretas)</button>' +
       '  <div class="app-dialog-actions" style="margin-top:16px">' +
       '    <button type="button" class="btn ghost small" id="rangoCancelBtn">Cancelar</button>' +
       '    <button type="button" class="btn small" id="rangoSaveBtn">Guardar</button>' +
@@ -60,6 +61,14 @@ import { showAlert, showConfirm } from './dialog.js';
       mod.aplicarPuntos(plan);
       render();
       await showAlert('Listo. Cada tarjeta muestra sus puntos (solo vos los ves).');
+    };
+    overlay.querySelector('#rangoMigrarBtn').onclick = async function(){
+      close();
+      if(!(await showConfirm('Recalcula la libreta de puntos de todos a partir de las entradas completadas, los minijuegos ganados y lo canjeado en Beneficios. Se puede repetir sin duplicar nada. ¿Seguir?'))) return;
+      try{
+        var r = await (await import('../services/libreta.service.js')).migrarPuntos();
+        await showAlert('Listo: ' + r.personas + ' libretas actualizadas.');
+      }catch(e){ console.error(e); await showAlert('No se pudo: ' + e.message + '\n\n¿Están publicadas las reglas nuevas?'); }
     };
     overlay.querySelector('#rangoSaveBtn').onclick = function(){
       var vals = Array.prototype.map.call(overlay.querySelectorAll('.rango-umbral'), function(inp){ return Number(inp.value); });

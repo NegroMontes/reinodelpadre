@@ -1,7 +1,7 @@
 // Avance de entradas "secuenciales": el progreso propio de cada quien
 // (/entryProgress) y, para un admin, quién completó cada una.
 
-import { collection, query, where, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { db } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { isAdmin, realIsAdmin } from './permissions.js';
@@ -136,30 +136,59 @@ import { render } from '../main.js';
   }
 
 
+  // Reglas de Firestore (12/11/2026): `abiertoEn` lo pone el servidor la
+  // primera vez que se abre la entrada, y `completedAt` solo se acepta pasados
+  // 30 segundos desde ahí (y no se puede cambiar después). Esto arma lo que se
+  // manda respetando eso; si todavía no pasaron, la marca de completada se
+  // manda sola después (mientras la página siga abierta).
+  var ESPERA_MS = 32000;
+  var pendientesCompletar = {};
+  // Cuándo se mandó `abiertoEn` desde este dispositivo: mientras el servidor no
+  // confirma, Firestore lo lee como null, y mandarlo de nuevo lo rechazaría la regla.
+  var abiertoEnviado = {};
+  function msDe(t){ return t == null ? null : (typeof t === 'number' ? t : (t.toMillis ? t.toMillis() : (t.seconds ? t.seconds * 1000 : null))); }
+  function camposBase(entryId){
+    var u = AppState.currentUser, prev = AppState.myProgress[entryId] || null;
+    var d = { entryId: entryId, uid: u.uid, displayName: u.displayName, updatedAt: Date.now() };
+    if((!prev || prev.abiertoEn == null) && !abiertoEnviado[entryId]){ d.abiertoEn = serverTimestamp(); abiertoEnviado[entryId] = Date.now(); }
+    return d;
+  }
+  function programarCompletado(entryId, esperaMs){
+    if(pendientesCompletar[entryId]) return;
+    pendientesCompletar[entryId] = setTimeout(function(){
+      delete pendientesCompletar[entryId];
+      var prev = AppState.myProgress[entryId];
+      if(prev && prev.completedAt) return;
+      setDoc(progressDocRef(entryId), { completedAt: Date.now(), updatedAt: Date.now() }, { merge: true })
+        .catch(function(e){ console.error('No se pudo marcar la entrada como completada:', e); });
+    }, Math.max(1000, esperaMs));
+  }
+  // Agrega `completedAt` a `data` si se puede ahora; si no, lo programa.
+  function quizasCompletar(entryId, data){
+    var prev = AppState.myProgress[entryId] || null;
+    if(prev && prev.completedAt) return;
+    var abierto = (prev && msDe(prev.abiertoEn)) || abiertoEnviado[entryId] || null;
+    var falta = abierto == null ? ESPERA_MS + 3000 : (abierto + ESPERA_MS) - Date.now();
+    if(abierto != null && falta <= 0){ data.completedAt = Date.now(); return; }
+    programarCompletado(entryId, falta);
+  }
+
   export async function saveProgressAnswer(entryId, stepIdx, text){
     try{
-      // Se relee lo ya guardado (del cache local, que viene del listener en
-      // vivo) y se arma el mapa `respuestas` completo de nuevo, en vez de
-      // mandar una escritura parcial — así no hace falta depender de paths
-      // con punto (`respuestas.0`) para un merge anidado, que el mock de
-      // este sandbox no interpreta igual que Firestore real.
       var prev = (AppState.myProgress[entryId] && AppState.myProgress[entryId].respuestas) || {};
       var respuestas = Object.assign({}, prev);
       respuestas[stepIdx] = text;
-      await setDoc(progressDocRef(entryId), {
-        entryId: entryId, uid: AppState.currentUser.uid, displayName: AppState.currentUser.displayName,
-        respuestas: respuestas, updatedAt: Date.now()
-      }, { merge: true });
+      var data = camposBase(entryId); data.respuestas = respuestas;
+      await setDoc(progressDocRef(entryId), data, { merge: true });
     }catch(e){ console.error('No se pudo guardar tu respuesta:', e); }
   }
 
 
   export async function markProgressCompleted(entryId){
     try{
-      await setDoc(progressDocRef(entryId), {
-        entryId: entryId, uid: AppState.currentUser.uid, displayName: AppState.currentUser.displayName,
-        completedAt: Date.now()
-      }, { merge: true });
+      var data = camposBase(entryId);
+      quizasCompletar(entryId, data);
+      await setDoc(progressDocRef(entryId), data, { merge: true });
     }catch(e){ console.error('No se pudo guardar tu avance:', e); }
   }
 
@@ -167,19 +196,13 @@ import { render } from '../main.js';
   // Progreso que manda la Fordoquera incrustada, versión 2 del protocolo
   // (11/10/2026, Fordoquera 9.9) — `{fq:'progreso', paso, pasos, completado,
   // respuestas}`, recibido en `fordoquera-embed.js` (modo 'presentar') y
-  // persistido acá con el mismo documento `entryProgress/<entryId>_<uid>`
-  // de siempre, así "Ver quién la completó" (`ensureCompletionsSubs()`
-  // arriba) sigue funcionando sin tocar nada de esa parte. La Fordoquera
-  // nunca manda quién sos — eso ya lo sabe RDP, por eso acá se asocia con
-  // `AppState.currentUser`.
+  // persistido acá con el mismo documento `entryProgress/<entryId>_<uid>`.
   export async function saveFordoqueraProgreso(entryId, msg){
-    if(!AppState.currentUser) return;
+    if(!AppState.currentUser || !AppState.myProgressLoaded) return;
     try{
-      var data = {
-        entryId: entryId, uid: AppState.currentUser.uid, displayName: AppState.currentUser.displayName,
-        paso: msg.paso, pasos: msg.pasos, respuestas: msg.respuestas || {}, updatedAt: Date.now()
-      };
-      if(msg.completado) data.completedAt = Date.now();
+      var data = camposBase(entryId);
+      data.paso = msg.paso; data.pasos = msg.pasos; data.respuestas = msg.respuestas || {};
+      if(msg.completado) quizasCompletar(entryId, data);
       await setDoc(progressDocRef(entryId), data, { merge: true });
-    }catch(e){ console.error('No se pudo guardar el progreso de la Fordoquera:', e); }
+    }catch(e){ delete abiertoEnviado[entryId]; console.error('No se pudo guardar el progreso de la Fordoquera:', e); }
   }

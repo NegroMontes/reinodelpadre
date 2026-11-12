@@ -46,6 +46,7 @@ export const AppState = {
   misasLoaded: false,
   unsubMisas: null,
   // T18 — tienda de beneficios (ver tienda.service.js)
+  libretas: {}, libretasLoaded: false, puntosEntradas: {}, puntosEntradasLoaded: false, juegosValidos: [], juegosValidosLoaded: false,
   tiendaConfig: null, tiendaConfigLoaded: false, beneficios: [], beneficiosLoaded: false, canjes: [], pujas: [], tiendaCanjesOpen: false,
   unsubTiendaConfig: null, unsubBeneficios: null, unsubCanjes: null, unsubPujas: null,
   misaId: null, // misa abierta

@@ -22,11 +22,10 @@
 // Saldo = puntos ganados (entradas completadas + bonus de minijuegos, según la
 // config) − canjes no cancelados − lo «reservado»: lo que aportó a subastas
 // todavía abiertas. Gastar NO baja el rango: el rango sigue sobre lo ganado.
-import { doc, collection, onSnapshot, setDoc, addDoc, updateDoc, deleteDoc, query, where, runTransaction } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { doc, collection, onSnapshot, setDoc, addDoc, updateDoc, deleteDoc, query, where, runTransaction, writeBatch, increment } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { db } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
-import { miRango } from './rangos.service.js';
-import { bonusDe } from './juegos.service.js';
+import { miLibreta, libretaRef, ajustarGastado } from './libreta.service.js';
 import { renderPanel, render } from '../main.js';
 
 export var TIENDA_DEFAULT = { activa: false, titulo: 'Beneficios', moneda: 'puntos', usarEntradas: true, usarBonus: true, nota: '' };
@@ -137,16 +136,19 @@ export function misCanjes(){
   return (AppState.canjes || []).filter(function(c){ return c.uid === uid; });
 }
 
+// Desde el 12/11/2026 el saldo sale de la libreta (validada por las reglas):
+// lo ganado (gE/gJ) menos `gastado`, que sube con cada canje o aporte en el
+// mismo lote y solo baja si el admin devuelve. Lo aportado a subastas
+// abiertas ya está dentro de `gastado` (se muestra aparte como «reservado»).
 export function saldo(){
-  var u = AppState.currentUser, cfg = tiendaConfig();
-  var entradas = cfg.usarEntradas ? (miRango().puntos || 0) : 0;
-  var bonus = cfg.usarBonus ? bonusDe(u) : 0;
-  var gastado = misCanjes().filter(function(c){ return c.estado !== 'cancelado'; })
-    .reduce(function(s, c){ return s + (Number(c.monto) || 0); }, 0);
+  var cfg = tiendaConfig(), l = miLibreta() || {};
+  var entradas = cfg.usarEntradas ? (Number(l.gE) || 0) : 0;
+  var bonus = cfg.usarBonus ? (Number(l.gJ) || 0) : 0;
   var reservado = (AppState.beneficios || []).filter(subastaAbierta).reduce(function(s, b){
     return s + miAporte(b.id);
   }, 0);
-  return { entradas: entradas, bonus: bonus, ganado: entradas + bonus, gastado: gastado, reservado: reservado, disponible: entradas + bonus - gastado - reservado };
+  var gastadoTotal = Number(l.gastado) || 0;
+  return { entradas: entradas, bonus: bonus, ganado: entradas + bonus, gastado: Math.max(0, gastadoTotal - reservado), reservado: reservado, disponible: Math.max(0, entradas + bonus - gastadoTotal) };
 }
 
 /* ---------- acciones de cualquiera ---------- */
@@ -167,16 +169,18 @@ export function canjear(b){
   if(quedan(b) <= 0) return Promise.resolve('No quedan más.');
   if(b.limite && misCanjesDe(b.id) >= b.limite) return Promise.resolve('Ya llegaste al máximo por persona.');
   if(saldo().disponible < b.precio) return Promise.resolve('No te alcanzan los ' + tiendaConfig().moneda + '.');
-  var u = AppState.currentUser, ref = doc(beneficiosCol, b.id);
+  var u = AppState.currentUser, ref = doc(beneficiosCol, b.id), canjeRef = doc(canjesCol);
+  if(!miLibreta()) return Promise.resolve('Todavía no se cargó tu libreta de puntos. Probá de nuevo en un rato.');
+  // Todo junto (las reglas lo exigen): una unidad menos, el canje y lo gastado.
   return runTransaction(db, function(tx){
     return tx.get(ref).then(function(s){
       if(!s.exists()) throw new Error('No existe');
       var d = s.data();
       if(d.stock != null && (d.vendidos || 0) >= d.stock) throw new Error('agotado');
       tx.update(ref, { vendidos: (d.vendidos || 0) + 1 });
+      tx.set(canjeRef, { uid: u.uid, nombre: u.displayName || '', beneficioId: b.id, titulo: b.titulo || '', monto: Number(b.precio) || 0, tipo: 'compra', estado: 'pendiente', createdAt: Date.now() });
+      tx.update(libretaRef(u.uid), { gastado: increment(Number(b.precio) || 0) });
     });
-  }).then(function(){
-    return addDoc(canjesCol, { uid: u.uid, nombre: u.displayName || '', beneficioId: b.id, titulo: b.titulo || '', monto: Number(b.precio) || 0, tipo: 'compra', estado: 'pendiente', createdAt: Date.now() });
   }).then(function(){ return ''; }).catch(function(e){
     console.error('No se pudo canjear:', e);
     return e && e.message === 'agotado' ? 'No quedan más.' : 'No se pudo canjear (¿faltan publicar las reglas?).';
@@ -192,7 +196,11 @@ export function aportar(b, monto){
   if(!(monto >= 1)) return Promise.resolve('Aportá al menos 1.');
   if(saldo().disponible < monto) return Promise.resolve('No te alcanzan los ' + tiendaConfig().moneda + '.');
   var u = AppState.currentUser;
-  return addDoc(pujasCol, { uid: u.uid, nombre: u.displayName || '', grupo: miGrupo(), beneficioId: b.id, monto: monto, createdAt: Date.now() })
+  if(!miLibreta()) return Promise.resolve('Todavía no se cargó tu libreta de puntos. Probá de nuevo en un rato.');
+  var lote = writeBatch(db);
+  lote.set(doc(pujasCol), { uid: u.uid, nombre: u.displayName || '', grupo: miGrupo(), beneficioId: b.id, monto: monto, createdAt: Date.now() });
+  lote.update(libretaRef(u.uid), { gastado: increment(monto) });
+  return lote.commit()
     .then(function(){ return ''; })
     .catch(function(e){ console.error('No se pudo pujar:', e); return 'No se pudo pujar (¿faltan publicar las reglas?).'; });
 }
@@ -216,32 +224,49 @@ export function guardarBeneficio(b){
 export function borrarBeneficio(id){ return deleteDoc(doc(beneficiosCol, id)); }
 
 // Cierra la subasta: gana el comando con más total. A cada uno de sus
-// aportantes se le crea un canje por lo que aportó; el resto queda libre.
+// aportantes se le crea un canje por lo que aportó (ya descontado al
+// aportar); al resto se le devuelve lo aportado (queda anotado en
+// `devueltos` por si se reabre).
 export function cerrarSubasta(b){
   var g = grupoGanando(b), ref = doc(beneficiosCol, b.id), ahora = Date.now();
-  var porPersona = {};
-  if(g) g.aportes.forEach(function(p){
-    if(!porPersona[p.uid]) porPersona[p.uid] = { uid: p.uid, nombre: p.nombre || '', monto: 0 };
-    porPersona[p.uid].monto += Number(p.monto) || 0;
+  var porPersona = {}, devueltos = {};
+  aportesDe(b.id).forEach(function(p){
+    var monto = Number(p.monto) || 0;
+    if(g && p.grupo === g.grupo){
+      if(!porPersona[p.uid]) porPersona[p.uid] = { uid: p.uid, nombre: p.nombre || '', monto: 0 };
+      porPersona[p.uid].monto += monto;
+    } else if(p.uid){ devueltos[p.uid] = (devueltos[p.uid] || 0) + monto; }
   });
   return Promise.all(Object.keys(porPersona).map(function(uid){
     var x = porPersona[uid];
     return addDoc(canjesCol, { uid: x.uid, nombre: x.nombre, grupo: g.grupo, beneficioId: b.id, titulo: b.titulo || '', monto: x.monto, tipo: 'subasta', estado: 'pendiente', createdAt: ahora });
-  })).then(function(){
-    return updateDoc(ref, { estado: 'cerrada', ganadorGrupo: g ? g.grupo : '', montoGanador: g ? g.total : 0 });
+  }).concat(Object.keys(devueltos).map(function(uid){ return ajustarGastado(uid, -devueltos[uid]); }))).then(function(){
+    return updateDoc(ref, { estado: 'cerrada', ganadorGrupo: g ? g.grupo : '', montoGanador: g ? g.total : 0, devueltos: devueltos });
   });
 }
 
+// Reabrir: se vuelve a reservar lo devuelto y se borran los canjes que
+// había generado el cierre.
 export function reabrirSubasta(b){
-  return updateDoc(doc(beneficiosCol, b.id), { estado: 'abierta', ganadorGrupo: '', montoGanador: 0 });
+  var devueltos = b.devueltos || {};
+  var canjesSubasta = (AppState.canjes || []).filter(function(c){ return c.beneficioId === b.id && c.tipo === 'subasta'; });
+  return Promise.all(Object.keys(devueltos).map(function(uid){ return ajustarGastado(uid, devueltos[uid]); })
+    .concat(canjesSubasta.map(function(c){ return deleteDoc(doc(canjesCol, c.id)); }))).then(function(){
+    return updateDoc(doc(beneficiosCol, b.id), { estado: 'abierta', ganadorGrupo: '', montoGanador: 0, devueltos: {} });
+  });
 }
 
 export function setEstadoCanje(c, estado){
   var p = updateDoc(doc(canjesCol, c.id), { estado: estado });
-  // Cancelar una compra devuelve la unidad al stock.
-  if(c.tipo === 'compra' && (estado === 'cancelado') !== (c.estado === 'cancelado')){
-    var b = (AppState.beneficios || []).find(function(x){ return x.id === c.beneficioId; });
-    if(b) p = p.then(function(){ return updateDoc(doc(beneficiosCol, b.id), { vendidos: Math.max(0, (b.vendidos || 0) + (estado === 'cancelado' ? -1 : 1)) }); });
+  var cambia = (estado === 'cancelado') !== (c.estado === 'cancelado');
+  if(cambia){
+    // Cancelar devuelve los puntos; des-cancelar los vuelve a descontar.
+    p = p.then(function(){ return ajustarGastado(c.uid, (estado === 'cancelado' ? -1 : 1) * (Number(c.monto) || 0)); });
+    // Una compra cancelada devuelve la unidad al stock.
+    if(c.tipo === 'compra'){
+      var b = (AppState.beneficios || []).find(function(x){ return x.id === c.beneficioId; });
+      if(b) p = p.then(function(){ return updateDoc(doc(beneficiosCol, b.id), { vendidos: Math.max(0, (b.vendidos || 0) + (estado === 'cancelado' ? -1 : 1)) }); });
+    }
   }
   return p;
 }

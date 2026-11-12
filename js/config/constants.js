@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.12.7';
+  export var APP_VERSION = '2026.11.12.8';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,10 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.12.8', date: '12/11/2026', items: [
+      'Los puntos ahora se guardan en una libreta que controla el servidor: nadie se puede sumar puntos de la nada.',
+      'Una entrada cuenta como completada después de estar abierta al menos 30 segundos.'
+    ]},
     { version: '2026.11.12.7', date: '12/11/2026', items: [
       'Registro más seguro: cada puesto de la resolución puede tener una sola cuenta, y el rol tiene que coincidir con el puesto.'
     ]},

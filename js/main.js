@@ -28,6 +28,7 @@ import { irAEntrada } from './services/entry-link.js';
 import { icon } from './utils/icons.js';
 import { startVersionWatch, stopVersionWatch } from './services/version-check.service.js';
 import { sincronizarMiRango } from './services/rangos.service.js';
+import { ensureLibretasSub, stopLibretasSub } from './services/libreta.service.js';
 import { renderPerfilPanel, attachPerfilEvents } from './views/perfil.js';
 import { iniciarHuevos } from './components/huevos.js';
 import { saboteadorTrasRender } from './components/eventos.js';
@@ -377,6 +378,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       AppState.mandosSubscribed = false; AppState.mandosLoaded = false; AppState.mandosData = null;
       stopCancioneroSub();
       stopTiendaSubs();
+      stopLibretasSub();
       unsubAllProgress();
       unsubAllCompletions();
       AppState.secuencialCompletionsOpenId = null;
@@ -884,6 +886,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       // en el estado pedido), así que llamarlas en cada render() es seguro.
       if(AppState.currentUser && AppState.currentUser.role === 'admin'){ startVersionWatch(); }
       else { stopVersionWatch(); }
+      ensureLibretasSub();
       sincronizarMiRango();
       ensureTiendaConfigSub();
       ensureTiendaSubs();

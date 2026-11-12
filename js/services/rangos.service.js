@@ -13,8 +13,7 @@ import { AppState } from '../app-state.js';
 import { RANGOS } from '../config/constants.js';
 import { estaOculta } from '../utils/helpers.js';
 import { canSeeEntry } from './permissions.js';
-import { db } from '../config/firebase.js';
-import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { libretaDe, sincronizarLibreta, sincronizarAdmin } from './libreta.service.js';
 
   export function puntosDe(entry){
     var p = Number(entry && entry.puntos);
@@ -91,91 +90,119 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase
     };
   }
 
-  // Entradas que cuentan para quien está mirando (respeta «Ver como»): las
-  // publicadas y también las programadas (con fecha) que va a ver cuando
-  // salgan — así el total es el camino entero y nadie llega a Heredero con
-  // las primeras entradas (pedido del usuario, 05/11/2026). Los borradores sin
-  // fecha no cuentan. Info general no tiene entradas que contar.
-  export function entradasQueCuentan(){
-    return (AppState.state.entries || []).filter(function(e){
-      if(e.deletedAt || e.dayId === 'INFO_GENERAL') return false;
-      if(!estaOculta(e)) return canSeeEntry(e);
-      if(!e.publishAt) return false;
-      return canSeeEntry(Object.assign({}, e, { oculta: false }));
-    });
+  // Evalúa `fn` como si estuviera logueado `u` (para calcular el rango de
+  // otros con sus propios permisos). Sincrónico: no queda nada cambiado.
+  function comoUsuario(u, fn){
+    if(!u) return fn();
+    var cu = AppState.currentUser, va = AppState.viewAsOverride, lm = AppState.myLectorMode;
+    AppState.currentUser = Object.assign({}, u); AppState.viewAsOverride = null; AppState.myLectorMode = false;
+    try{ return fn(); } finally { AppState.currentUser = cu; AppState.viewAsOverride = va; AppState.myLectorMode = lm; }
   }
+
+  // Entradas que cuentan para quien está mirando (o para `u`, si se pasa;
+  // respeta «Ver como» solo para uno mismo): las publicadas y también las
+  // programadas (con fecha) que va a ver cuando salgan — así el total es el
+  // camino entero y nadie llega a Heredero con las primeras entradas (pedido
+  // del usuario, 05/11/2026). Los borradores sin fecha no cuentan. Info
+  // general no tiene entradas que contar.
+  export function entradasQueCuentan(u){
+    var calc = function(){
+      return (AppState.state.entries || []).filter(function(e){
+        if(e.deletedAt || e.dayId === 'INFO_GENERAL') return false;
+        if(!estaOculta(e)) return canSeeEntry(e);
+        if(!e.publishAt) return false;
+        return canSeeEntry(Object.assign({}, e, { oculta: false }));
+      });
+    };
+    return u ? comoUsuario(u, calc) : calc();
+  }
+
+  // Completadas de alguien según su libreta (12/11/2026: la libreta la validan
+  // las reglas; ya no se confía en lo que cada teléfono guardaba en el perfil).
+  // Para uno mismo se suma lo que ya marcó la Fordoquera y todavía no pasó a la libreta.
+  export function progresoDe(uid){
+    var l = libretaDe(uid), p = {};
+    Object.keys((l && l.entradas) || {}).forEach(function(id){ p[id] = { completedAt: l.entradas[id] }; });
+    if(AppState.currentUser && uid === AppState.currentUser.uid){
+      Object.keys(AppState.myProgress || {}).forEach(function(id){
+        var x = AppState.myProgress[id];
+        if(x && x.completedAt && !p[id]) p[id] = { completedAt: x.completedAt };
+      });
+    }
+    return p;
+  }
+
+  function hecha(prog, e){ return !!(prog[e.id] && prog[e.id].completedAt); }
 
   // Puntos de las entradas que ya se ven (sin las programadas): el «M» de
   // «N de M puntos disponibles» del Perfil (pedido del usuario, 05/11/2026).
   // El rango se sigue calculando sobre el camino entero (miRango()).
-  export function puntosDisponibles(){
-    var r = { puntos: 0, total: 0 };
-    entradasQueCuentan().filter(function(e){ return !estaOculta(e); }).forEach(function(e){
+  export function puntosDisponibles(u){
+    var uid = u ? u.uid : (AppState.currentUser && AppState.currentUser.uid);
+    var prog = progresoDe(uid), r = { puntos: 0, total: 0 };
+    entradasQueCuentan(u).filter(function(e){ return !estaOculta(e); }).forEach(function(e){
       var p = puntosDe(e);
       r.total += p;
-      if(AppState.myProgress[e.id] && AppState.myProgress[e.id].completedAt) r.puntos += p;
+      if(hecha(prog, e)) r.puntos += p;
     });
     return r;
   }
 
   // % «al día»: puntos hechos de las entradas ya publicadas (pedido del
   // usuario, 05/11/2026: medir sobre el camino entero avanzaba muy lento).
-  export function alDia(){
-    var d = puntosDisponibles();
+  export function alDia(u){
+    var d = puntosDisponibles(u);
     return d.total ? Math.round(d.puntos / d.total * 100) : 0;
   }
 
   // T17 (05/11/2026): ids de las obligatorias YA publicadas que la persona
-  // ve y todavía no completó (cualquier rango). Se guarda en el perfil para
-  // que su jefe lo vea en Comando → Tablero.
-  export function misObligatoriasPendientes(){
-    return entradasQueCuentan().filter(function(e){
-      return !estaOculta(e) && obligatoriaRangoDe(e) &&
-        !(AppState.myProgress[e.id] && AppState.myProgress[e.id].completedAt);
+  // ve y todavía no completó (cualquier rango).
+  export function misObligatoriasPendientes(u){
+    var uid = u ? u.uid : (AppState.currentUser && AppState.currentUser.uid);
+    var prog = progresoDe(uid);
+    return entradasQueCuentan(u).filter(function(e){
+      return !estaOculta(e) && obligatoriaRangoDe(e) && !hecha(prog, e);
     }).map(function(e){ return e.id; }).sort();
   }
 
   export function miRango(){
-    return calcularRango(entradasQueCuentan(), AppState.myProgress, rangoUmbrales(AppState.state));
+    return calcularRango(entradasQueCuentan(), progresoDe(AppState.currentUser && AppState.currentUser.uid), rangoUmbrales(AppState.state));
   }
 
-  // Rango guardado en el perfil (T13 E3, 05/11/2026): el de otros no se puede
-  // calcular acá (las reglas de `entryProgress` solo dejan leer lo propio),
-  // así que cada uno guarda el suyo en `users/{uid}.rango` y los demás lo leen
-  // de ahí (Mi comando, Usuarios). Solo con los permisos reales: nunca con
-  // «Ver como» ni en Modo Lector (cambian qué entradas cuentan).
-  var guardando = null;
+  // Antes cada dispositivo guardaba rango/avance/obligatorias en el perfil y
+  // los demás lo leían de ahí (cualquiera que programara podía poner otro
+  // número). Desde el 12/11/2026 se calculan acá, para cada persona, desde
+  // su libreta. Lo único que se sincroniza es la libreta propia (y, si es
+  // admin, los datos que usan las reglas para validarla).
   export function sincronizarMiRango(){
-    var u = AppState.currentUser;
-    if(!u || u.role === 'pendiente' || AppState.viewAsOverride || AppState.myLectorMode) return;
-    if(AppState.firstSnapshot || !AppState.myProgressLoaded) return;
-    var mr = miRango(), r = mr.rango, av = alDia();
-    // T14 (05/11/2026): también el % «al día» (`avance`, 0-100): puntos
-    // hechos sobre los de las entradas YA publicadas (no las programadas),
-    // para el Tablero por comando. El rango sigue sobre el camino entero.
-    var op = misObligatoriasPendientes();
-    var clave = r + '|' + av + '|' + op.join(',');
-    var opGuardadas = Array.isArray(u.obligPendientes) ? u.obligPendientes.join(',') : null;
-    if((r === u.rango && av === u.avance && op.join(',') === opGuardadas) || clave === guardando) return;
-    guardando = clave;
-    setDoc(doc(db, 'users', u.uid), { rango: r, avance: av, obligPendientes: op }, { merge: true })
-      .catch(function(e){ console.error('No se pudo guardar tu rango:', e); })
-      .finally(function(){ guardando = null; });
+    sincronizarLibreta();
+    sincronizarAdmin();
   }
 
-  // Rango de otra persona (lo que guardó su propio dispositivo). 0 = todavía no.
+  // Cálculos de otros, guardados mientras no cambien el estado ni las libretas.
+  var memo = {}, memoClave = null;
+  function deOtro(u, tipo, fn){
+    if(!u || !u.uid) return null;
+    if(memoClave !== AppState.libretas || memo._state !== AppState.state){ memo = { _state: AppState.state }; memoClave = AppState.libretas; }
+    var c = u.uid + '|' + tipo;
+    if(!(c in memo)) memo[c] = fn();
+    return memo[c];
+  }
+
+  // Rango de otra persona. 0 = todavía no tiene libreta.
   export function rangoGuardadoDe(u){
-    var n = Number(u && u.rango);
-    return (n >= 1 && n <= RANGOS.length) ? n : 0;
+    if(!u || !libretaDe(u.uid)) return 0;
+    return deOtro(u, 'rango', function(){ return calcularRango(entradasQueCuentan(u), progresoDe(u.uid), rangoUmbrales(AppState.state)).rango; });
   }
 
-  // % de avance guardado de otra persona (T14 E1). null = todavía no lo guardó.
+  // % «al día» de otra persona (T14 E1). null = todavía no tiene libreta.
   export function avanceGuardadoDe(u){
-    var n = Number(u && u.avance);
-    return (u && u.avance != null && isFinite(n)) ? Math.max(0, Math.min(100, n)) : null;
+    if(!u || !libretaDe(u.uid)) return null;
+    return deOtro(u, 'avance', function(){ return alDia(u); });
   }
 
-  // Obligatorias pendientes guardadas de otra persona (T17). null = todavía no.
+  // Obligatorias pendientes de otra persona (T17). null = todavía no tiene libreta.
   export function obligPendientesDe(u){
-    return (u && Array.isArray(u.obligPendientes)) ? u.obligPendientes : null;
+    if(!u || !libretaDe(u.uid)) return null;
+    return deOtro(u, 'oblig', function(){ return misObligatoriasPendientes(u); });
   }
