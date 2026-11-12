@@ -46,15 +46,6 @@ import { renderPanel } from '../main.js';
   }
 
   // Tarjeta del test dentro de Camino formativo.
-  export function testHijoTileHtml(){
-    var k = hijoDe(AppState.currentUser);
-    return '<button type="button" class="recurso-cat" data-recurso-cat="test-hijo">' +
-      '<span class="recurso-cat-icon">' + icon('users') + '</span>' +
-      '<span class="recurso-cat-label">¿Qué hijo bíblico sos?</span>' +
-      '<span class="recurso-cat-count">' + (k ? 'Te salió: ' + escapeHtml(HIJOS_BIBLICOS[k].nombre) : 'Test de ' + PREGUNTAS_HIJO_BIBLICO.length + ' preguntas') + '</span>' +
-      '</button>';
-  }
-
   // Entradas «Conocé a…» que ve esta persona (las desbloqueadas; el admin, todas).
   function entradasHijo(){
     return AppState.state.entries.filter(function(e){ return e.hijoBiblico && canSeeEntry(e); }).sort(compareEntryOrder);

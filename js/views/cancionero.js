@@ -289,38 +289,6 @@ import { renderMisasPanel, misasCountTxt } from './misas.js';
   // Tarjeta «Cantos para el Rosario» (03/11/2026) dentro de Recursos → Santo
   // Rosario: abre el cancionero filtrado en la categoría `rosario`, y el
   // «‹ volver» lleva de nuevo a Santo Rosario.
-  export function cantosRosarioTileHtml(){
-    ensureCancioneroSub();
-    var n = AppState.cancionero.filter(function(c){ return c.categoria === 'rosario'; }).length;
-    return '<button type="button" class="recurso-cat' + (n ? '' : ' recurso-cat-empty') + '" data-cantos-rosario>' +
-      '<span class="recurso-cat-icon">' + icon('music') + '</span>' +
-      '<span class="recurso-cat-label">Cantos para el Rosario</span>' +
-      '<span class="recurso-cat-count">' + (n ? n + ' canto' + (n === 1 ? '' : 's') : 'Vacía') + '</span>' +
-      '</button>';
-  }
-
-  export function abrirCantosRosario(){
-    AppState.recursosCategoria = 'cancionero';
-    AppState.cancioneroVista = 'ver';
-    AppState.cancioneroCategoria = 'rosario';
-    AppState.cancioneroBusqueda = '';
-    AppState.cancioneroCantoId = null;
-    AppState.cancioneroDesdeRosario = true;
-    renderPanel();
-    window.scrollTo(0, 0);
-  }
-
-  // Tarjeta del Cancionero entre las subcategorías de Vida espiritual.
-  export function cancioneroTileHtml(){
-    ensureCancioneroSub();
-    var n = AppState.cancionero.length;
-    return '<button type="button" class="recurso-cat" data-recurso-cat="cancionero">' +
-      '<span class="recurso-cat-icon">' + icon('music') + '</span>' +
-      '<span class="recurso-cat-label">Cancionero</span>' +
-      '<span class="recurso-cat-count">' + (n ? n + ' canto' + (n === 1 ? '' : 's') : 'Letras de cantos') + '</span>' +
-      '</button>';
-  }
-
   function attachListEvents(){
     var panel = document.getElementById('panel');
     document.getElementById('cancioneroUpBtn').onclick = alInicio;

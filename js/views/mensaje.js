@@ -14,8 +14,24 @@ import { entryToEspacio } from '../utils/entry-to-espacio.js';
 import { renderForm, attachPanelEvents } from '../components/form.js';
 import { renderPanel } from '../main.js';
 import { renderJuegoDelDiaHtml, attachJuegoDelDia, textoBloqueado, renderJuegosDeptoHtml, attachJuegosDepto } from './juegos.js';
-import { renderTestHijoPanel, testHijoTileHtml } from './test-hijo.js';
-import { renderCancioneroPanel, cancioneroTileHtml, cantosRosarioTileHtml, abrirCantosRosario } from './cancionero.js';
+import { testHijoTileHtml, cancioneroTileHtml, cantosRosarioTileHtml, abrirCantosRosario } from './recursos-tiles.js';
+
+  // Carga diferida (12/11/2026): cancionero/misas/PDF y el test se bajan
+  // recién la primera vez que se abren. Mientras tanto, «Cargando…».
+  var vistasDiferidas = {};
+  function vistaDiferida(clave, cargar, mostrar){
+    var mod = vistasDiferidas[clave];
+    if(mod && mod !== 'cargando'){ mostrar(mod); return; }
+    var panel = document.getElementById('panel');
+    if(panel){ panel.innerHTML = '<p class="mandos-sub">Cargando…</p>'; }
+    if(mod === 'cargando') return;
+    vistasDiferidas[clave] = 'cargando';
+    cargar().then(function(m){ vistasDiferidas[clave] = m; renderPanel(); }).catch(function(e){
+      delete vistasDiferidas[clave];
+      console.error('No se pudo cargar la vista:', e);
+      if(panel){ panel.innerHTML = '<p class="mandos-sub">No se pudo cargar. Revisá la conexión y volvé a intentar.</p>'; }
+    });
+  }
 import { openFordoqueraBiblioteca } from '../components/fordoquera-embed.js';
 import { showConfirm, showAlert } from '../components/dialog.js';
 
@@ -395,13 +411,13 @@ import { showConfirm, showAlert } from '../components/dialog.js';
     }
     if(AppState.recursosCategoria === 'cancionero'){
       AppState.formOpen = false;
-      renderCancioneroPanel();
+      vistaDiferida('cancionero', function(){ return import('./cancionero.js'); }, function(mod){ mod.renderCancioneroPanel(); });
       return;
     }
     // Test «¿Qué hijo bíblico sos?» (T8 E2): vista propia, desde Camino formativo.
     if(AppState.recursosCategoria === 'test-hijo'){
       AppState.formOpen = false;
-      renderTestHijoPanel();
+      vistaDiferida('test-hijo', function(){ return import('./test-hijo.js'); }, function(mod){ mod.renderTestHijoPanel(); });
       return;
     }
     AppState.testHijo = null;

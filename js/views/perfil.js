@@ -15,7 +15,8 @@ import { showAlert, showConfirm } from '../components/dialog.js';
 import { HIJOS_BIBLICOS } from '../config/test-hijo-biblico.js';
 import { render } from '../main.js';
 import { realIsAdmin } from '../services/permissions.js';
-import { MINIJUEGOS, abrirMinijuego } from '../components/minijuegos.js';
+import { abrirMinijuego } from '../components/minijuegos-lazy.js';
+import { MINIJUEGOS_TITULOS } from '../config/minijuegos-catalogo.js';
 import '../views/juegos.js';
 import '../components/eventos.js';
 import { tiendaConfig, guardarConfigTienda } from '../services/tienda.service.js';
@@ -111,10 +112,10 @@ import { tiendaConfig, guardarConfigTienda } from '../services/tienda.service.js
   // minijuego, también los de eventos. No guarda nada ni suma puntos.
   function probarJuegosHtml(){
     if(!realIsAdmin()) return '';
-    var ids = Object.keys(MINIJUEGOS).sort(function(a, b){ return MINIJUEGOS[a].titulo.localeCompare(MINIJUEGOS[b].titulo); });
+    var ids = Object.keys(MINIJUEGOS_TITULOS).sort(function(a, b){ return MINIJUEGOS_TITULOS[a].localeCompare(MINIJUEGOS_TITULOS[b]); });
     return '<div class="home-card perfil-card"><details class="mj-probar"><summary><h3>Probar minijuegos (' + ids.length + ')</h3></summary>' +
       '<p class="mandos-sub">Solo para admin. Se juegan sin guardar ni sumar puntos.</p><div class="mj-probar-lista">' +
-      ids.map(function(id){ return '<button type="button" class="btn small ghost" data-probar="' + id + '">' + escapeHtml(MINIJUEGOS[id].titulo) + '</button>'; }).join('') +
+      ids.map(function(id){ return '<button type="button" class="btn small ghost" data-probar="' + id + '">' + escapeHtml(MINIJUEGOS_TITULOS[id]) + '</button>'; }).join('') +
       '</div><p style="margin-top:10px"><button type="button" class="btn small neutral" id="borrarMisJuegosBtn">Borrar mis puntos bonus</button></p></details></div>';
   }
 
@@ -199,7 +200,7 @@ import { tiendaConfig, guardarConfigTienda } from '../services/tienda.service.js
       });
     };
     document.querySelectorAll('[data-probar]').forEach(function(b){
-      b.onclick = function(){ abrirMinijuego(b.getAttribute('data-probar'), { titulo: '🧪 ' + MINIJUEGOS[b.getAttribute('data-probar')].titulo }); };
+      b.onclick = function(){ abrirMinijuego(b.getAttribute('data-probar'), { titulo: '🧪 ' + MINIJUEGOS_TITULOS[b.getAttribute('data-probar')] }); };
     });
     var testBtn = document.getElementById('perfilTestHijoBtn');
     if(testBtn){

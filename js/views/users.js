@@ -214,7 +214,7 @@ import { icon } from '../utils/icons.js';
       // pero ya no hay nada pendiente de confirmar (pedido del usuario,
       // 09/10/2026: "que desaparezca la sugerencia" una vez resuelta).
       html += '  <td>' + escapeHtml(declaradoComoShown || (u.tipo === 'acampante' ? 'Acampante' : '—')) +
-        (isPendiente && u.rolSugerido === 'admin' ? ' <span class="tag imagen" title="Nombre y mando coinciden con un puesto que otorgaría Admin, pero requiere que un admin lo confirme a mano">⚠ sugiere: Admin</span>' : '') + '</td>';
+        (isPendiente && u.rolSugerido === 'admin' ? ' <span class="tag imagen" title="Nombre y mando coinciden con un puesto que otorgaría Admin, pero requiere que un admin lo confirme a mano">⚠ sugiere: Admin</span>' : '') + (isPendiente && u.rolSugerido === 'subjefe' ? ' <span class="tag imagen" title="Se anotó como comando de cocina: confirmalo dándole rol Subjefe">⚠ sugiere: Comando de cocina</span>' : '') + '</td>';
       html += '  <td>' + escapeHtml(u.email || '') + '</td>';
       html += '  <td><select class="uRole">';
       ['pendiente','lector','subjefe','consagrado','jefe_seccion','admin'].forEach(function(r){

@@ -10,7 +10,7 @@
 //    charco abajo a la derecha que abre las zanjas. Clave `lluvia-<fecha>`.
 //    Para probar: agregar `?lluvia=1` a la dirección.
 import { AppState } from '../app-state.js';
-import { abrirMinijuego } from './minijuegos.js';
+import { abrirMinijuego } from './minijuegos-lazy.js';
 import { registrarJuego, hoyClave, juegoGanado } from '../services/juegos.service.js';
 import { JUEGOS_DEPTOS } from '../views/juegos.js';
 import { showToast } from './toast.js';

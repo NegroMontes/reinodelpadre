@@ -149,7 +149,11 @@ import { render } from '../main.js';
       // 'subjefe' (mismos permisos que un subjefe de sección — pedido del
       // usuario, 23/09/2026: "a comando de cocina le corresponde subjefe de
       // sección/depto").
-      profile.role = 'subjefe';
+      // 12/11/2026 (revisión de seguridad): antes entraba directo como
+      // 'subjefe' sin ningún control — ahora queda pendiente y un admin lo
+      // confirma desde Usuarios (tag «sugiere: Comando de cocina»).
+      profile.role = 'pendiente';
+      profile.rolSugerido = 'subjefe';
       profile.seccion = null;
       profile.depto = null;
       profile.verificado = false;

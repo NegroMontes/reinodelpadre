@@ -6,7 +6,6 @@ import { renderUsersPanel, attachUsersEvents } from './views/users.js';
 import { renderFeedbackPanel, attachFeedbackPanelEvents } from './views/feedback.js';
 import { renderPapeleraPanel, attachPapeleraPanelEvents } from './views/papelera.js';
 import { renderDepartamentosPanel, renderRecursosPanel, renderMensajePanel } from './views/mensaje.js';
-import { renderMandosPanel, attachMandosEvents } from './views/mandos.js';
 import { loadMandos } from './services/mandos.service.js';
 import { stopCancioneroSub } from './services/cancionero.service.js';
 import { stopCountdownTicker, startCountdownTicker, renderHomePanel, attachHomeEvents } from './views/home.js';
@@ -32,8 +31,28 @@ import { sincronizarMiRango } from './services/rangos.service.js';
 import { renderPerfilPanel, attachPerfilEvents } from './views/perfil.js';
 import { iniciarHuevos } from './components/huevos.js';
 import { saboteadorTrasRender } from './components/eventos.js';
-import { ensureTiendaConfigSub, ensureTiendaSubs, stopTiendaSubs, puedeVerTienda, tiendaConfig } from './services/tienda.service.js';
-import { renderTiendaPanel, attachTiendaEvents } from './views/tienda.js';
+import { ensureTiendaConfigSub, ensureTiendaSubs, stopTiendaSubs, puedeVerTienda, tiendaConfig, setGrupoSubasta } from './services/tienda.service.js';
+
+// Carga diferida (12/11/2026): Comando (cuadro, tablero, mapa) y Beneficios
+// se bajan recién la primera vez que se abren. Beneficios necesita también
+// views/mandos.js (el comando de cada uno para las subastas).
+var vistasDiferidas = {};
+function cargarVista(clave, cargar){
+  if(vistasDiferidas[clave] && vistasDiferidas[clave] !== 'cargando') return vistasDiferidas[clave];
+  if(!vistasDiferidas[clave]){
+    vistasDiferidas[clave] = 'cargando';
+    cargar().then(function(m){ vistasDiferidas[clave] = m; renderPanel(); }).catch(function(e){
+      delete vistasDiferidas[clave];
+      console.error('No se pudo cargar la vista:', e);
+      var p = document.getElementById('panel');
+      if(p){ p.innerHTML = '<p class="mandos-sub">No se pudo cargar. Revisá la conexión y volvé a intentar.</p>'; }
+    });
+  }
+  return null;
+}
+function cargarMandosView(){ return import('./views/mandos.js').then(function(m){ setGrupoSubasta(m.grupoSubastaDe); return m; }); }
+function cargarTiendaView(){ return Promise.all([import('./views/tienda.js'), cargarMandosView()]).then(function(r){ return r[0]; }); }
+var CARGANDO_HTML = '<p class="mandos-sub">Cargando…</p>';
 
 // Los servicios (services/*.js) necesitan poder disparar un re-render o
 // mostrar un mensaje de estado después de una operación async — como
@@ -613,13 +632,17 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       // Entrando por link (#beneficios): esperar la config antes de decidir.
       if(!AppState.tiendaConfigLoaded && AppState.currentUser && AppState.currentUser.role !== 'pendiente'){ panel.innerHTML = '<p class="mandos-sub">Cargando…</p>'; return; }
       if(!puedeVerTienda()){ AppState.activeDayId = 'HOME'; renderPanel(); return; }
-      panel.innerHTML = renderTiendaPanel();
-      attachTiendaEvents();
+      var tiendaView = cargarVista('tienda', cargarTiendaView);
+      if(!tiendaView){ panel.innerHTML = CARGANDO_HTML; return; }
+      panel.innerHTML = tiendaView.renderTiendaPanel();
+      tiendaView.attachTiendaEvents();
       return;
     }
     if(AppState.activeDayId === 'MANDOS'){
-      panel.innerHTML = renderMandosPanel();
-      attachMandosEvents();
+      var mandosView = cargarVista('mandos', cargarMandosView);
+      if(!mandosView){ panel.innerHTML = CARGANDO_HTML; return; }
+      panel.innerHTML = mandosView.renderMandosPanel();
+      mandosView.attachMandosEvents();
       return;
     }
     if(AppState.activeDayId === 'MENSAJE'){

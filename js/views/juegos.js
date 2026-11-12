@@ -8,10 +8,8 @@ import { AppState } from '../app-state.js';
 import { save } from '../services/state.service.js';
 import { canEditStructure } from '../services/permissions.js';
 import { escapeHtml } from '../utils/helpers.js';
-import { MINIJUEGOS, abrirMinijuego } from '../components/minijuegos.js';
-import '../components/minijuegos-secciones.js';
-import '../components/minijuegos-deptos.js';
-import '../components/minijuegos-fe.js';
+import { abrirMinijuego } from '../components/minijuegos-lazy.js';
+import { MINIJUEGOS_TITULOS } from '../config/minijuegos-catalogo.js';
 import { juegoGanado, registrarJuego, hoyClave } from '../services/juegos.service.js';
 import { renderPanel } from '../main.js';
 
@@ -55,7 +53,7 @@ function sorteo(extra, n){
 // (pedido del usuario, 07/11/2026). El admin puede fijar uno o ninguno.
 export function juegoDelDia(day){
   if(day.minijuego === undefined || day.minijuego === 'azar') return JUEGOS_DIA[sorteo(day.id, JUEGOS_DIA.length)];
-  return MINIJUEGOS[day.minijuego] ? day.minijuego : '';
+  return MINIJUEGOS_TITULOS[day.minijuego] ? day.minijuego : '';
 }
 
 // true = el texto del día queda tapado hasta ganar.
@@ -76,7 +74,7 @@ export function renderJuegoDelDiaHtml(day){
     html += '<div class="mj-card' + (bloq ? ' mj-card-bloq' : '') + '">';
     var g = grupoDe(j);
     html += '<div><span class="mj-card-kicker">' + (bloq ? '🔒 Desafío para desbloquear la reflexión' : 'Desafío del día') + (g ? ' · ' + escapeHtml(g) : '') + '</span>';
-    html += '<strong>' + escapeHtml(MINIJUEGOS[j].titulo) + '</strong>' + (ganado ? ' <span class="mj-hecho">✓ Superado</span>' : '') + '</div>';
+    html += '<strong>' + escapeHtml(MINIJUEGOS_TITULOS[j]) + '</strong>' + (ganado ? ' <span class="mj-hecho">✓ Superado</span>' : '') + '</div>';
     html += '<button type="button" class="btn small' + (ganado ? ' ghost' : '') + '" data-jugar-dia="' + escapeHtml(day.id) + '">' + (ganado ? 'Jugar otra vez' : 'Jugar') + '</button>';
     html += '</div>';
   }
@@ -84,7 +82,7 @@ export function renderJuegoDelDiaHtml(day){
     var azar = day.minijuego === undefined || day.minijuego === 'azar';
     html += '<div class="mj-config"><label>Desafío del día <select id="dayJuegoSelect"><option value="azar"' + (azar ? ' selected' : '') + '>Al azar (cambia cada día)</option><option value=""' + (!j ? ' selected' : '') + '>Ninguno</option>' +
       [['Generales', ['fogata', 'radio']], ['Fe', FE_JUEGOS]].concat(Object.keys(SECCION_JUEGOS).map(function(k){ return [k, SECCION_JUEGOS[k]]; }), Object.keys(DEPTO_JUEGOS).map(function(k){ return [k, DEPTO_JUEGOS[k]]; })).map(function(gr){
-        return '<optgroup label="' + escapeHtml(gr[0]) + '">' + gr[1].map(function(id){ return '<option value="' + id + '"' + (!azar && id === j ? ' selected' : '') + '>' + escapeHtml(MINIJUEGOS[id].titulo) + '</option>'; }).join('') + '</optgroup>';
+        return '<optgroup label="' + escapeHtml(gr[0]) + '">' + gr[1].map(function(id){ return '<option value="' + id + '"' + (!azar && id === j ? ' selected' : '') + '>' + escapeHtml(MINIJUEGOS_TITULOS[id]) + '</option>'; }).join('') + '</optgroup>';
       }).join('') +
       '</select></label>' + (j ? '<label class="mj-config-check"><input type="checkbox" id="dayJuegoBloquea"' + (day.minijuegoBloquea ? ' checked' : '') + '> Tapar el texto del día hasta ganarlo</label>' : '') + '</div>';
   }
@@ -110,7 +108,7 @@ function juegoDeptoDeHoy(){ return JUEGOS_DEPTOS[sorteo('', JUEGOS_DEPTOS.length
 
 export function renderJuegosDeptoHtml(){
   var j = juegoDeptoDeHoy(), ganado = juegoGanado('depto-' + j);
-  return '<div class="mj-card"><div><span class="mj-card-kicker">Juego de hoy · ' + escapeHtml(grupoDe(j)) + '</span><strong>' + escapeHtml(MINIJUEGOS[j].titulo) + '</strong>' +
+  return '<div class="mj-card"><div><span class="mj-card-kicker">Juego de hoy · ' + escapeHtml(grupoDe(j)) + '</span><strong>' + escapeHtml(MINIJUEGOS_TITULOS[j]) + '</strong>' +
     (ganado ? ' <span class="mj-hecho">✓ Ya lo superaste</span>' : '') + '</div>' +
     '<button type="button" class="btn small' + (ganado ? ' ghost' : '') + '" data-jugar-depto="' + escapeHtml(j) + '">' + (ganado ? 'Jugar otra vez' : 'Jugar') + '</button></div>';
 }

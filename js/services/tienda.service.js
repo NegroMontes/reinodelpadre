@@ -28,7 +28,6 @@ import { AppState } from '../app-state.js';
 import { miRango } from './rangos.service.js';
 import { bonusDe } from './juegos.service.js';
 import { renderPanel, render } from '../main.js';
-import { grupoSubastaDe } from '../views/mandos.js';
 
 export var TIENDA_DEFAULT = { activa: false, titulo: 'Beneficios', moneda: 'puntos', usarEntradas: true, usarBonus: true, nota: '' };
 
@@ -97,7 +96,11 @@ export function stopTiendaSubs(){
 export function subastaAbierta(b){ return b.tipo === 'subasta' && b.estado !== 'cerrada'; }
 export function subastaVencida(b){ return subastaAbierta(b) && b.cierre && Date.now() >= b.cierre; }
 
-export function miGrupo(){ return grupoSubastaDe(AppState.currentUser); }
+// views/mandos.js se baja recién al abrir Comando o Beneficios (carga
+// diferida, 12/11/2026): main.js registra acá su grupoSubastaDe() al cargarlo.
+var grupoSubastaFn = null;
+export function setGrupoSubasta(fn){ grupoSubastaFn = fn; }
+export function miGrupo(){ return grupoSubastaFn ? grupoSubastaFn(AppState.currentUser) : 'Comando central'; }
 
 function aportesDe(beneficioId){
   return (AppState.pujas || []).filter(function(p){ return p.beneficioId === beneficioId; });
