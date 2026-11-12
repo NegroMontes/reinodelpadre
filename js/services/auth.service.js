@@ -4,7 +4,8 @@
 
 import { GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import { codigoCocina, codigoCocinaValido, olvidarCodigoCocina, codigoCocinaRef } from './cocina-link.service.js';
-import { doc, setDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { claveDeNombre } from './mandos-index.service.js';
+import { doc, setDoc, getDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { auth, db, DRIVE_UPLOAD_SCOPE } from '../config/firebase.js';
 import { BOOTSTRAP_ADMIN_EMAIL, CONSAGRADO_ICONS } from '../config/constants.js';
 import { isValidCupulaIconValue } from '../utils/badge-icons.js';
@@ -157,6 +158,7 @@ import { render } from '../main.js';
       profile.depto = null;
       profile.verificado = true;
       profile.declaradoComo = 'Comando de cocina';
+      profile.codigoCocina = codigoCocina(); // lo exigen las reglas; el código se borra en el mismo lote
     } else {
       var declared = declaredBucketFromForm(formValues.posGrupo, formValues.seccionOrDepto);
       // El cuadro de mandos se lee de Firestore en vivo (AppState.mandosData,
@@ -221,8 +223,31 @@ import { render } from '../main.js';
       }
     }
 
+    // Índice de puestos (12/11/2026): el puesto tiene que existir en
+    // `mandosIndex` y no tener dueño. Si no, queda pendiente. Las reglas de
+    // Firestore exigen lo mismo, así que no se puede saltear.
+    var puestoRef = null;
+    if(found && profile.role !== 'pendiente' && profile.declaradoComo !== 'Comando de cocina' && tipo !== 'acampante'){
+      var clave = claveDeNombre(found.name);
+      var puesto = null;
+      try{ var ps = await getDoc(doc(db, 'mandosIndex', clave)); puesto = ps.exists() ? ps.data() : null; }catch(e){ console.error('No se pudo leer el índice de puestos:', e); }
+      if(puesto && !puesto.uid){
+        profile.mandoClave = clave;
+        puestoRef = doc(db, 'mandosIndex', clave);
+      } else {
+        if(puesto && puesto.uid){ profile.declaradoComo += ' (ese puesto ya tiene cuenta)'; }
+        profile.verificado = false; profile.role = 'pendiente'; profile.seccion = null; profile.depto = null;
+        delete profile.esFormacion; delete profile.readDepartamentos;
+      }
+    }
+
     try{
-      if(profile.declaradoComo === 'Comando de cocina'){
+      if(puestoRef){
+        var lotePuesto = writeBatch(db);
+        lotePuesto.set(doc(db, 'users', fbUser.uid), profile);
+        lotePuesto.update(puestoRef, { uid: fbUser.uid });
+        await lotePuesto.commit();
+      } else if(profile.declaradoComo === 'Comando de cocina'){
         // Un solo uso: el perfil y el borrado del código van juntos.
         var lote = writeBatch(db);
         lote.set(doc(db, 'users', fbUser.uid), profile);

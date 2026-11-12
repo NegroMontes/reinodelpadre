@@ -100,6 +100,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
         '<button type="button" class="btn ghost small" id="mandosDescargarBtn">' + icon('download') + ' Descargar (.json)</button>' +
         '<button type="button" class="btn ghost small" id="mandosSubirBtn">Actualizar desde .json</button>' +
         '<button type="button" class="btn ghost small" id="mandosAnteriorBtn">Volver a la versión anterior</button>' +
+        '<button type="button" class="btn ghost small" id="mandosIndiceBtn" title="Lo usan las reglas de Firebase para validar los registros">Actualizar índice de puestos</button>' +
         '<input type="file" id="mandosSubirFile" accept=".json,application/json" hidden></div>';
     }
     html += '<div class="mandos-cupula">';
@@ -976,6 +977,14 @@ import { showAlert, showConfirm } from '../components/dialog.js';
       try{ obj = JSON.parse(await f.text()); }
       catch(e){ showAlert('El archivo no es un .json válido.'); return; }
       previsualizarYGuardar(obj, 'Cambios del cuadro de mandos:');
+    };
+    document.getElementById('mandosIndiceBtn').onclick = async function(){
+      var btn = this; btn.disabled = true;
+      try{
+        var r = await (await import('../services/mandos-index.service.js')).regenerarIndiceMandos();
+        showAlert('Índice actualizado: ' + r.puestos + ' puestos, ' + r.conCuenta + ' ya con cuenta.');
+      }catch(e){ showAlert('No se pudo actualizar el índice: ' + e.message); }
+      btn.disabled = false;
     };
     document.getElementById('mandosAnteriorBtn').onclick = async function(){
       var mod = await import('../services/mandos-update.service.js');

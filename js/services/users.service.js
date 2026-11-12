@@ -64,6 +64,8 @@ import { showAlert } from '../components/dialog.js';
   export async function deleteUser(uid){
     try{
       await deleteDoc(doc(db, 'users', uid));
+      // Su puesto queda libre en el índice (ver mandos-index.service.js).
+      try{ await (await import('./mandos-index.service.js')).liberarPuestoDe(uid); }catch(e){ console.error('No se pudo liberar el puesto:', e); }
     }catch(e){
       console.error('No se pudo borrar el usuario:', e);
       showAlert('No se pudo borrar: ' + e.message);

@@ -11,6 +11,7 @@ import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
 import { buildMandosIndex, findMandoByName } from '../utils/mandos-matcher.js';
 import { isMilicianoUser } from '../views/users.js';
+import { regenerarIndiceMandos } from './mandos-index.service.js';
 
   var anteriorRef = doc(db, 'mandos', 'anterior');
 
@@ -134,7 +135,9 @@ import { isMilicianoUser } from '../views/users.js';
       try{ await setDoc(doc(db, 'users', a.uid), Object.assign({ verificado: true }, a.perfil), { merge: true }); }
       catch(e){ console.error('No se pudo acomodar el perfil de ' + a.nombre, e); fallas++; }
     }
-    return { perfiles: r.aplicar.length - fallas, fallas: fallas };
+    var indice = null;
+    try{ indice = await regenerarIndiceMandos(); }catch(e){ console.error('No se pudo actualizar el índice de puestos:', e); }
+    return { perfiles: r.aplicar.length - fallas, fallas: fallas, indice: indice };
   }
 
   export async function leerAnterior(){
