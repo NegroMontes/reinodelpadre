@@ -22,9 +22,7 @@ import { showConfirm } from '../components/dialog.js';
   // arrancar (no una suscripción en vivo).
   export function loadPublicConfig(){
     return getDoc(doc(db, 'config', 'public')).then(function(snap){
-      if(snap.exists()){
-        AppState.publicConfig.milicianosLoginEnabled = snap.data().milicianosLoginEnabled !== false;
-      }
+      AppState.publicConfig.milicianosLoginEnabled = snap.exists() && snap.data().milicianosLoginEnabled !== false;
     }).catch(function(e){
       console.error('No se pudo leer la config pública:', e);
     });

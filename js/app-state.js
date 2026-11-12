@@ -155,10 +155,10 @@ export const AppState = {
   // cuando el campamento arme su propia página para milicianos y esta quede
   // exclusiva del comando por un tiempo. Se lee una sola vez al arrancar
   // (ver loadPublicConfig() en services/state.service.js), antes de que se
-  // resuelva si hay o no sesión — default `true` (habilitado) si el doc
-  // `config/public` todavía no existe o falla la lectura (fail-open, no es
-  // una medida de seguridad real).
-  publicConfig: { milicianosLoginEnabled: true },
+  // resuelva si hay o no sesión — default `false` (oculto) hasta que llegue
+  // el dato: antes era `true` y «Soy miliciano» se veía ~1 s al entrar
+  // aunque estuviera apagado (12/11/2026). Si falla la lectura, queda oculto.
+  publicConfig: { milicianosLoginEnabled: false },
   // Cuadro de mandos (08/10/2026) — movido de una constante estática en el
   // código a Firestore (`mandos/data`), para que el código fuente (ahora
   // también publicado en un repo público de GitHub) no cargue nombres

@@ -133,6 +133,9 @@ import { render } from '../main.js';
       createdAt: Date.now()
     };
 
+    if(tipo === 'acampante' && AppState.publicConfig.milicianosLoginEnabled !== true){
+      throw new Error('El ingreso de milicianos está cerrado.');
+    }
     if(tipo === 'acampante'){
       profile.role = 'lector';
       profile.seccion = formValues.seccion || null;

@@ -158,7 +158,7 @@ import { render } from '../main.js';
         }
       }
 
-      submitOnboarding(fbUser, path, formValues);
+      submitOnboarding(fbUser, path, formValues).catch(function(e){ var m = document.getElementById('obStatusMsg'); if(m){ m.textContent = e.message; } });
       AppState.obPosGrupo = 'cupula'; AppState.obSeccionOrDepto = ''; AppState.obSeccionFormacion = '';
       AppState.obNombreDraft = null; AppState.obRucaDraft = null; AppState.obActividadDraft = null;
     };
