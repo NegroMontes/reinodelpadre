@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.12.1';
+  export var APP_VERSION = '2026.11.12.2';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.12.2', date: '12/11/2026', items: [
+      'Tablero: la tarjeta «Tu comando» ya no queda tapada por los escudos del mapa al bajar.'
+    ]},
     { version: '2026.11.12.1', date: '12/11/2026', items: [
       'En el celular ya no se puede hacer zoom ni correr la página hacia los costados.'
     ]},
