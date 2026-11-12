@@ -3,6 +3,7 @@
 // (incluye el onboarding — crear el perfil la primera vez).
 
 import { GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import { codigoCocina, codigoCocinaValido, olvidarCodigoCocina } from './cocina-link.service.js';
 import { doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { auth, db, DRIVE_UPLOAD_SCOPE } from '../config/firebase.js';
 import { BOOTSTRAP_ADMIN_EMAIL, CONSAGRADO_ICONS } from '../config/constants.js';
@@ -143,20 +144,18 @@ import { render } from '../main.js';
       profile.verificado = false; // no hay padrón de acampantes contra qué verificar
       profile.declaradoComo = 'Acampante — ' + (formValues.seccion || 'sin sección');
     } else if(formValues.posGrupo === 'cocina'){
-      // Comando de cocina: no hay padrón de quiénes son (puede variar durante el
-      // campamento), así que no lo comparamos contra la resolución — se aprueba
-      // directo con acceso de lectura general, sin sección propia. Rol
-      // 'subjefe' (mismos permisos que un subjefe de sección — pedido del
-      // usuario, 23/09/2026: "a comando de cocina le corresponde subjefe de
-      // sección/depto").
-      // 12/11/2026 (revisión de seguridad): antes entraba directo como
-      // 'subjefe' sin ningún control — ahora queda pendiente y un admin lo
-      // confirma desde Usuarios (tag «sugiere: Comando de cocina»).
-      profile.role = 'pendiente';
-      profile.rolSugerido = 'subjefe';
+      // Comando de cocina (12/11/2026): solo con el link de cocina vigente
+      // (ver services/cocina-link.service.js). Rol 'subjefe' sin sección
+      // (pedido del usuario, 23/09/2026: "a comando de cocina le corresponde
+      // subjefe de sección/depto").
+      if(!(await codigoCocinaValido(codigoCocina()))){
+        olvidarCodigoCocina();
+        throw new Error('El link de cocina ya no es válido. Pedile uno nuevo a un admin.');
+      }
+      profile.role = 'subjefe';
       profile.seccion = null;
       profile.depto = null;
-      profile.verificado = false;
+      profile.verificado = true;
       profile.declaradoComo = 'Comando de cocina';
     } else {
       var declared = declaredBucketFromForm(formValues.posGrupo, formValues.seccionOrDepto);
@@ -224,6 +223,7 @@ import { render } from '../main.js';
 
     try{
       await setDoc(doc(db, 'users', fbUser.uid), profile);
+      if(profile.declaradoComo === 'Comando de cocina'){ olvidarCodigoCocina(); }
     }catch(e){
       console.error('No se pudo guardar tu perfil:', e);
       showAlert('No se pudo guardar: ' + e.message);

@@ -11,6 +11,7 @@ import { copyTextToClipboard } from './feedback.js';
 import { render, renderPanel, showStatus } from '../main.js';
 import { showAlert, showConfirm } from '../components/dialog.js';
 import { icon } from '../utils/icons.js';
+import { codigoCocinaActual, generarCodigoCocina, desactivarCodigoCocina, linkDeCodigo } from '../services/cocina-link.service.js';
 
   // Filtra `usersList` según los filtros activos de la pestaña "Usuarios"
   // (pedido del usuario, 23/09/2026: filtrar por rol, sección, fecha y nombre).
@@ -105,6 +106,23 @@ import { icon } from '../utils/icons.js';
     // esta queda exclusiva del comando. Solo oculta la opción "Soy
     // miliciano" del login y "Milicianos" de "Ver como" — no toca las
     // cuentas de milicianos que ya se registraron (ver AppState.publicConfig).
+    // Link de ingreso del comando de cocina (12/11/2026, ver
+    // services/cocina-link.service.js).
+    if(AppState.usersActiveSubTab === 'comando'){
+      if(AppState.cocinaCodigo === undefined){
+        AppState.cocinaCodigo = null;
+        codigoCocinaActual().then(function(c){ AppState.cocinaCodigo = c; if(AppState.activeDayId === 'USERS'){ renderPanel(); } }).catch(function(e){ console.error('No se pudo leer el link de cocina:', e); AppState.cocinaCodigo = ''; });
+      }
+      var cc = AppState.cocinaCodigo;
+      html += '<div class="mandos-sub" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">';
+      html += '  <span>Link de ingreso para cocina: <strong>' + (cc === null ? '…' : (cc ? 'activo' : 'sin link')) + '</strong></span>';
+      if(cc){ html += '  <button class="btn ghost small" id="cocinaCopiarBtn" type="button">Copiar link</button>'; }
+      html += '  <button class="btn ghost small" id="cocinaNuevoBtn" type="button">' + (cc ? 'Generar otro' : 'Generar link') + '</button>';
+      if(cc){ html += '  <button class="btn ghost small" id="cocinaOffBtn" type="button">Desactivar</button>'; }
+      html += '</div>';
+      html += '<p class="mandos-sub" style="margin:-4px 0 10px">Quien entra por primera vez con ese link queda como comando de cocina, sin pasar por pendiente. «Generar otro» anula el anterior.</p>';
+    }
+
     if(AppState.usersActiveSubTab === 'milicianos'){
       var miliEnabled = AppState.publicConfig.milicianosLoginEnabled !== false;
       html += '<div class="mandos-sub" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">';
@@ -277,6 +295,26 @@ import { icon } from '../utils/icons.js';
       };
     });
 
+    var cocinaCopiarBtn = document.getElementById('cocinaCopiarBtn');
+    if(cocinaCopiarBtn){
+      cocinaCopiarBtn.onclick = function(){
+        copyTextToClipboard(linkDeCodigo(AppState.cocinaCodigo), cocinaCopiarBtn);
+      };
+    }
+    var cocinaNuevoBtn = document.getElementById('cocinaNuevoBtn');
+    if(cocinaNuevoBtn){
+      cocinaNuevoBtn.onclick = async function(){
+        if(AppState.cocinaCodigo && !(await showConfirm('¿Generar un link nuevo? El anterior deja de funcionar.'))) return;
+        generarCodigoCocina().then(function(c){ AppState.cocinaCodigo = c; renderPanel(); }).catch(function(e){ showAlert('No se pudo generar: ' + e.message); });
+      };
+    }
+    var cocinaOffBtn = document.getElementById('cocinaOffBtn');
+    if(cocinaOffBtn){
+      cocinaOffBtn.onclick = async function(){
+        if(!(await showConfirm('¿Desactivar el link de cocina? Nadie más va a poder entrar con él.'))) return;
+        desactivarCodigoCocina().then(function(){ AppState.cocinaCodigo = ''; renderPanel(); }).catch(function(e){ showAlert('No se pudo desactivar: ' + e.message); });
+      };
+    }
     var toggleMiliBtn = document.getElementById('toggleMilicianosLoginBtn');
     if(toggleMiliBtn){
       toggleMiliBtn.onclick = function(){

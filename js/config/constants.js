@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.12.4';
+  export var APP_VERSION = '2026.11.12.5';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.12.5', date: '12/11/2026', items: [
+      'El comando de cocina entra con un link especial (lo genera un admin en Usuarios). Ya no se elige «Comando de cocina» al registrarse.'
+    ]},
     { version: '2026.11.12.4', date: '12/11/2026', items: [
       'La página entra más rápido: los minijuegos, el cancionero, Comando y Beneficios se bajan recién cuando se abren.',
       'Quien se anota como comando de cocina queda pendiente hasta que un admin lo confirme.'

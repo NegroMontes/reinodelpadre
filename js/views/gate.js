@@ -11,6 +11,7 @@ import { icon } from '../utils/icons.js';
 import { effectiveRole } from '../services/permissions.js';
 import { signIn, signOutUser, submitOnboarding } from '../services/auth.service.js';
 import { render } from '../main.js';
+import { codigoCocina } from '../services/cocina-link.service.js';
 
   export function renderLandingHtml(){
     var html = '<div class="gate-box landing-box">';
@@ -19,6 +20,13 @@ import { render } from '../main.js';
     // "Soy miliciano" se puede ocultar desde Usuarios → Milicianos (pedido
     // del usuario, 26/09/2026) — mientras el campamento arma su propia
     // página para milicianos, esta queda exclusiva del comando.
+    // Con el link de cocina, solo esa opción.
+    if(codigoCocina()){
+      html += '    <button type="button" class="landing-card" id="pathComandoBtn"><span class="landing-card-icon">' + icon('soup') + '</span><span class="landing-card-text"><span class="landing-card-title">Soy del comando de cocina</span><span class="landing-card-sub">Entrá con el link que te pasaron</span></span></button>';
+      html += '  </div>';
+      html += '</div>';
+      return html;
+    }
     if(AppState.publicConfig.milicianosLoginEnabled !== false){
       html += '    <button type="button" class="landing-card" id="pathAcampanteBtn"><span class="landing-card-icon">' + icon('tent') + '</span><span class="landing-card-text"><span class="landing-card-title">Soy miliciano</span><span class="landing-card-sub">Entrá a tu campamento</span></span></button>';
     }
@@ -58,15 +66,18 @@ import { render } from '../main.js';
       html += '  <div class="form-row"><label>Sección</label><select id="obSeccion">';
       SECCIONES.forEach(function(s){ html += '<option value="' + escapeHtml(s) + '">' + escapeHtml(s) + '</option>'; });
       html += '  </select></div>';
+    } else if(codigoCocina()){
+      AppState.obPosGrupo = 'cocina';
+      html += '  <div class="form-row"><label>Tu mando</label><p><strong>Comando de cocina</strong></p></div>';
     } else {
+      if(AppState.obPosGrupo === 'cocina'){ AppState.obPosGrupo = 'cupula'; }
       html += '  <div class="form-row"><label>Tu mando</label><select id="obPosGrupo">';
       html += '    <option value="cupula"' + (AppState.obPosGrupo==='cupula'?' selected':'') + '>Comando central</option>';
       html += '    <option value="jefe_seccion"' + (AppState.obPosGrupo==='jefe_seccion'?' selected':'') + '>Jefe de sección</option>';
       html += '    <option value="staff_seccion"' + (AppState.obPosGrupo==='staff_seccion'?' selected':'') + '>Secretario o subjefe de sección</option>';
       html += '    <option value="jefe_depto"' + (AppState.obPosGrupo==='jefe_depto'?' selected':'') + '>Jefe de departamento</option>';
       html += '    <option value="staff_depto"' + (AppState.obPosGrupo==='staff_depto'?' selected':'') + '>Subjefe de departamento</option>';
-      html += '    <option value="cocina"' + (AppState.obPosGrupo==='cocina'?' selected':'') + '>Comando de cocina</option>';
-      html += '    <option value="capellan"' + (AppState.obPosGrupo==='capellan'?' selected':'') + '>Consagrado</option>';
+        html += '    <option value="capellan"' + (AppState.obPosGrupo==='capellan'?' selected':'') + '>Consagrado</option>';
       html += '  </select></div>';
 
       if(AppState.obPosGrupo === 'jefe_seccion' || AppState.obPosGrupo === 'staff_seccion'){
@@ -110,8 +121,8 @@ import { render } from '../main.js';
     document.getElementById('obRuca').oninput = function(e){ AppState.obRucaDraft = e.target.value; };
     document.getElementById('obActividad').oninput = function(e){ AppState.obActividadDraft = e.target.value; };
 
-    if(isComando){
-      var posGrupoSel = document.getElementById('obPosGrupo');
+    var posGrupoSel = document.getElementById('obPosGrupo');
+    if(isComando && posGrupoSel){
       posGrupoSel.onchange = function(){
         AppState.obPosGrupo = posGrupoSel.value;
         if(AppState.obPosGrupo === 'jefe_seccion' || AppState.obPosGrupo === 'staff_seccion' || AppState.obPosGrupo === 'capellan'){ AppState.obSeccionOrDepto = SECCIONES[0]; }
