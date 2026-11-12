@@ -472,8 +472,8 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
     if(puedeVerTienda()){
       var tiendaTab = document.createElement('div');
       var tcfg = tiendaConfig();
-      tiendaTab.className = 'day-tab mandos-tab' + (AppState.activeDayId === 'TIENDA' ? ' active' : '');
-      tiendaTab.innerHTML = icon('gift') + ' ' + escapeHtml(tcfg.titulo) + (tcfg.activa ? '' : ' <span class="tag badge-neutral" style="margin-left:6px">apagado</span>');
+      tiendaTab.className = 'day-tab mandos-tab tienda-tab' + (AppState.activeDayId === 'TIENDA' ? ' active' : '');
+      tiendaTab.innerHTML = icon('gift') + ' ' + escapeHtml(tcfg.titulo) + (tcfg.activa ? '' : ' <span class="tag badge-neutral tienda-tab-off">apagado</span>');
       tiendaTab.onclick = function(){ AppState.activeDayId = 'TIENDA'; AppState.formOpen = false; render(); };
       rail.appendChild(tiendaTab);
     }

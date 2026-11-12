@@ -351,3 +351,10 @@ header.top{ padding:14px 0 10px; }
      (ningún elemento queda pegado al borde físico/notch del teléfono). */
 .app{ padding:0 10px 110px; }
 }
+
+/* Pestaña de beneficios (nombre editable + tag «apagado» para el admin):
+   en compu no se corta con «…»; si no entra, el tag baja de renglón. */
+.tienda-tab-off{ margin-left:6px; font-size:10px; padding:2px 7px; vertical-align:middle; }
+@media (min-width:761px){
+  .day-tab.tienda-tab{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.35; }
+}

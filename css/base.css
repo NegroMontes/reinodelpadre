@@ -133,6 +133,11 @@ html,body{margin:0;padding:0;}
      23/09/2026, afectaba tanto mobile como desktop). */
 
 html{ overflow-x:hidden; }
+/* Sin zoom ni corrimiento lateral en el celular (12/11/2026): solo se
+   puede scrollear (pan-x pan-y no incluye pinch-zoom); `clip` en body no
+   crea contenedor de scroll, así que no rompe el sticky del sidebar. */
+html{ touch-action:pan-x pan-y; overscroll-behavior-x:none; }
+body{ overflow-x:clip; }
 
 /* Fondo de la página — BLANCO (no el celeste `--bg`), feedback de
      Comunicaciones (09/10/2026): "haría que todo el fondo sea blanco,

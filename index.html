@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Campamento Nacional Reino del Padre 2027</title>
 <!-- Aplica el tema elegido (si hay uno guardado) ANTES de que se pinte la
      primera pantalla -- sin esto, alguien que ya eligió modo oscuro vería
@@ -16,6 +16,16 @@
     var t = localStorage.getItem('fordoc_theme');
     if(t === 'dark' || t === 'light'){ document.documentElement.setAttribute('data-theme', t); }
   }catch(e){}
+})();
+</script>
+<!-- Sin zoom en el celular (pedido del usuario, 12/11/2026). iOS ignora
+     user-scalable=no: el pellizco se corta acá (gesture*) y con
+     touch-action en css/base.css. -->
+<script>
+(function(){
+  function no(e){ e.preventDefault(); }
+  ['gesturestart','gesturechange','gestureend'].forEach(function(t){ document.addEventListener(t, no, {passive:false}); });
+  document.addEventListener('touchmove', function(e){ if(e.touches && e.touches.length > 1){ e.preventDefault(); } }, {passive:false});
 })();
 </script>
 <link rel="icon" type="image/png" href="assets/favicon.png">

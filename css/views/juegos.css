@@ -1,6 +1,4 @@
 /* T10 — Minijuegos y huevos de pascua (07/11/2026). */
-/* Sin zoom por doble toque en el celular (se sigue pudiendo pellizcar). */
-html{touch-action:manipulation}
 .mj-card{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--card-bg);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:var(--radius);padding:12px 14px;margin:14px 0}
 .mj-card strong{display:block;color:var(--ink)}
 .mj-card-bloq{border-left-color:var(--bordeaux)}
