@@ -13,6 +13,7 @@ import { icon } from '../utils/icons.js';
 import { isInstalledApp, promptInstall } from '../utils/install-prompt.js';
 import { showAlert, showConfirm } from './dialog.js';
 import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
+import { reiniciarTour } from './tour.js';
 
   export function viewAsScopeOptionsHtml(role, current){
     var html = '';
@@ -243,6 +244,7 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
       // aparte, e instalar RDP en la pantalla de inicio (oculto si ya se
       // está usando instalada).
       html += '  <a class="user-menu-item" href="' + FORDOQUERA_URL + '" target="_blank" rel="noopener">' + icon('external-link') + ' Ir a la Fordoquera</a>';
+      html += '  <button class="user-menu-item" id="userMenuTourBtn" type="button">' + icon('sparkles') + ' Ver el tour de nuevo</button>';
       if(!isInstalledApp()){
         html += '  <button class="user-menu-item" id="userMenuInstallBtn" type="button">' + icon('smartphone') + ' Agregar a inicio</button>';
       }
@@ -296,6 +298,16 @@ import { openFordoqueraTraerLibros } from './fordoquera-embed.js';
         AppState.userProfileDraft = null;
         AppState.activeDayId = 'PERFIL';
         AppState.formOpen = false;
+        render();
+      };
+    }
+    var tourBtn = document.getElementById('userMenuTourBtn');
+    if(tourBtn){
+      tourBtn.onclick = function(){
+        AppState.userMenuOpen = false;
+        AppState.formOpen = false;
+        reiniciarTour();
+        AppState.activeDayId = 'HOME';
         render();
       };
     }

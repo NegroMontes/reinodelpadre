@@ -31,6 +31,7 @@ import { sincronizarMiRango } from './services/rangos.service.js';
 import { ensureLibretasSub, stopLibretasSub } from './services/libreta.service.js';
 import { renderPerfilPanel, attachPerfilEvents } from './views/perfil.js';
 import { iniciarHuevos } from './components/huevos.js';
+import { revisarTour } from './components/tour.js';
 import { saboteadorTrasRender } from './components/eventos.js';
 import { ensureTiendaConfigSub, ensureTiendaSubs, stopTiendaSubs, puedeVerTienda, tiendaConfig, setGrupoSubasta } from './services/tienda.service.js';
 
@@ -685,6 +686,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       panel.classList.add('panel-fade-in');
     }
     syncHashFromState();
+    revisarTour();
   }
 
   // Routing por hash (09/10/2026, pedido del usuario): escribe la URL a

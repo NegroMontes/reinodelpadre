@@ -39,7 +39,7 @@ function vez(clave){ try{ if(localStorage.getItem(clave)) return false; localSto
 // Aviso a pantalla completa con botones [{txt, fn, clase}]. De a uno: si
 // hay otro aviso o un juego abierto, espera su turno.
 var cola = [];
-function ocupado(){ return !!document.querySelector('.mj-evento, .mj-overlay, .mj-diana'); }
+function ocupado(){ return !!document.querySelector('.mj-evento, .mj-overlay, .mj-diana, .tour'); }
 function siguiente(){
   if(!cola.length) return;
   if(ocupado()) return setTimeout(siguiente, 1000);
