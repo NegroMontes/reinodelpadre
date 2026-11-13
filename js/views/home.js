@@ -4,7 +4,7 @@
 
 import { AppState } from '../app-state.js';
 import { CAMP_DURATION_DAYS } from '../config/constants.js';
-import { escapeHtml, linkify, estaOculta } from '../utils/helpers.js';
+import { escapeHtml, linkify, estaOculta, recursoCategorias, recursoCategoriaDe, recursoGrupoDe } from '../utils/helpers.js';
 import { canEditStructure, canSeeEntry, canCreateInfoGeneral } from '../services/permissions.js';
 import { save } from '../services/state.service.js';
 import { renderEntry } from '../components/entry.js';
@@ -125,10 +125,27 @@ import { openFordoqueraViewer } from '../components/fordoquera-embed.js';
   // T20 (05/11/2026): entradas ya publicadas que suman puntos o son
   // obligatorias para el próximo rango, que la persona todavía no completó.
   // Obligatorias primero. Tocar una la abre en la Fordoquera.
+  // Dónde está la entrada, con el camino completo (13/11/2026, pedido del
+  // usuario): «Recursos › Vida espiritual › Oraciones › <grupo>», «Mensaje › Día N».
   function lugarDe(e){
-    if(e.dayId === 'RESOURCES') return 'Recursos';
-    var d = (AppState.state.days || []).find(function(x){ return x.id === e.dayId; });
-    return d ? (d.label || d.title || d.name || '') : '';
+    var st = AppState.state;
+    if(e.dayId === 'RESOURCES'){
+      var cats = recursoCategorias(st), partes = [];
+      var c = cats.find(function(x){ return x.id === recursoCategoriaDe(e); });
+      if(c){
+        var madre = c.parent && cats.find(function(x){ return x.id === c.parent; });
+        if(madre) partes.push(madre.label);
+        partes.push(c.label);
+      }
+      var gid = recursoGrupoDe(st, e);
+      var g = gid && (st.recursoGrupos || []).find(function(x){ return x.id === gid; });
+      if(g && g.title) partes.push(g.title);
+      return ['Recursos'].concat(partes).join(' › ');
+    }
+    if(!e.dayId) return 'Departamentos';
+    var d = (st.days || []).find(function(x){ return x.id === e.dayId; });
+    var nombre = d ? (d.label || d.title || d.name || '') : '';
+    return nombre ? 'Mensaje › ' + nombre : 'Mensaje';
   }
 
   export function renderPendientesSection(){
