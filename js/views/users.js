@@ -118,6 +118,11 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
       html += '  <span>Links de cocina sin usar: <strong>' + (cl === null ? '…' : cl.length) + '</strong></span>';
       html += '  <button class="btn ghost small" id="cocinaNuevoBtn" type="button">Generar link</button>';
       html += '</div>';
+      // Plegable (13/11/2026): la lista de links ocupaba mucho lugar.
+      if(cl && cl.length){
+        html += '<details class="cocina-links-fold" id="cocinaLinksFold"' + (AppState.cocinaLinksOpen ? ' open' : '') + ' style="margin:0 0 6px">';
+        html += '<summary class="mandos-sub" style="cursor:pointer;margin:0 0 6px">Ver los links (' + cl.length + ')</summary>';
+      }
       (cl || []).forEach(function(c, i){
         var f = c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : '';
         html += '<div class="mandos-sub" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 6px 12px">';
@@ -126,6 +131,7 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
         html += '  <button class="btn ghost small" data-cocina-borrar="' + c.codigo + '" type="button">Borrar</button>';
         html += '</div>';
       });
+      if(cl && cl.length){ html += '</details>'; }
       html += '<p class="mandos-sub" style="margin:0 0 10px">Cada link sirve para <strong>una sola persona</strong>: entra directo como comando de cocina y el link se gasta. Generá uno por cada cocinero.</p>';
     }
 
@@ -311,6 +317,10 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
         borrarCodigoCocina(c).then(function(){ AppState.cocinaCodigos = (AppState.cocinaCodigos || []).filter(function(x){ return x.codigo !== c; }); renderPanel(); }).catch(function(e){ showAlert('No se pudo borrar: ' + e.message); });
       };
     });
+    var cocinaLinksFold = document.getElementById('cocinaLinksFold');
+    if(cocinaLinksFold){
+      cocinaLinksFold.addEventListener('toggle', function(){ AppState.cocinaLinksOpen = cocinaLinksFold.open; });
+    }
     var cocinaNuevoBtn = document.getElementById('cocinaNuevoBtn');
     if(cocinaNuevoBtn){
       cocinaNuevoBtn.onclick = function(){

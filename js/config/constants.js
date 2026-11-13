@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.13.6';
+  export var APP_VERSION = '2026.11.13.7';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.13.7', date: '13/11/2026', items: [
+      'Usuarios: la lista de links de cocina se puede plegar.'
+    ]},
     { version: '2026.11.13.6', date: '13/11/2026', items: [
       'Tour guiado: la primera vez en Inicio y en cada sección, un globito explica qué hay. Se vuelve a ver desde el menú del avatar.'
     ]},
