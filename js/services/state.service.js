@@ -6,6 +6,7 @@ import { onSnapshot, setDoc, doc, getDoc } from "https://www.gstatic.com/firebas
 import { stateDocRef, db } from '../config/firebase.js';
 import { AppState } from '../app-state.js';
 import { uid } from '../utils/helpers.js';
+import { aFirestore, deFirestore } from '../utils/firestore-arrays.js';
 import { decodeHash, applyHashNav } from '../utils/hash-router.js';
 import { irAEntrada } from './entry-link.js';
 import { canEditStructure, canEditConsigna } from './permissions.js';
@@ -146,7 +147,7 @@ import { showConfirm } from '../components/dialog.js';
   export function load(){
     AppState.unsubState = onSnapshot(stateDocRef, function(snap){
       if(snap.exists()){
-        AppState.state = normalizeState(snap.data());
+        AppState.state = normalizeState(deFirestore(snap.data()));
       } else if(snap.metadata.fromCache){
         // Con la caché del dispositivo, "no existe" puede solo querer decir
         // "todavía no está guardado acá" — nunca sembrar los datos por
@@ -187,7 +188,7 @@ import { showConfirm } from '../components/dialog.js';
 
   export async function save(silent){
     try{
-      await setDoc(stateDocRef, AppState.state);
+      await setDoc(stateDocRef, aFirestore(AppState.state));
     }catch(e){
       console.error('Firestore setDoc error:', e);
       if(!silent){ showStatus('No se pudo guardar. Probá de nuevo.'); }
