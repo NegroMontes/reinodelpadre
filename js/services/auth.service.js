@@ -58,7 +58,7 @@ import { render } from '../main.js';
       if(snap.exists()){
         var data = snap.data();
         AppState.pendingFbUser = null;
-        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, comentaDiseno: !!data.comentaDiseno, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta', cupulaIcon: data.cupulaIcon || '', consagradoIconChoice: data.consagradoIconChoice || '', rango: data.rango || 0, avance: (data.avance != null ? data.avance : null), obligPendientes: (Array.isArray(data.obligPendientes) ? data.obligPendientes : null), hijoBiblico: data.hijoBiblico || '', hijosDesbloqueados: (Array.isArray(data.hijosDesbloqueados) ? data.hijosDesbloqueados : []), juegos: (data.juegos && typeof data.juegos === 'object') ? data.juegos : {}, tour: (data.tour && typeof data.tour === 'object') ? data.tour : {} };
+        AppState.currentUser = { uid: fbUser.uid, email: fbUser.email, displayName: data.displayName || fbUser.displayName || fbUser.email, role: data.role, seccion: data.seccion || null, depto: data.depto || null, readDepartamentos: !!data.readDepartamentos, esFormacion: !!data.esFormacion, comentaDiseno: !!data.comentaDiseno, tipo: data.tipo || null, actividadFavorita: data.actividadFavorita || '', rucaFundacion: data.rucaFundacion || '', photoURL: fbUser.photoURL || null, deptoIconChoice: data.deptoIconChoice || 'fasta', cupulaIcon: data.cupulaIcon || '', consagradoIconChoice: data.consagradoIconChoice || '', rango: data.rango || 0, avance: (data.avance != null ? data.avance : null), obligPendientes: (Array.isArray(data.obligPendientes) ? data.obligPendientes : null), hijoBiblico: data.hijoBiblico || '', hijosDesbloqueados: (Array.isArray(data.hijosDesbloqueados) ? data.hijosDesbloqueados : []), juegos: (data.juegos && typeof data.juegos === 'object') ? data.juegos : {}, tour: (data.tour && typeof data.tour === 'object') ? data.tour : {}, vistoNovedades: data.vistoNovedades || 0, vistoUsuarios: data.vistoUsuarios || 0 };
         // `photoURL` nunca se guardaba en el perfil de Firestore — solo
         // vivía en memoria (`AppState.currentUser.photoURL`, sacado del
         // objeto de Auth en vivo), así que cualquier OTRA persona que
@@ -104,6 +104,11 @@ import { render } from '../main.js';
       if(AppState.currentUser && AppState.usersSeenAtLoadedForUid !== AppState.currentUser.uid){
         AppState.usersSeenAt = loadUsersSeenAt(AppState.currentUser.uid);
         AppState.usersSeenAtLoadedForUid = AppState.currentUser.uid;
+      }
+      // Lo visto en otro sitio (Netlify/GitHub Pages) o dispositivo llega por el perfil.
+      if(AppState.currentUser){
+        AppState.novedadesSeenAt = Math.max(AppState.novedadesSeenAt || 0, AppState.currentUser.vistoNovedades || 0);
+        AppState.usersSeenAt = Math.max(AppState.usersSeenAt || 0, AppState.currentUser.vistoUsuarios || 0);
       }
       AppState.authResolved = true;
       if(AppState.currentUser && AppState.currentUser.role === 'admin'){ watchUsers(); watchFeedback(); }

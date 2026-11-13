@@ -6,6 +6,7 @@ import { SECCIONES, DEPARTAMENTOS, DEPARTAMENTO_ICONS, CONSAGRADO_ICONS, VIEW_AS
 import { escapeHtml, roleLabel, roleLabelScoped, activityIcon, fechaNovedad } from '../utils/helpers.js';
 import { userBadgeInnerHtml, cupulaIconOptionsHtml } from '../utils/badge-icons.js';
 import { saveNovedadesSeenAt } from '../utils/storage.js';
+import { guardarVisto } from '../services/vistos.service.js';
 import { lectorModeActive, realIsAdmin, isComandoNonAdmin, canSeeEntry } from '../services/permissions.js';
 import { signOutUser, updateMyProfile } from '../services/auth.service.js';
 import { render } from '../main.js';
@@ -114,7 +115,7 @@ import { reiniciarTour } from './tour.js';
           AppState.novedadesSeenAt = Date.now(); // marca como vistas -> el globo rojo desaparece
           // Persistido (pedido del usuario, 22/09/2026) — así sigue "visto" al
           // recargar la página o volver a entrar, no solo durante esta sesión.
-          if(AppState.currentUser){ saveNovedadesSeenAt(AppState.currentUser.uid, AppState.novedadesSeenAt); }
+          if(AppState.currentUser){ saveNovedadesSeenAt(AppState.currentUser.uid, AppState.novedadesSeenAt); guardarVisto('vistoNovedades', AppState.novedadesSeenAt); }
         }
         renderAuthBar();
       };

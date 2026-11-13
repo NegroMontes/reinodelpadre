@@ -23,6 +23,7 @@ import { realIsAdmin, effectiveRole, effectiveSeccion, effectiveDepto, isAdmin, 
 import { AppState } from './app-state.js';
 import { uid, escapeHtml, linkify, alignStyleAttr, roleLabel } from './utils/helpers.js';
 import { saveNovedadesSeenAt, saveUsersSeenAt, saveTheme } from './utils/storage.js';
+import { guardarVisto } from './services/vistos.service.js';
 import { encodeHash, decodeHash, applyHashNav } from './utils/hash-router.js';
 import { irAEntrada } from './services/entry-link.js';
 import { icon } from './utils/icons.js';
@@ -610,7 +611,7 @@ export let render, renderDayRail, showStatus, currentPageLabel, renderPanel;
       var latestUserCreatedAt = AppState.usersList.reduce(function(max, u){ return Math.max(max, u.createdAt || 0); }, 0);
       if(latestUserCreatedAt > AppState.usersSeenAt){
         AppState.usersSeenAt = Date.now();
-        if(AppState.currentUser){ saveUsersSeenAt(AppState.currentUser.uid, AppState.usersSeenAt); }
+        if(AppState.currentUser){ saveUsersSeenAt(AppState.currentUser.uid, AppState.usersSeenAt); guardarVisto('vistoUsuarios', AppState.usersSeenAt); }
       }
       return;
     }
