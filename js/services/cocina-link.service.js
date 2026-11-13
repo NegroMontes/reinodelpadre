@@ -16,15 +16,15 @@ var CLAVE = 'rdpCocina';
   try{
     var m = location.search.match(/[?&]cocina=([A-Za-z0-9]+)/);
     if(m){
-      sessionStorage.setItem(CLAVE, m[1]);
+      localStorage.setItem(CLAVE, m[1]);
       var q = location.search.replace(/([?&])cocina=[A-Za-z0-9]+&?/, '$1').replace(/[?&]$/, '');
       history.replaceState(null, '', location.pathname + q + location.hash);
     }
   }catch(e){}
 })();
 
-export function codigoCocina(){ try{ return sessionStorage.getItem(CLAVE) || ''; }catch(e){ return ''; } }
-export function olvidarCodigoCocina(){ try{ sessionStorage.removeItem(CLAVE); }catch(e){} }
+export function codigoCocina(){ try{ return localStorage.getItem(CLAVE) || ''; }catch(e){ return ''; } }
+export function olvidarCodigoCocina(){ try{ localStorage.removeItem(CLAVE); }catch(e){} }
 
 export function codigoCocinaValido(codigo){
   if(!codigo) return Promise.resolve(false);

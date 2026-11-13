@@ -45,10 +45,11 @@ import { showAlert } from '../components/dialog.js';
   // independientes desde el 10/10/2026 — antes un solo checkbox hacía las
   // dos cosas, lo que metía a cualquiera con el botón habilitado dentro de
   // "Comando de Formación" en Mi comando, aunque no fuera de ese depto.
-  export async function setUserRole(uid, role, seccion, depto, readDepartamentos, esFormacion, actividadFavorita, comentaDiseno){
+  export async function setUserRole(uid, role, seccion, depto, readDepartamentos, esFormacion, actividadFavorita, comentaDiseno, declaradoComo){
     try{
       var data = { role: role, seccion: seccion || null, depto: depto || null, readDepartamentos: !!readDepartamentos, esFormacion: !!esFormacion, comentaDiseno: !!comentaDiseno };
       if(actividadFavorita !== undefined) data.actividadFavorita = actividadFavorita;
+      if(declaradoComo){ data.declaradoComo = declaradoComo; data.verificado = true; }
       await setDoc(doc(db, 'users', uid), data, { merge: true });
     }catch(e){
       console.error('No se pudo actualizar el usuario:', e);

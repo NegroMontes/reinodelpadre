@@ -256,7 +256,7 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
         var v = 'depto:' + d;
         html += '<option value="' + escapeHtml(v) + '"' + (u.depto===d ? ' selected':'') + '>' + escapeHtml(d) + '</option>';
       });
-      html += '</optgroup></select></td>';
+      html += '</optgroup><option value="cocina"' + (u.declaradoComo === 'Comando de cocina' && !u.seccion && !u.depto ? ' selected' : '') + '>Comando de cocina</option></select></td>';
       html += '  <td style="text-align:center"><input type="checkbox" class="uReadDeptos"' + (u.readDepartamentos ? ' checked' : '') + ' title="Ve la pestaña Departamentos en modo lectura (pensado para consagrados)"></td>';
       html += '  <td style="text-align:center"><input type="checkbox" class="uEsFormacion"' + (u.esFormacion ? ' checked' : '') + ' title="Membresía real de Formación — aparece en &quot;Mi comando&quot; bajo Comando de Formación y ve entradas de Mensaje de Formación. No tildar para dar solo el botón de Comentarios."></td>';
       html += '  <td style="text-align:center"><input type="checkbox" class="uComentaDiseno"' + (u.comentaDiseno ? ' checked' : '') + ' title="Ve el botón flotante de Comentarios (diseño/estética), sin ningún otro efecto."></td>';
@@ -405,6 +405,12 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
         var comentaDiseno = row.querySelector('.uComentaDiseno').checked;
         var actividadInput = row.querySelector('.uActividad');
         var actividad = actividadInput ? actividadInput.value.trim() : '';
+        // «Comando de cocina» a mano (13/11/2026): subjefe sin sección.
+        if(scopeVal === 'cocina'){
+          if(role === 'pendiente'){ role = 'subjefe'; }
+          setUserRole(uidVal, role, null, null, readDeptos, esFormacion, actividad, comentaDiseno, 'Comando de cocina');
+          return;
+        }
         if(role === 'jefe_seccion' && !seccion && !depto){
           showAlert('Elegí una sección o un departamento para ese rol.');
           return;
