@@ -170,8 +170,10 @@ function open(opts){
         if(opts.onSinSoporte) opts.onSinSoporte();
         return;
       }
-      // Para elegir libros no hace falta mandarle los nuestros.
-      (opts.modo === 'traerLibros' ? Promise.resolve(null) : librosParaAbrir(opts.modo, espacio)).then(function(libros){
+      // Para elegir libros o traer espacios no hace falta mandarle los
+      // nuestros (13/11/2026: en el celular tardaba en bajarlos antes de
+      // abrir; al traer, la Fordoquera saca de tu Drive los que falten).
+      ((opts.modo === 'traerLibros' || opts.modo === 'traer') ? Promise.resolve(null) : librosParaAbrir(opts.modo, espacio)).then(function(libros){
         var msg = {
           fq: 'abrir',
           espacio: espacio,
