@@ -100,10 +100,9 @@ import { RECURSO_CATEGORIAS } from '../config/constants.js';
     { k: ['trekking', 'caminata', 'montanismo', 'senderismo', 'marcha'], icon: '🥾' },
     { k: ['acampar', 'campamento', 'carpa'], icon: '⛺' },
     { k: ['forja', 'obstaculo'], icon: '🏃' },
-    { k: ['olimpiada'], icon: '🗡️' },
-    { k: ['cruz del norte'], icon: '⚔️' },
+    { k: ['olimp', 'campeador', 'el cid', 'cruz del norte', 'cruz norte', 'cruzdelnorte'], icon: '🗡️' },
     { k: ['copa'], icon: '🏆' },
-    { k: ['ascension'], icon: '⛰️' },
+    { k: ['ascen', 'asen', 'acen'], icon: '⛰️' },
     { k: ['misa', 'eucaristia'], icon: '⛪' },
     { k: ['rezar', 'orar', 'oracion', 'capilla', 'adoracion'], icon: '🙏' },
     { k: ['dormir', 'siesta'], icon: '😴' },
@@ -151,10 +150,13 @@ import { RECURSO_CATEGORIAS } from '../config/constants.js';
     if(norm.indexOf('vertientes') !== -1){
       return '<img class="activity-flag-icon" src="assets/bandera-argentina.svg" alt="Argentina" style="width:16px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;display:inline-block;">';
     }
+    var compact = norm.replace(/[^a-z0-9]/g, '');
     for(var i = 0; i < ACTIVITY_ICONS.length; i++){
       var group = ACTIVITY_ICONS[i];
       for(var j = 0; j < group.k.length; j++){
         if(norm.indexOf(group.k[j]) !== -1) return group.icon;
+        // Sin espacios ni signos, para tomar «CruzDelNorte», «Cruz-del-Norte», etc.
+        if(compact.indexOf(group.k[j].replace(/[^a-z0-9]/g, '')) !== -1) return group.icon;
       }
     }
     return '⭐';

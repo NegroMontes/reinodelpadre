@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.14.4';
+  export var APP_VERSION = '2026.11.14.5';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.14.5', date: '14/11/2026', items: [
+      'Actividades favoritas: Cruz del Norte lleva la misma espada que Olimpiadas, y los íconos reconocen nombres parecidos (sin acentos, con errores comunes o escritos todo junto).'
+    ]},
     { version: '2026.11.14.4', date: '14/11/2026', items: [
       'Actividades favoritas: Cruz del Norte (espadas) y Copa Estilo (copa) ya tienen ícono.'
     ]},
