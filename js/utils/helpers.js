@@ -102,6 +102,7 @@ import { RECURSO_CATEGORIAS } from '../config/constants.js';
     { k: ['forja', 'obstaculo'], icon: '🏃' },
     { k: ['olimp', 'campeador', 'el cid', 'cruz del norte', 'cruz norte', 'cruzdelnorte'], icon: '🗡️' },
     { k: ['copa'], icon: '🏆' },
+    { k: ['raft', 'rafitng', 'kayak', 'canoa', 'gomon'], icon: '🚣' },
     { k: ['ascen', 'asen', 'acen'], icon: '⛰️' },
     { k: ['misa', 'eucaristia'], icon: '⛪' },
     { k: ['rezar', 'orar', 'oracion', 'capilla', 'adoracion'], icon: '🙏' },
