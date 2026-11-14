@@ -29,7 +29,7 @@
   // Sub-lugares con dirección propia (07/11/2026, pedido del usuario):
   //   recursos/<categoría>[/<grupo>]
   //   recursos/cancionero[/ver[/<canto>] | /misas | /misa/<id>]
-  //   departamentos/<depto>   mandos/micomando|tablero   usuarios/milicianos|secciones
+  //   departamentos/<depto>   mandos/micomando|tablero   usuarios/milicianos|secciones[/<uid>]
   // `nav` es AppState (o algo con los mismos campos).
   function seg(x){ return encodeURIComponent(x); }
 
@@ -58,6 +58,7 @@
       parts.push(nav.mandosActiveSubTab);
     } else if(tab === 'USERS' && (nav.usersActiveSubTab === 'milicianos' || nav.usersActiveSubTab === 'secciones')){
       parts.push(nav.usersActiveSubTab);
+      if(nav.usersActiveSubTab === 'secciones' && nav.usersSeccionUid) parts.push(seg(nav.usersSeccionUid));
     }
     return parts.join('/');
   }
@@ -85,7 +86,7 @@
     }
     else if(tab === 'DEPARTAMENTOS' && parts[1]){ out.deptoFiltro = parts[1]; }
     else if(tab === 'MANDOS' && (parts[1] === 'micomando' || parts[1] === 'tablero')){ out.mandosSub = parts[1]; }
-    else if(tab === 'USERS' && (parts[1] === 'milicianos' || parts[1] === 'secciones')){ out.usersSub = parts[1]; }
+    else if(tab === 'USERS' && (parts[1] === 'milicianos' || parts[1] === 'secciones')){ out.usersSub = parts[1]; if(parts[1] === 'secciones' && parts[2]) out.usersUid = parts[2]; }
     return out;
   }
 
@@ -102,4 +103,5 @@
     app.activeDeptoFiltro = t.deptoFiltro;
     app.mandosActiveSubTab = t.mandosSub;
     app.usersActiveSubTab = t.usersSub;
+    app.usersSeccionUid = t.usersUid || null;
   }

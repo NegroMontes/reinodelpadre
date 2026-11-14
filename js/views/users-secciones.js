@@ -5,7 +5,8 @@
 
 import { AppState } from '../app-state.js';
 import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
-import { escapeHtml } from '../utils/helpers.js';
+import { escapeHtml, roleLabelScoped } from '../utils/helpers.js';
+import { icon } from '../utils/icons.js';
 import { HIJOS_BIBLICOS } from '../config/test-hijo-biblico.js';
 import { MINIJUEGOS_TITULOS } from '../config/minijuegos-catalogo.js';
 import { calcularRango, entradasQueCuentan, progresoDe, rangoUmbrales, rangoNombre, puntosDisponibles, alDia, misObligatoriasPendientes, puntosDe } from '../services/rangos.service.js';
@@ -68,33 +69,61 @@ function gruposOrdenados(){
   });
 }
 
-function detalleHtml(u, grupo, d){
-  var html = '<div class="us-detalle">';
-  html += miComandoCardHtml(u, grupo);
-  html += '<div class="us-detalle-grid">';
-  // Rango y puntos
-  html += '<div class="us-bloque"><h4>Rango y puntos</h4>';
-  html += '<p><span class="rango-chip rango-' + d.r.rango + '">' + escapeHtml(d.r.nombre) + '</span></p>';
-  if(!d.lib) html += '<p class="mandos-sub">Todavía no abrió la página desde que existen los puntos.</p>';
-  html += '<p class="mandos-sub">Al día: <strong>' + (d.alDia == null ? '—' : d.alDia + '%') + '</strong> · ' + d.disp.puntos + ' de ' + d.disp.total + ' puntos disponibles</p>';
-  html += '<p class="mandos-sub">Camino entero: ' + d.r.puntos + ' de ' + d.r.total + ' puntos (' + d.r.porcentaje + '%)';
-  if(d.r.siguiente && d.r.siguiente.faltanPuntos) html += ' · faltan ' + d.r.siguiente.faltanPuntos + ' para «' + escapeHtml(rangoNombre(d.r.siguiente.rango)) + '»';
-  html += '</p>';
-  if(d.lib){
-    var gE = Number(d.lib.gE) || 0, gas = Number(d.lib.gastado) || 0;
-    html += '<p class="mandos-sub">Beneficios: ganó ' + gE + ' por entradas + ' + d.bonus + ' bonus · gastó ' + gas + '</p>';
+function barraHtml(d){
+  var r = d.r;
+  if(!r.total) return '';
+  var um = [0].concat(rangoUmbrales(AppState.state)), avance = 100;
+  if(r.siguiente){
+    var pct = r.puntos / r.total * 100, desde = um[r.rango - 1], hasta = um[r.rango];
+    avance = hasta > desde ? Math.max(0, Math.min(100, (pct - desde) / (hasta - desde) * 100)) : 100;
   }
-  if(d.oblig.length){
-    var porId = {}; (AppState.state.entries || []).forEach(function(e){ porId[e.id] = e; });
-    html += '<p class="mandos-sub"><strong>Obligatorias sin completar:</strong></p><ul class="us-lista">';
-    d.oblig.forEach(function(id){ html += '<li>' + escapeHtml((porId[id] && porId[id].title) || id) + '</li>'; });
-    html += '</ul>';
-  }
+  var roja = avance >= 100 && r.siguiente && r.siguiente.obligatoriasPendientes.length;
+  return '<div class="perfil-barra' + (roja ? ' perfil-barra-roja' : '') + '"><span style="width:' + Math.round(avance) + '%"></span></div>';
+}
+
+// Página de una persona (como el Perfil), con botón para volver a Secciones.
+export function renderPersonaHtml(){
+  var u = (AppState.usersList || []).find(function(x){ return x.uid === AppState.usersSeccionUid; });
+  if(!u) return '';
+  var grupo = grupoSubastaDe(u) || 'Comando central', d = datosDe(u);
+  var porId = {}; (AppState.state.entries || []).forEach(function(e){ porId[e.id] = e; });
+  var html = '<div id="usPersona">';
+  html += '<button type="button" class="recursos-back" id="usVolverBtn">' + icon('chevron-left') + ' Secciones · ' + escapeHtml(grupo) + '</button>';
+  html += '<div class="panel-head"><div><h2>' + escapeHtml(u.displayName || u.email || '') + '</h2>';
+  html += '<p class="mandos-sub">' + escapeHtml(roleLabelScoped(u)) + ' · ' + escapeHtml(grupo) + '</p></div>';
+  html += '<button type="button" class="btn ghost small" id="usCerrarBtn" title="Cerrar">' + icon('x') + ' Cerrar</button></div>';
+  html += '<div class="perfil-grid">';
+  // Tarjeta (como en Mi comando) + datos
+  html += '<div class="home-card perfil-card"><h3>Su tarjeta</h3>' + miComandoCardHtml(u, grupo);
+  if(u.email) html += '<p class="mandos-sub" style="margin-top:8px">' + escapeHtml(u.email) + '</p>';
+  if(u.actividadFavorita) html += '<p class="mandos-sub">Actividad favorita: ' + escapeHtml(u.actividadFavorita) + '</p>';
   var hj = HIJOS_BIBLICOS[u.hijoBiblico];
   if(hj) html += '<p class="mandos-sub">Hijo bíblico: ' + escapeHtml(hj.nombre) + '</p>';
   html += '</div>';
+  // Rango
+  html += '<div class="home-card perfil-card"><h3>Rango</h3>';
+  html += '<span class="rango-chip rango-' + d.r.rango + '">' + escapeHtml(d.r.nombre) + '</span>';
+  if(!d.lib) html += '<p class="mandos-sub">Todavía no abrió la página desde que existen los puntos.</p>';
+  html += '<p class="perfil-aldia">Al día: <strong>' + (d.alDia == null ? '—' : d.alDia + '%') + '</strong></p>';
+  html += '<div class="perfil-puntos"><span class="mandos-sub">' + d.disp.puntos + ' de ' + d.disp.total + ' puntos disponibles</span>';
+  if(d.r.siguiente && d.r.siguiente.faltanPuntos) html += '<span class="mandos-sub">' + d.r.siguiente.faltanPuntos + ' hasta «' + escapeHtml(rangoNombre(d.r.siguiente.rango)) + '»</span>';
+  html += '</div>' + barraHtml(d);
+  html += '<p class="mandos-sub">Camino entero: ' + d.r.puntos + ' de ' + d.r.total + ' puntos (' + d.r.porcentaje + '%)</p>';
+  if(d.oblig.length){
+    html += '<p class="mandos-sub perfil-obligatorias-titulo">Obligatorias sin completar</p><ul class="perfil-obligatorias">';
+    d.oblig.forEach(function(id){ html += '<li><span class="perfil-tilde"></span>' + escapeHtml((porId[id] && porId[id].title) || id) + '</li>'; });
+    html += '</ul>';
+  }
+  html += '</div>';
+  // Beneficios
+  if(d.lib){
+    var gE = Number(d.lib.gE) || 0, gas = Number(d.lib.gastado) || 0;
+    html += '<div class="home-card perfil-card"><h3>Puntos para Beneficios</h3>';
+    html += '<p>Ganó <strong>' + gE + '</strong> por entradas y <strong>' + d.bonus + '</strong> bonus de minijuegos.</p>';
+    html += '<p class="mandos-sub">Gastó ' + gas + '.</p></div>';
+  }
   // Entradas completadas
-  html += '<div class="us-bloque"><h4>Entradas completadas (' + d.hechas.length + ')</h4>';
+  html += '<div class="home-card perfil-card"><h3>Entradas completadas (' + d.hechas.length + ')</h3>';
   if(!d.hechas.length) html += '<p class="mandos-sub">Ninguna todavía.</p>';
   else {
     html += '<ul class="us-lista">';
@@ -107,7 +136,7 @@ function detalleHtml(u, grupo, d){
   html += '</div>';
   // Minijuegos
   var claves = Object.keys(d.juegos).sort(function(a, b){ return (Number(d.juegos[b]) || 0) - (Number(d.juegos[a]) || 0); });
-  html += '<div class="us-bloque"><h4>Minijuegos (' + claves.length + ' · ' + d.bonus + ' bonus)</h4>';
+  html += '<div class="home-card perfil-card"><h3>Minijuegos (' + claves.length + ' · ' + d.bonus + ' bonus)</h3>';
   if(!claves.length) html += '<p class="mandos-sub">Ninguno todavía.</p>';
   else {
     html += '<ul class="us-lista">';
@@ -121,10 +150,11 @@ function detalleHtml(u, grupo, d){
   return html;
 }
 
+var scrollSecciones = 0;
 export function renderSeccionesHtml(){
   var grupos = gruposOrdenados();
   if(!grupos.length) return '<p class="empty">Todavía no hay nadie aprobado.</p>';
-  var html = '<p class="mandos-sub">Tocá una sección o departamento para ver a su gente, y a una persona para ver su detalle.</p>';
+  var html = '<p class="mandos-sub">Tocá una sección o departamento para ver a su gente, y a una persona para abrir su página.</p>';
   grupos.forEach(function(g){
     var datos = g.miembros.map(function(u){ return { u: u, d: datosDe(u) }; });
     var conDato = datos.filter(function(x){ return x.d.alDia != null; });
@@ -144,8 +174,7 @@ export function renderSeccionesHtml(){
     if(abierto){
       html += '<div class="users-table-wrap"><table class="users-table us-tabla"><thead><tr><th>Nombre</th><th>Rango</th><th>Al día</th><th>Puntos</th><th>Entradas</th><th>Juegos</th><th>Oblig.</th></tr></thead><tbody>';
       datos.forEach(function(x){
-        var sel = AppState.usersSeccionUid === x.u.uid;
-        html += '<tr class="us-fila' + (sel ? ' sel' : '') + '" data-us-uid="' + escapeHtml(x.u.uid) + '">';
+                html += '<tr class="us-fila" data-us-uid="' + escapeHtml(x.u.uid) + '">';
         html += '<td>' + escapeHtml(x.u.displayName || x.u.email || '') + '</td>';
         html += '<td>' + (x.d.lib ? '<span class="rango-chip rango-chip-sm rango-' + x.d.r.rango + '">' + escapeHtml(x.d.r.nombre) + '</span>' : '<span class="mandos-sub">sin datos</span>') + '</td>';
         html += '<td>' + (x.d.alDia == null ? '—' : x.d.alDia + '%') + '</td>';
@@ -154,7 +183,6 @@ export function renderSeccionesHtml(){
         html += '<td>' + x.d.nJuegos + '</td>';
         html += '<td>' + (x.d.oblig.length ? '<span class="us-alerta">' + x.d.oblig.length + '</span>' : '—') + '</td>';
         html += '</tr>';
-        if(sel) html += '<tr class="us-fila-detalle"><td colspan="7">' + detalleHtml(x.u, g.nombre, x.d) + '</td></tr>';
       });
       html += '</tbody></table></div>';
     }
@@ -169,15 +197,25 @@ export function attachSeccionesEvents(){
       ev.preventDefault();
       var n = det.getAttribute('data-us-grupo');
       AppState.usersSeccionOpen = AppState.usersSeccionOpen === n ? null : n;
-      AppState.usersSeccionUid = null;
       renderPanel();
     };
   });
   document.querySelectorAll('[data-us-uid]').forEach(function(tr){
     tr.onclick = function(){
-      var uid = tr.getAttribute('data-us-uid');
-      AppState.usersSeccionUid = AppState.usersSeccionUid === uid ? null : uid;
+      scrollSecciones = window.scrollY;
+      AppState.usersSeccionUid = tr.getAttribute('data-us-uid');
       renderPanel();
+      window.scrollTo(0, 0);
+    };
+  });
+  ['usVolverBtn', 'usCerrarBtn'].forEach(function(id){
+    var b = document.getElementById(id);
+    if(b) b.onclick = function(){
+      var u = (AppState.usersList || []).find(function(x){ return x.uid === AppState.usersSeccionUid; });
+      if(u) AppState.usersSeccionOpen = grupoSubastaDe(u) || 'Comando central';
+      AppState.usersSeccionUid = null;
+      renderPanel();
+      window.scrollTo(0, scrollSecciones);
     };
   });
 }

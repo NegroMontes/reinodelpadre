@@ -79,6 +79,12 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
   var seccionesMod = null;
 
   export function renderUsersPanel(){
+    // Una persona abierta desde Secciones: su propia página, como el Perfil.
+    if(AppState.usersActiveSubTab === 'secciones' && AppState.usersSeccionUid && seccionesMod){
+      var ph = seccionesMod.renderPersonaHtml();
+      if(ph) return ph;
+      AppState.usersSeccionUid = null;
+    }
     var html = '';
     html += '<div class="panel-head"><div><h2>Usuarios</h2></div>';
     html += '<button class="btn ghost small" id="copyUsersBtn" type="button">Copiar actividades</button>';
@@ -339,7 +345,7 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
         generarCodigoCocina().then(function(c){ (AppState.cocinaCodigos = AppState.cocinaCodigos || []).push({ codigo: c, createdAt: Date.now() }); renderPanel(); }).catch(function(e){ showAlert('No se pudo generar: ' + e.message); });
       };
     }
-    if(seccionesMod && document.getElementById('usSecciones')) seccionesMod.attachSeccionesEvents();
+    if(seccionesMod && (document.getElementById('usSecciones') || document.getElementById('usPersona'))) seccionesMod.attachSeccionesEvents();
     var toggleMiliBtn = document.getElementById('toggleMilicianosLoginBtn');
     if(toggleMiliBtn){
       toggleMiliBtn.onclick = function(){
