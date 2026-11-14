@@ -126,11 +126,23 @@ export function sincronizarAdmin(){
   if(!ops.length && !cambiaLista) return;
   sincAdmin = true;
   var lote = writeBatch(db);
-  ops.slice(0, 450).forEach(function(o){
+  ops = ops.slice(0, 50); // de a 50 por lote: cada una puede sumar una escritura por libreta
+  ops.forEach(function(o){
     if(o[0] === 'set') lote.set(doc(db, 'puntosEntradas', o[1]), { puntos: o[2] });
     else lote.delete(doc(db, 'puntosEntradas', o[1]));
   });
   if(cambiaLista) lote.set(doc(db, 'juegosValidos', 'lista'), { claves: claves });
+  // Si cambiaron los puntos de una entrada, se corrige lo ganado (`gE`) de
+  // quienes ya la habían completado (14/11/2026): si no, su saldo de
+  // Beneficios quedaba con el valor viejo.
+  var delta = {};
+  ops.forEach(function(o){ delta[o[1]] = (o[0] === 'set' ? o[2] : 0) - (Number(hay[o[1]]) || 0); });
+  var libs = AppState.libretas || {};
+  Object.keys(libs).forEach(function(uid){
+    var ent = (libs[uid] && libs[uid].entradas) || {};
+    var d = Object.keys(ent).reduce(function(s, id){ return s + (delta[id] || 0); }, 0);
+    if(d){ lote.set(libretaRef(uid), { gE: increment(d) }, { merge: true }); }
+  });
   lote.commit().catch(function(e){ console.error('No se pudieron actualizar los puntos de las entradas:', e); })
     .finally(function(){ setTimeout(function(){ sincAdmin = false; }, 2000); });
 }

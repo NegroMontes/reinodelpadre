@@ -109,6 +109,12 @@ import { render } from '../main.js';
       });
       AppState.myProgress = mine;
       AppState.myProgressLoaded = true;
+      // Llegó al final pero cerró la página antes de los 30 s que pide la
+      // regla (14/11/2026): se marca completada ahora.
+      Object.keys(mine).forEach(function(id){
+        var x = mine[id], ab = msDe(x.abiertoEn);
+        if(x.terminado && !x.completedAt && ab != null) programarCompletado(id, ab + ESPERA_MS - Date.now());
+      });
       scheduleRender();
     }, function(err){
       console.error('No se pudo suscribir a tu avance:', err);
@@ -202,7 +208,7 @@ import { render } from '../main.js';
     try{
       var data = camposBase(entryId);
       data.paso = msg.paso; data.pasos = msg.pasos; data.respuestas = msg.respuestas || {};
-      if(msg.completado) quizasCompletar(entryId, data);
+      if(msg.completado){ data.terminado = true; quizasCompletar(entryId, data); }
       await setDoc(progressDocRef(entryId), data, { merge: true });
     }catch(e){ delete abiertoEnviado[entryId]; console.error('No se pudo guardar el progreso de la Fordoquera:', e); }
   }
