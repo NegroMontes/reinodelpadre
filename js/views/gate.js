@@ -327,7 +327,7 @@ import { codigoCocina } from '../services/cocina-link.service.js';
       // un render() de paso (ej. un onSnapshot que no cambió nada real)
       // no debe pisar la partida del minijuego que la persona ya empezó.
       if(!gate.querySelector('.gate-pendiente')){
-        gate.innerHTML = '<div class="gate-box gate-pendiente"><h2>Cuenta registrada</h2><p>Hola ' + escapeHtml(AppState.currentUser.displayName) + ', tu cuenta ya quedó guardada. Pedile a alguien de For.Doc. que te habilite el ingreso.</p>' + renderPendienteGameHtml() + '</div>';
+        gate.innerHTML = '<div class="gate-box gate-pendiente"><h2>Cuenta registrada</h2><p>Hola ' + escapeHtml(AppState.currentUser.displayName) + ', tu cuenta ya quedó guardada. Pedile a alguien de For.Doc. (<a href="https://wa.me/1165688726" target="_blank" rel="noopener" style="color:var(--ink)">Negro</a> - <a href="https://wa.me/1132493806" target="_blank" rel="noopener" style="color:var(--ink)">Owen</a>) que te habilite el ingreso.</p>' + renderPendienteGameHtml() + '</div>';
         attachPendienteGameEvents();
       }
       return true;
