@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.14.7';
+  export var APP_VERSION = '2026.11.14.8';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.14.8', date: '14/11/2026', items: [
+      'Registro: si alguien escribe su segundo apellido y en el cuadro de mandos no figura, igual lo reconoce.'
+    ]},
     { version: '2026.11.14.7', date: '14/11/2026', items: [
       'Registro: reconoce apodos y diminutivos (Juani, Nacho, Seba, Tomi, Juanma…) al buscar el nombre en el cuadro de mandos.'
     ]},

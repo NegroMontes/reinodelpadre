@@ -129,7 +129,22 @@ import { normalizeName } from './helpers.js';
     // comienzo de la palabra o diminutivo con -i/-o/-ito). Solo vale si
     // queda un único candidato.
     var flojo = index.filter(function(e){ return calzaFlojo(tokens, e.tokens); });
-    return flojo.length === 1 ? flojo[0] : null;
+    if(flojo.length === 1) return flojo[0];
+    if(flojo.length > 1) return null;
+
+    // Paso 5 (14/11/2026, pedido del usuario: «Santi Soria Nodales» para
+    // «Santiago Soria»): una palabra escrita de más (típicamente el segundo
+    // apellido, que la resolución no trae). Se prueba sacando una sola
+    // palabra, quedando al menos dos; vale si hay un único candidato.
+    if(tokens.length < 3) return null;
+    var extra = index.filter(function(e){
+      for(var i = 0; i < tokens.length; i++){
+        var resto = tokens.slice(0, i).concat(tokens.slice(i + 1));
+        if(calzaFlojo(resto, e.tokens)) return true;
+      }
+      return false;
+    });
+    return extra.length === 1 ? extra[0] : null;
   }
 
   // Apodos comunes → nombre(s) real(es), ya normalizados (sin acentos).
