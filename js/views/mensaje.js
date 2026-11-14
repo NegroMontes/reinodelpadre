@@ -114,8 +114,8 @@ import { showConfirm, showAlert } from '../components/dialog.js';
   var GRUPO_ICONOS = [
     { id: 'folder', label: 'Carpeta' },
     { id: 'house', label: 'Casa' },
-    { id: 'img:escuderos', label: 'Escudo de Escuderos', src: 'assets/escudo-escuderos.png' },
-    { id: 'img:templarios', label: 'Escudo de Templarios', src: 'assets/escudo-templarios.png' },
+    { id: 'img:escuderos', label: 'Escudo de Escuderos', src: 'assets/escudo-escuderos.png?v=2' },
+    { id: 'img:templarios', label: 'Escudo de Templarios', src: 'assets/escudo-templarios.png?v=2' },
     { id: 'cross', label: 'Cruz' },
     { id: 'book-open', label: 'Biblia' },
     { id: 'praying-hands', label: 'Manos rezando' },

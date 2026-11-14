@@ -42,10 +42,10 @@ import { icon } from './icons.js';
 export function sectionShieldHtml(seccion){
   if(!seccion) return '';
   if(seccion === 'Escuderos'){
-    return '<img src="assets/escudo-escuderos.png" alt="Escuderos" style="width:100%;height:100%;object-fit:contain;">';
+    return '<img src="assets/escudo-escuderos.png?v=2" alt="Escuderos" style="width:100%;height:100%;object-fit:contain;">';
   }
   if(seccion.indexOf('Templarios') === 0){
-    return '<img src="assets/escudo-templarios.png" alt="Templarios" style="width:100%;height:100%;object-fit:contain;">';
+    return '<img src="assets/escudo-templarios.png?v=2" alt="Templarios" style="width:100%;height:100%;object-fit:contain;">';
   }
   return '';
 }
