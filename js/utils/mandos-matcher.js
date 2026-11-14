@@ -120,7 +120,73 @@ import { normalizeName } from './helpers.js';
         return e.tokens.some(function(et){ return wordsAreClose(t, et); });
       });
     });
-    return fuzzy.length === 1 ? fuzzy[0] : null;
+    if(fuzzy.length === 1) return fuzzy[0];
+    if(fuzzy.length > 1) return null;
+
+    // Paso 4 (14/11/2026, pedido del usuario: «Juani» en vez de «Juan
+    // Ignacio»): apodos y diminutivos. Cada palabra escrita tiene que
+    // corresponder a una palabra distinta del nombre real (apodo conocido,
+    // comienzo de la palabra o diminutivo con -i/-o/-ito). Solo vale si
+    // queda un único candidato.
+    var flojo = index.filter(function(e){ return calzaFlojo(tokens, e.tokens); });
+    return flojo.length === 1 ? flojo[0] : null;
+  }
+
+  // Apodos comunes → nombre(s) real(es), ya normalizados (sin acentos).
+  var APODOS = {
+    juani: ['juan ignacio', 'juan'], juanma: ['juan manuel'], juampi: ['juan pablo'], juampa: ['juan pablo'],
+    juancho: ['juan'], juanchi: ['juan'], juanfra: ['juan francisco'], juanjo: ['juan jose'], juancru: ['juan cruz'],
+    nacho: ['ignacio'], nachito: ['ignacio'], pancho: ['francisco'], paco: ['francisco'], fran: ['francisco'], franco: ['francisco'],
+    pepe: ['jose'], josema: ['jose maria'], chema: ['jose maria'], joaco: ['joaquin'], santi: ['santiago'],
+    tomi: ['tomas'], tomy: ['tomas'], fede: ['federico'], nico: ['nicolas'], facu: ['facundo'], agus: ['agustin'],
+    seba: ['sebastian'], lucho: ['luis'], mati: ['matias'], rami: ['ramiro'], gonza: ['gonzalo'], maxi: ['maximiliano', 'maximo'],
+    gabi: ['gabriel'], gaby: ['gabriel'], benja: ['benjamin'], rodri: ['rodrigo'], manu: ['manuel'], valen: ['valentin'],
+    guille: ['guillermo'], alejo: ['alejandro'], ale: ['alejandro'], pato: ['patricio'], cris: ['cristian', 'cristobal'],
+    lauti: ['lautaro'], bauti: ['bautista'], tincho: ['martin'], tino: ['martin', 'valentin'], gaston: ['gaston'],
+    beto: ['alberto', 'roberto'], quique: ['enrique'], kike: ['enrique'], pipe: ['felipe'], feli: ['felipe'],
+    lolo: ['lorenzo', 'manuel'], lean: ['leandro'], leo: ['leonardo', 'leandro'], emi: ['emiliano', 'emilio'],
+    mauri: ['mauricio'], dani: ['daniel'], fer: ['fernando'], nando: ['fernando'], hernan: ['hernan'],
+    toto: ['ernesto', 'antonio'], tony: ['antonio'], toni: ['antonio'], alfi: ['alfonso'], rafa: ['rafael'],
+    ezequi: ['ezequiel'], eze: ['ezequiel'], tobi: ['tobias'], iñaki: ['ignacio'], inaki: ['ignacio'],
+    vicen: ['vicente'], gero: ['geronimo'], fito: ['rodolfo', 'adolfo'], cholo: ['diego']
+  };
+
+  // ¿La palabra escrita `t` puede ser la palabra real `et`?
+  function palabraCalza(t, et){
+    if(t === et || wordsAreClose(t, et)) return true;
+    if(t.length >= 3 && et.indexOf(t) === 0) return true;          // «Seba» → sebastian
+    var raiz = t.replace(/(ito|cito|i|y|o)$/, '');                  // «Tomi» → tom, «Juani» → juan
+    if(raiz.length >= 3 && raiz !== t && et.indexOf(raiz) === 0) return true;
+    return false;
+  }
+
+  // Cada palabra escrita se asigna a una palabra distinta del nombre real.
+  // Un apodo compuesto («Juanma») puede ocupar dos palabras seguidas.
+  function calzaFlojo(tokens, reales){
+    function prueba(i, usados){
+      if(i === tokens.length) return true;
+      var t = tokens[i];
+      var opciones = (APODOS[t] || []).map(function(x){ return x.split(' '); });
+      for(var o = 0; o < opciones.length; o++){
+        var partes = opciones[o];
+        for(var k = 0; k + partes.length <= reales.length; k++){
+          var ok = true;
+          for(var p = 0; p < partes.length; p++){
+            if(usados[k + p] || reales[k + p] !== partes[p]){ ok = false; break; }
+          }
+          if(!ok) continue;
+          var u2 = usados.slice(); for(p = 0; p < partes.length; p++) u2[k + p] = true;
+          if(prueba(i + 1, u2)) return true;
+        }
+      }
+      for(var j = 0; j < reales.length; j++){
+        if(usados[j] || !palabraCalza(t, reales[j])) continue;
+        var u3 = usados.slice(); u3[j] = true;
+        if(prueba(i + 1, u3)) return true;
+      }
+      return false;
+    }
+    return prueba(0, []);
   }
 
 
