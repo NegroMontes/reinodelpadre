@@ -158,7 +158,7 @@ import { showAlert, showConfirm } from '../components/dialog.js';
   // `grupo` es el mando ya resuelto por `comandoGrupoDe()` — un admin nunca
   // tiene `seccion`/`depto` propios (ver más arriba), así que sin esto su
   // tarjeta quedaba sin ninguna etiqueta de mando.
-  function miComandoCardHtml(u, grupo){
+  export function miComandoCardHtml(u, grupo){
     var avatar = u.photoURL
       ? '<img class="micomando-avatar-img" src="' + escapeHtml(u.photoURL) + '" alt="">'
       : '<span class="micomando-avatar-fallback">' + icon('user') + '</span>';

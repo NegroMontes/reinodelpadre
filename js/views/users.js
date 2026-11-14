@@ -76,6 +76,8 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
   }
 
 
+  var seccionesMod = null;
+
   export function renderUsersPanel(){
     var html = '';
     html += '<div class="panel-head"><div><h2>Usuarios</h2></div>';
@@ -99,7 +101,17 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
     html += '<div class="users-subtabs">';
     html += '  <button type="button" class="day-pill' + (AppState.usersActiveSubTab==='comando' ? ' active':'') + '" data-subtab="comando">Comando (' + comandoCount + ')</button>';
     html += '  <button type="button" class="day-pill' + (AppState.usersActiveSubTab==='milicianos' ? ' active':'') + '" data-subtab="milicianos">Milicianos (' + milicianosCount + ')</button>';
+    html += '  <button type="button" class="day-pill' + (AppState.usersActiveSubTab==='secciones' ? ' active':'') + '" data-subtab="secciones">Secciones</button>';
     html += '</div>';
+
+    // Secciones (14/11/2026): seguimiento de puntos por sección/depto, en un
+    // módulo aparte que se baja recién al abrirla.
+    if(AppState.usersActiveSubTab === 'secciones'){
+      if(seccionesMod) return html + '<div id="usSecciones">' + seccionesMod.renderSeccionesHtml() + '</div>';
+      import('./users-secciones.js').then(function(m){ seccionesMod = m; if(AppState.activeDayId === 'USERS') renderPanel(); })
+        .catch(function(e){ console.error('No se pudo cargar Secciones:', e); });
+      return html + '<p class="mandos-sub">Cargando…</p>';
+    }
 
     // Ocultar/mostrar el autologueo de milicianos (pedido del usuario,
     // 26/09/2026): mientras el campamento arma su propia página para ellos,
@@ -327,6 +339,7 @@ import { codigosCocinaSinUsar, generarCodigoCocina, borrarCodigoCocina, linkDeCo
         generarCodigoCocina().then(function(c){ (AppState.cocinaCodigos = AppState.cocinaCodigos || []).push({ codigo: c, createdAt: Date.now() }); renderPanel(); }).catch(function(e){ showAlert('No se pudo generar: ' + e.message); });
       };
     }
+    if(seccionesMod && document.getElementById('usSecciones')) seccionesMod.attachSeccionesEvents();
     var toggleMiliBtn = document.getElementById('toggleMilicianosLoginBtn');
     if(toggleMiliBtn){
       toggleMiliBtn.onclick = function(){

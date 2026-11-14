@@ -29,7 +29,7 @@
   // Sub-lugares con dirección propia (07/11/2026, pedido del usuario):
   //   recursos/<categoría>[/<grupo>]
   //   recursos/cancionero[/ver[/<canto>] | /misas | /misa/<id>]
-  //   departamentos/<depto>   mandos/micomando|tablero   usuarios/milicianos
+  //   departamentos/<depto>   mandos/micomando|tablero   usuarios/milicianos|secciones
   // `nav` es AppState (o algo con los mismos campos).
   function seg(x){ return encodeURIComponent(x); }
 
@@ -56,8 +56,8 @@
       parts.push(seg(nav.activeDeptoFiltro));
     } else if(tab === 'MANDOS' && (nav.mandosActiveSubTab === 'micomando' || nav.mandosActiveSubTab === 'tablero')){
       parts.push(nav.mandosActiveSubTab);
-    } else if(tab === 'USERS' && nav.usersActiveSubTab === 'milicianos'){
-      parts.push('milicianos');
+    } else if(tab === 'USERS' && (nav.usersActiveSubTab === 'milicianos' || nav.usersActiveSubTab === 'secciones')){
+      parts.push(nav.usersActiveSubTab);
     }
     return parts.join('/');
   }
@@ -85,7 +85,7 @@
     }
     else if(tab === 'DEPARTAMENTOS' && parts[1]){ out.deptoFiltro = parts[1]; }
     else if(tab === 'MANDOS' && (parts[1] === 'micomando' || parts[1] === 'tablero')){ out.mandosSub = parts[1]; }
-    else if(tab === 'USERS' && parts[1] === 'milicianos'){ out.usersSub = 'milicianos'; }
+    else if(tab === 'USERS' && (parts[1] === 'milicianos' || parts[1] === 'secciones')){ out.usersSub = parts[1]; }
     return out;
   }
 

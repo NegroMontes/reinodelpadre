@@ -162,3 +162,33 @@
 .user-row-pendiente{ background:rgba(255,164,29,0.16); }
 
 .user-row-pendiente td{ border-bottom-color:rgba(255,164,29,0.35); }
+
+/* Usuarios → Secciones (14/11/2026) */
+.us-grupo{ background:var(--card-bg); border:1px solid var(--line); border-radius:var(--radius); margin:0 0 10px; padding:0; box-shadow:var(--shadow-sm); }
+.us-grupo > summary{ cursor:pointer; padding:12px 14px; display:flex; flex-direction:column; gap:4px; list-style:none; }
+.us-grupo > summary::-webkit-details-marker{ display:none; }
+.us-grupo > summary strong{ font-size:16px; }
+.us-grupo[open] > summary{ border-bottom:1px solid var(--line); }
+.us-resumen{ font-size:13px; color:var(--ink-soft); }
+.us-chips{ display:flex; flex-wrap:wrap; gap:4px; }
+.us-alerta{ color:var(--bordeaux); font-weight:600; }
+.us-grupo .users-table-wrap{ padding:6px 10px 10px; }
+.us-fila{ cursor:pointer; }
+.us-fila:hover td, .us-fila.sel td{ background:var(--bg); }
+.us-fila-detalle > td{ padding:0 !important; }
+.us-detalle{ padding:12px; display:flex; flex-direction:column; gap:12px; background:var(--bg); }
+.us-detalle .micomando-card{ max-width:420px; }
+.us-detalle-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
+.us-bloque{ background:var(--card-bg); border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px 12px; }
+.us-bloque h4{ margin:0 0 8px; font-size:14px; }
+.us-bloque p{ margin:0 0 6px; }
+.us-lista{ list-style:none; margin:0; padding:0; max-height:260px; overflow:auto; }
+.us-lista li{ display:flex; justify-content:space-between; gap:8px; padding:4px 0; border-top:1px solid var(--line); font-size:13px; }
+.us-lista li:first-child{ border-top:none; }
+.us-lista-der{ white-space:nowrap; }
+@media (max-width:600px){
+  .us-tabla th:nth-child(n+5), .us-tabla .us-fila td:nth-child(n+5){ display:none; }
+  .us-grupo .users-table-wrap{ padding:4px 2px 8px; }
+  .us-detalle{ padding:8px; }
+  .us-detalle-grid{ grid-template-columns:1fr; }
+}

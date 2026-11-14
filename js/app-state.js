@@ -101,7 +101,8 @@ export const AppState = {
   usersFilterScope: '', // '' | 'seccion:X' | 'depto:Y'
   usersSortField: 'fecha', // '' | 'nombre' | 'fecha'
   usersSortDir: 'desc', // 'asc' | 'desc'
-  usersActiveSubTab: 'comando', // 'comando' | 'milicianos'
+  usersActiveSubTab: 'comando', // 'comando' | 'milicianos' | 'secciones'
+  usersSeccionOpen: null, usersSeccionUid: null,
   unsubProfile: null,
   unsubState: null,
   stateSubscribed: false, // para no suscribirnos a fordoc/shared hasta tener un rol autorizado
