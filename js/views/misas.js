@@ -8,7 +8,8 @@
 import { AppState } from '../app-state.js';
 import { escapeHtml, uid } from '../utils/helpers.js';
 import { icon } from '../utils/icons.js';
-import { isAdmin } from '../services/permissions.js';
+import { isAdmin, canSeeEntry } from '../services/permissions.js';
+import { SECCIONES, DEPARTAMENTOS } from '../config/constants.js';
 import { ensureMisasSub, saveMisa, deleteMisa } from '../services/cancionero.service.js';
 import { showAlert, showConfirm } from '../components/dialog.js';
 import { nuevoPdf, entregarPdf, PDF_COLOR } from '../utils/pdf-texto.js';
@@ -64,13 +65,70 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     return isAdmin() || (!!AppState.currentUser && m.uid === AppState.currentUser.uid);
   }
 
+  // «Visible para» (14/11/2026, pedido del usuario): mismo criterio que una
+  // entrada de Recursos (secciones, departamentos, «Todos los comandos»,
+  // «Solo el comando»). Sin nada elegido = todos. Quien la creó y el admin
+  // la ven siempre.
+  function canSeeMisa(m){
+    if(isAdmin() || (AppState.currentUser && m.uid === AppState.currentUser.uid)) return true;
+    return canSeeEntry({ dayId: 'RESOURCES', secciones: m.secciones || [], deptos: m.deptos || [],
+      comandoGeneral: !!m.comandoGeneral, seccionesComandoOnly: !!m.seccionesComandoOnly });
+  }
+
+  function misasVisibles(){ return AppState.misas.filter(canSeeMisa); }
+
+  function visibleResumen(d){
+    var parts = [];
+    if(d.comandoGeneral) parts.push('Todos los comandos');
+    parts = parts.concat(d.secciones || [], d.deptos || []);
+    return parts.length ? parts.join(', ') : 'Comando y milicianos (por defecto)';
+  }
+
+  function visibleParaHtml(d){
+    var html = '<div class="form-row"><label>Visible para</label>';
+    html += '<details class="ambito-dropdown" id="misaAmbito"' + (AppState.misaAmbitoOpen ? ' open' : '') + '><summary><span id="misaAmbitoTxt">' + escapeHtml(visibleResumen(d)) + '</span></summary>';
+    html += '<div class="ambito-picker">';
+    html += '<label class="ambito-general-check"><input type="checkbox" data-mv="general"' + (d.comandoGeneral ? ' checked' : '') + '> Todos los comandos</label>';
+    html += '<div class="ambito-groups"><div class="ambito-group"><p class="ambito-group-title">Secciones</p>';
+    SECCIONES.forEach(function(s){
+      html += '<label><input type="checkbox" data-mv="secciones" value="' + escapeHtml(s) + '"' + ((d.secciones || []).indexOf(s) !== -1 ? ' checked' : '') + '> ' + escapeHtml(s) + '</label>';
+    });
+    html += '</div><div class="ambito-group"><p class="ambito-group-title">Departamentos</p>';
+    DEPARTAMENTOS.forEach(function(x){
+      html += '<label><input type="checkbox" data-mv="deptos" value="' + escapeHtml(x) + '"' + ((d.deptos || []).indexOf(x) !== -1 ? ' checked' : '') + '> ' + escapeHtml(x) + '</label>';
+    });
+    html += '</div></div>';
+    html += '<div class="ambito-comando-only-row"><label class="ambito-general-check"><input type="checkbox" data-mv="comandoOnly"' + (d.seccionesComandoOnly ? ' checked' : '') + '> Solo el comando de la(s) sección(es) elegida(s) (no milicianos)</label></div>';
+    html += '</div></details></div>';
+    return html;
+  }
+
+  function bindVisiblePara(panel, d){
+    var det = document.getElementById('misaAmbito');
+    if(det) det.ontoggle = function(){ AppState.misaAmbitoOpen = det.open; };
+    panel.querySelectorAll('[data-mv]').forEach(function(cb){
+      cb.onchange = function(){
+        var k = cb.getAttribute('data-mv');
+        if(k === 'general') d.comandoGeneral = cb.checked;
+        else if(k === 'comandoOnly') d.seccionesComandoOnly = cb.checked;
+        else {
+          var arr = (d[k] || []).filter(function(x){ return x !== cb.value; });
+          if(cb.checked) arr.push(cb.value);
+          d[k] = arr;
+        }
+        var t = document.getElementById('misaAmbitoTxt');
+        if(t) t.textContent = visibleResumen(d);
+      };
+    });
+  }
+
   function fecha(ts){
     return ts ? new Date(ts).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   }
 
   export function misasCountTxt(){
     ensureMisasSub();
-    var n = AppState.misas.length;
+    var n = misasVisibles().length;
     return n ? n + ' misa' + (n === 1 ? '' : 's') + ' armada' + (n === 1 ? '' : 's') : 'Armá el repertorio';
   }
 
@@ -82,7 +140,7 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     ensureMisasSub();
     var v = AppState.cancioneroVista;
     if(v === 'misaEdit' && AppState.misaDraft){ renderEditor(); return; }
-    var misa = v === 'misa' && AppState.misas.find(function(m){ return m.id === AppState.misaId; });
+    var misa = v === 'misa' && misasVisibles().find(function(m){ return m.id === AppState.misaId; });
     if(misa){ renderMisa(misa); return; }
     if(v === 'misa' && !AppState.misasLoaded){ document.getElementById('panel').innerHTML = '<p class="empty">Cargando…</p>'; return; }
     AppState.cancioneroVista = 'misas';
@@ -95,7 +153,7 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     var html = backBtn('Cancionero');
     html += '<div class="panel-head"><div><h2>Misas</h2><p class="mandos-sub">Armá el repertorio de una misa con los cantos del cancionero.</p></div>';
     html += '<div class="recursos-head-actions"><button type="button" class="btn small" id="misaNewBtn">+ Crear misa</button></div></div>';
-    var misas = AppState.misas.slice().sort(function(a, b){ return (b.createdAt || 0) - (a.createdAt || 0); });
+    var misas = misasVisibles().sort(function(a, b){ return (b.createdAt || 0) - (a.createdAt || 0); });
     if(!AppState.misasLoaded){
       html += '<p class="empty">Cargando…</p>';
     } else if(!misas.length){
@@ -114,7 +172,8 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     panel.innerHTML = html;
     document.getElementById('misasBackBtn').onclick = function(){ AppState.cancioneroVista = ''; renderPanel(); };
     document.getElementById('misaNewBtn').onclick = function(){
-      AppState.misaDraft = { nombre: '', subtitulo: '', tipo: '', momentos: {} };
+      AppState.misaDraft = { nombre: '', subtitulo: '', tipo: '', momentos: {}, secciones: [], deptos: [], comandoGeneral: false, seccionesComandoOnly: false };
+      AppState.misaAmbitoOpen = false;
       AppState.cancioneroVista = 'misaEdit';
       renderPanel();
       window.scrollTo(0, 0);
@@ -176,7 +235,8 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     var html = backBtn('Misas');
     html += '<div class="panel-head"><div><h2>' + escapeHtml(m.nombre) + '</h2>';
     if(m.subtitulo) html += '<p class="misa-subtitulo">' + escapeHtml(m.subtitulo) + '</p>';
-    html += '<p class="mandos-sub">Creada por ' + escapeHtml(m.autor || '—') + ' · ' + fecha(m.createdAt) + '<br>' + escapeHtml(tipoLabel(m.tipo)) + '</p></div>';
+    html += '<p class="mandos-sub">Creada por ' + escapeHtml(m.autor || '—') + ' · ' + fecha(m.createdAt) + '<br>' + escapeHtml(tipoLabel(m.tipo)) +
+      (canEditMisa(m) ? '<br>Visible para: ' + escapeHtml(visibleResumen(m)) : '') + '</p></div>';
     var hayAcordes = filasDe(m).some(function(f){ return f.canto && f.canto.conAcordes; });
     html += '</div>';
     html += '<div class="canto-tools misa-tools">' + acordesToggleHtml(hayAcordes) + tamLetraHtml() + '<button type="button" class="btn small canto-tool" id="misaPdfBtn">' + icon('download') + ' PDF</button>';
@@ -373,6 +433,7 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
       html += '<h3 class="canto-cat-title">Datos</h3>';
       html += '<div class="form-row"><label for="misaNombre">Nombre</label><input type="text" id="misaNombre" placeholder="Ej: Misa del jueves" value="' + escapeHtml(d.nombre) + '"></div>';
       html += '<div class="form-row"><label for="misaSubtitulo">Subtítulo (opcional)</label><input type="text" id="misaSubtitulo" placeholder="Ej: Temática: el Bautismo" value="' + escapeHtml(d.subtitulo) + '"></div>';
+      html += visibleParaHtml(d);
       html += '<div class="form-actions misa-edit-actions"><button type="button" class="btn ghost" id="misaCancelBtn">Cancelar</button>' +
         '<button type="button" class="btn" id="misaSaveBtn">Guardar misa</button></div>';
     }
@@ -393,6 +454,7 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
     var subtitulo = document.getElementById('misaSubtitulo');
     nombre.oninput = function(){ d.nombre = nombre.value; };
     subtitulo.oninput = function(){ d.subtitulo = subtitulo.value; };
+    bindVisiblePara(panel, d);
     panel.querySelectorAll('[data-quitar]').forEach(function(btn){
       btn.onclick = function(){
         var p = btn.getAttribute('data-quitar').split(':');
@@ -422,6 +484,10 @@ import { norm, catLabel, sortedCantos, textoDe, letraHtml, acordesBadge, acordes
         subtitulo: (d.subtitulo || '').trim(),
         tipo: d.tipo,
         momentos: momentos,
+        secciones: (d.secciones || []).slice(),
+        deptos: (d.deptos || []).slice(),
+        comandoGeneral: !!d.comandoGeneral,
+        seccionesComandoOnly: !!d.seccionesComandoOnly,
         uid: d.uid || AppState.currentUser.uid,
         autor: d.autor || AppState.currentUser.displayName || '',
         createdAt: d.createdAt || Date.now()

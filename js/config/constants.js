@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.13.8';
+  export var APP_VERSION = '2026.11.14.1';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.14.1', date: '14/11/2026', items: [
+      'Misas: al crearlas se puede elegir para quién son visibles, igual que las entradas.'
+    ]},
     { version: '2026.11.13.8', date: '13/11/2026', items: [
       'Las novedades vistas quedan vistas en todos los links de la página (Netlify y GitHub) y en todos tus dispositivos.'
     ]},
