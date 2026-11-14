@@ -3,7 +3,7 @@
 
 import { AppState } from '../app-state.js';
 import { RANGOS } from '../config/constants.js';
-import { escapeHtml } from '../utils/helpers.js';
+import { escapeHtml, fechaCorta, estaOculta, recursoCategoriaDe, recursoGrupoDe, recursoCategorias } from '../utils/helpers.js';
 import { realIsAdmin } from '../services/permissions.js';
 import { save } from '../services/state.service.js';
 import { rangoUmbrales, rangoNombres, miRango, entradasQueCuentan, puntosDe, obligatoriaRangoDe } from '../services/rangos.service.js';
@@ -39,6 +39,7 @@ import { showAlert, showConfirm } from './dialog.js';
       '  <p class="mandos-sub recurso-dialog-error" id="rangoError" hidden>Cada porcentaje tiene que ser de 0 a 100 y no menor que el anterior.</p>' +
       '  <p class="mandos-sub" style="margin:12px 0 0">' + entradas.length + ' entradas cuentan para vos (publicadas y programadas): ' + conPuntaje + ' con puntaje, ' + obligatorias + ' obligatoria' + (obligatorias === 1 ? '' : 's') + '.</p>' +
       '  <p style="margin:6px 0 0">' + prueba + '</p>' +
+      '  <button type="button" class="rango-link" id="rangoResumenBtn">Copiar resumen de puntos y obligatorias</button>' +
       '  <button type="button" class="rango-link" id="rangoCalendarioBtn">Poner puntos según el calendario de publicación</button>' +
       '  <button type="button" class="rango-link" id="rangoMigrarBtn">Pasar los puntos al sistema nuevo (libretas)</button>' +
       '  <div class="app-dialog-actions" style="margin-top:16px">' +
@@ -52,6 +53,12 @@ import { showAlert, showConfirm } from './dialog.js';
     document.addEventListener('keydown', onKey);
     overlay.onclick = function(e){ if(e.target === overlay) close(); };
     overlay.querySelector('#rangoCancelBtn').onclick = close;
+    overlay.querySelector('#rangoResumenBtn').onclick = async function(){
+      var txt = resumenRangos();
+      close();
+      try{ await navigator.clipboard.writeText(txt); await showAlert('Resumen copiado. Pegalo en el chat.'); }
+      catch(e){ await showAlert('No se pudo copiar solo. Copialo de acá:\n\n' + txt); }
+    };
     overlay.querySelector('#rangoCalendarioBtn').onclick = async function(){
       var mod = await import('../services/calendario-publicacion.js');
       var plan = mod.planPuntos();
@@ -83,3 +90,28 @@ import { showAlert, showConfirm } from './dialog.js';
   }
 
   function inp100(x){ return isFinite(x) && x >= 0 && x <= 100 && x === Math.floor(x); }
+
+  // Resumen en texto (14/11/2026): rangos + cada entrada con puntos,
+  // obligatoria, publicación y para quién es — para pasarlo rápido al chat.
+  function resumenRangos(){
+    var st = AppState.state, u = rangoUmbrales(st), nombres = rangoNombres(st);
+    var out = ['RANGOS'];
+    nombres.forEach(function(n, i){ out.push((i + 1) + ' ' + n + ': ' + (i ? u[i - 1] + '%' : 'inicio')); });
+    out.push('', 'ENTRADAS (título | lugar | puntos | obligatoria | publicación | visible para)');
+    var cats = {};
+    try{ recursoCategorias(st).forEach(function(c){ cats[c.id] = c.label; }); }catch(e){}
+    var dias = {};
+    (st.days || []).forEach(function(d, i){ dias[d.id] = 'Día ' + (i + 1); });
+    (st.entries || []).filter(function(e){ return !e.deletedAt; }).forEach(function(e){
+      var lugar;
+      if(e.dayId === 'RESOURCES'){
+        var gid = recursoGrupoDe(st, e), g = gid && (st.recursoGrupos || []).find(function(x){ return x.id === gid; });
+        lugar = 'Recursos › ' + (cats[recursoCategoriaDe(e)] || recursoCategoriaDe(e)) + (g ? ' › ' + g.title : '');
+      } else lugar = dias[e.dayId] || e.dayId;
+      var pub = e.publishAt ? (estaOculta(e) ? 'programada ' : 'publicada ') + fechaCorta(e.publishAt) : (estaOculta(e) ? 'oculta sin fecha' : 'publicada');
+      var obl = obligatoriaRangoDe(e);
+      var para = e.comandoGeneral ? 'todos' : [].concat(e.secciones || [], e.deptos || []).join(', ') || 'todos';
+      out.push('- ' + (e.title || (e.espacio && e.espacio.title) || '(sin título)') + ' | ' + lugar + ' | ' + puntosDe(e) + ' | ' + (obl ? obl + ' ' + nombres[obl - 1] : '-') + ' | ' + pub + ' | ' + para);
+    });
+    return out.join('\n');
+  }
