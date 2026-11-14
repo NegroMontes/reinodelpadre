@@ -140,7 +140,7 @@
     { id: 'otros', label: 'Otros cantos' }
   ];
 
-  export var APP_VERSION = '2026.11.14.2';
+  export var APP_VERSION = '2026.11.14.3';
 
   // Rangos «en hijos» (T13, decidido por el usuario 03/11/2026): el camino del
   // hijo menor de la parábola. `umbral` = % de puntos por default para llegar
@@ -160,6 +160,9 @@
   // día que `APP_VERSION` — lista corta, van quedando las últimas
   // novedades, más viejo abajo.
   export var CHANGELOG = [
+    { version: '2026.11.14.3', date: '14/11/2026', items: [
+      'Actividades favoritas: Olimpiadas (espada) y Ascensión (montaña) ya tienen ícono.'
+    ]},
     { version: '2026.11.14.2', date: '14/11/2026', items: [
       'Los escudos de Escuderos y Templarios estaban al revés: ya están corregidos.'
     ]},
